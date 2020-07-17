@@ -130,7 +130,10 @@
   * **find  /  -size  +20M**
   * **find  /  -name  ***google*****   相当于模糊查询
 * 查找 **grep**指令  **grep  "root"  test.json**  在test.json中查找root关键字
-* 解压  **tar  -zxvf  jdk1.8.tar.gz  -C  /usr/local**  解压到指定目录。其中 **-C**参数必须大写
+* 解压  **tar  -zxvf  jdk1.8.tar.gz  -C  /usr/local**  解压到指定目录。其中 **-C**参数必须大写。如果拓展名只有 **tar**不是 **tar.gz**就不用加 **z**
+* 查看进程 **ps  -ef  |  grep  java **  ps是process status的缩写
+* 查看所有进程 **ps  -aux**
+* 强制停止进程 **kill  -9  2442**
 
 
 
@@ -166,7 +169,28 @@
   * **rpm**   直接安装
     * `rpm -ivh --prefix=/usr/local/java jdk1.8.rpm`  指定安装目录
   * **yum**  在线安装
-* 打开端口
-  * ``
 * 注意事项
   * linux系统下的可执行文件是 **.sh** 文件，在目录下执行 **./startup.sh**就可以执行这个shell脚本可执行文件
+
+******************
+
+## rpm安装MySQL
+
+* 查看rpm已经安装的软件 **rpm  -qa  |  grep  mariadb**  q表示查询，a表示所用
+* 删除已经安装的应用 **rpm  -e  mariadb-libs-5.5.60-1.el7_5.x86_64  --nodeps**。其中 **--nodeps**表示深度卸载
+* 用yum安装依赖 **yum install libaio**
+* 解压压缩包 **tar  -xvf  mysql.8.0.19.tar**  。只以 **tar** 结尾的就不用 **-z**命令
+* 安装 **rpm  -ivh  mysql -community-server.rpm**  之间有依赖关系，先安装那个不一定
+* 初始化  **mysqld --initialize**
+* 打开mysql服务 **service  mysqld  start**
+* 查看mysql服务状态 **service  mysqld  status**
+* 后续步骤
+  * 查看初始密码
+  * 登录mysql
+  * 改复杂密码
+  * 设置密码等级为LOW
+  * 改简单密码
+  * 修改密码为永不过期
+  * 设置可以远程访问
+  * 安全组打开3306端口
+  * 远程登录使用
