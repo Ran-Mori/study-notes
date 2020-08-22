@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ViewModel</string>
+    <string name="add">add</string>
+    <string name="sub">sub</string>
+</resources>
