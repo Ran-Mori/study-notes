@@ -5,6 +5,8 @@
 ## bug记录
 
 * gradle下载不了，进入 **https://services.gradle.org/distributions/**下载完成后拖入 **C:\users\izumi\.gradle\……**
+* 自定义的ViewModel不能设置构造函数，否则会出现应用无法进入闪退现象
+* 篮球计分板两个队撤销操作不用区分上一次操作的是谁，直接把两个之前的值都存下来，赋值就行。没有变化的项相当于重复赋了一次值
 
 
 
@@ -103,3 +105,185 @@ public class MyViewModel extends ViewModel {
 }
 ```
 
+
+
+
+
+## DataBinding-xml绑定到MainActivity
+
+* gradle配置文件打开databinding
+
+```json
+defaultConfig {
+    dataBinding {
+        enabled true
+    }
+}
+```
+
+* layout的XML文件切换为dataBinding模式
+* MainActivity部分
+
+```java 
+public class MainActivity extends AppCompatActivity {
+    private MyViewModel myViewModel;
+
+    //当切换成DataBinding模式后会自动创建一个以那个XML文件名为类名的类
+    private ActivityMainBinding binding;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        //注释掉本身的这句话
+        //setContentView(R.layout.activity_main);
+
+        //设置binding
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+        //和上一个项目一样
+        myViewModel = ViewModelProviders.of(this).get(MyViewModel.class);
+
+        myViewModel.getMutableLiveDataInteger().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                binding.textView.setText(String.valueOf(integer));
+            }
+        });
+
+        binding.button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myViewModel.increase();
+            }
+        });
+      }
+}
+```
+
+
+
+## DataBinding-全部绑定到XML
+
+* xml文件
+
+  ```XML
+  <?xml version="1.0" encoding="utf-8"?>
+  <layout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools">
+  
+      <data>
+          <variable
+              name="myViewModel"
+              type="com.databinding.MyViewModel" />
+      </data>
+  
+  
+          <TextView
+              android:text="@{String.valueOf(myViewModel.getMutableLiveDataInteger().getValue())}"/>
+  
+          <Button
+              android:onClick="@{()->myViewModel.increase()}" />
+  
+      </androidx.constraintlayout.widget.ConstraintLayout>
+  </layout>
+  ```
+
+* MainActivity文件
+
+  ```java
+  public class MainActivity extends AppCompatActivity {
+      private MyViewModel myViewModel;
+  
+      //当切换成DataBinding模式后会自动创建一个以那个XML文件名为类名的类
+      private ActivityMainBinding binding;
+  
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+  
+          //注释掉本身的这句话
+          //setContentView(R.layout.activity_main);
+  
+          //设置binding
+          binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+  
+          //和上一个项目一样
+          myViewModel = ViewModelProviders.of(this).get(MyViewModel.class);
+  
+          //进行必要的设置
+          binding.setMyViewModel(myViewModel);
+          binding.setLifecycleOwner(this);
+  
+        }
+  }
+  ```
+
+
+
+## 保存ViewModel状态，非持久化
+
+* 引入依赖
+
+  ```json
+  implementation 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0'
+  ```
+
+* ViewModel
+
+  ```java
+  public class MyViewModel extends ViewModel {
+      private SavedStateHandle handle;
+      public MyViewModel(SavedStateHandle handle){
+          this.handle=handle;
+      }
+      public MutableLiveData<Integer> getMutableLiveDataInteger() {
+          if (!handle.contains("number"))
+              handle.set("number",0);
+          return handle.getLiveData("number");
+      }
+  
+  
+      public void increase(){
+          getMutableLiveDataInteger().setValue(getMutableLiveDataInteger().getValue()+1);
+      }
+  }
+  ```
+
+* MainActivity
+
+  ```java
+  public class MainActivity extends AppCompatActivity {
+      private MyViewModel myViewModel;
+  
+      //当切换成DataBinding模式后会自动创建一个以那个XML文件名为类名的类
+      private ActivityMainBinding binding;
+  
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+  
+          //设置binding
+          binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+  
+          //可以使用，但过时了
+          //myViewModel = ViewModelProviders.of(this,new SavedStateViewModelFactory(getApplication(),this)).get(MyViewModel.class);
+  
+          //无法创建，但是最新的写法
+          //myViewModel = new ViewModelProvider(this).get(MyViewModel.class);
+  
+          //可以使用
+          myViewModel = new SavedStateViewModelFactory(getApplication(), this).create(MyViewModel.class);
+  
+          //进行必要的设置
+          binding.setMyViewModel(this.myViewModel);
+          binding.setLifecycleOwner(this);
+        }
+  
+  }
+  ```
+
+
+
+## 永久持久化
