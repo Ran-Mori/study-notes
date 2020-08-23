@@ -7,6 +7,7 @@
 * gradle下载不了，进入 **https://services.gradle.org/distributions/**下载完成后拖入 **C:\users\izumi\.gradle\……**
 * 自定义的ViewModel不能设置构造函数，否则会出现应用无法进入闪退现象
 * 篮球计分板两个队撤销操作不用区分上一次操作的是谁，直接把两个之前的值都存下来，赋值就行。没有变化的项相当于重复赋了一次值
+*  **dataBinding.enabled true** 已经过时替换为 **buidFeatures.dataBinding true**
 
 
 
@@ -286,4 +287,64 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-## 永久持久化
+## 按键导航Navigator
+
+* start页面的控制类‘
+
+  ```java
+  @Override
+      public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+          super.onActivityCreated(savedInstanceState);
+  
+          //先锁定所属的View，在通过View获取控件
+          Button courses=getView().findViewById(button);
+          Button login=getView().findViewById(button2);
+  
+          //设置点击事件
+          courses.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  //通过view所属的导航控件找到导航控件
+                  NavController navController = Navigation.findNavController(view);
+                  //进行路由导航
+                  navController.navigate(action_main_to_courses);
+              }
+          });
+  
+          login.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  NavController navController = Navigation.findNavController(view);
+                  navController.navigate(action_main_to_login2);
+              }
+          });
+      }
+  ```
+
+* MainActivity类
+
+  ```java
+  public class MainActivity extends AppCompatActivity {
+  
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+          setContentView(R.layout.activity_main);
+  
+          //通过activity和导航host找到导航控制器
+          NavController navController = Navigation.findNavController(this, R.id.fragment5);
+          //设置返回键的UI
+          NavigationUI.setupActionBarWithNavController(this,navController);
+      }
+  
+  
+      @Override
+      public boolean onSupportNavigateUp() {
+          //设置开启返回
+          //label标签名可以在nav.xml中自定义
+          return Navigation.findNavController(this,R.id.fragment5).navigateUp();
+      }
+  }
+  ```
+
+  

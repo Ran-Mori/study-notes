@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_nav"
+    app:startDestination="@id/main">
+
+    <fragment
+        android:id="@+id/courses"
+        android:name="com.navigation.Courses"
+        android:label="@string/courses"
+        tools:layout="@layout/fragment_courses" />
+    <fragment
+        android:id="@+id/login2"
+        android:name="com.navigation.ui.login.Login"
+        android:label="@string/login"
+        tools:layout="@layout/fragment_login" />
+    <fragment
+        android:id="@+id/main"
+        android:name="com.navigation.Main"
+        android:label="@string/home_page"
+        tools:layout="@layout/fragment_main">
+        <action
+            android:id="@+id/action_main_to_courses"
+            app:destination="@id/courses"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit" />
+        <action
+            android:id="@+id/action_main_to_login2"
+            app:destination="@id/login2"
+            app:enterAnim="@anim/fragment_close_enter"
+            app:exitAnim="@anim/fragment_close_exit" />
+    </fragment>
+</navigation>

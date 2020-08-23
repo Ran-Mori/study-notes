@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_navigation"
+    app:startDestination="@id/homePage">
+
+    <fragment
+        android:id="@+id/homePage"
+        android:name="com.oralcalculation.HomePage"
+        android:label="fragment_home_page"
+        tools:layout="@layout/fragment_home_page" >
+        <action
+            android:id="@+id/action_homePage_to_calculationPage"
+            app:destination="@id/calculationPage" />
+    </fragment>
+    <fragment
+        android:id="@+id/calculationPage"
+        android:name="com.oralcalculation.CalculationPage"
+        android:label="fragment_calculation_page"
+        tools:layout="@layout/fragment_calculation_page" >
+        <action
+            android:id="@+id/action_calculationPage_to_failPage"
+            app:destination="@id/failPage" />
+    </fragment>
+    <fragment
+        android:id="@+id/failPage"
+        android:name="com.oralcalculation.FailPage"
+        android:label="fragment_fail_page"
+        tools:layout="@layout/fragment_fail_page" >
+        <action
+            android:id="@+id/action_failPage_to_homePage"
+            app:destination="@id/homePage" />
+    </fragment>
+</navigation>

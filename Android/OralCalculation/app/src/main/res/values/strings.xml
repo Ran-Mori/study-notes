@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">OralCalculation</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="shared_data_shp">shared_data_shp</string>
+</resources>
