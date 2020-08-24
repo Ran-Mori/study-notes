@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:text="很遗憾，你的答案错误"
         android:textColor="#E60A0A"
-        android:textSize="32sp"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

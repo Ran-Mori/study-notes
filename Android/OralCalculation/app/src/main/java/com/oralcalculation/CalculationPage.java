@@ -62,14 +62,19 @@ public class CalculationPage extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        //初始化ViewModel，并传入核心参数activity
         MyViewModel myViewModel = new ViewModelProvider(getActivity()).get(MyViewModel.class);
         myViewModel.setActivity(getActivity());
 
+        //与XML绑定
         FragmentCalculationPageBinding binding= DataBindingUtil.inflate(inflater,R.layout.fragment_calculation_page,container,false);
         binding.setData(myViewModel);
         binding.setLifecycleOwner(getActivity());
-        //return inflater.inflate(R.layout.fragment_calculation_page, container, false);
+
+        //一上来就先初始化一次
         myViewModel.initAll();
+
+        //返回根View
         return binding.getRoot();
     }
 }
