@@ -49,20 +49,6 @@
 	// 变量定义
     var i=1;
     
-    // if判断
-    if(i>0){
-        
-    }else if(){
-             
-    }else{
-        
-    }
-    
-    // for循环
-    for(i=0;i<10;i++){
-        
-    }
-    
     // "==" 只要求值一样，不要求类型一样
     // "===" 要求值和类型都一样
     
@@ -86,3 +72,103 @@
   Math.abs(1/3-(1-2/3))<0.0000000001
   ```
 
+### 2.5 JavaScript严格检查
+
+* 局部变量建议都是用 **let** 来定义。
+
+```html
+<script>
+	'user strict';
+    i =1;//会报错
+</script>
+```
+
+### 2.6 对象
+
+```javascript
+var person={
+    name: "IzumiSakai",
+    age :40,
+    toString: function(){
+        return "Hello,my name is ${this.name} and I'm ${age} years old";
+    }
+}
+```
+
+### 2.7 流程判断
+
+```javascript
+// if判断
+if(i>0){
+
+}
+else if(){
+
+}
+else{
+
+}
+
+// for循环
+for(let i=0;i<10;i++){
+
+}
+```
+
+
+
+## 4 函数
+
+### 4.1 定义函数
+
+```javascript
+function abs(x){
+    if(x>=0)
+        return x;
+    else
+        return -x;
+}
+```
+
+### 4.2 arguments
+
+* JavaScript 函数传入的参数统一封装成arguments数组
+
+### 4.3 rest参数
+
+* 用rest来接收其他的参数
+
+```javascript
+function restTest(x,y,z,...rest){
+    ...
+}
+```
+
+### 4.4 JavaScript里的所有函数其实是对象
+
+```javascript
+var method=function(){
+    ...
+}
+```
+
+### 4.5 全局变量规范 - 与框架有关
+
+* 自己定义一个对象，所有的全局变量全部绑定到自定义的对象上。不能让它默认绑定在window上，不然乱套。
+
+```javascript
+var AllViriable={};
+AllVirable.PI=3.1415926;
+```
+
+### 4.6 let关键字
+
+* 现在JavaScript推荐只使用 **let**  和  **const**，不推荐用 **var** 了
+
+
+
+
+
+## 5 JSON对象
+
+### 5.1使用 JSON关键字进行对象与json格式的转换与操作。
