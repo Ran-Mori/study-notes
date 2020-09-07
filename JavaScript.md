@@ -172,3 +172,123 @@ AllVirable.PI=3.1415926;
 ## 5 JSON对象
 
 ### 5.1使用 JSON关键字进行对象与json格式的转换与操作。
+
+```javascript
+JSON.parse();
+JSON.stringfy(); 
+```
+
+
+
+## 6 面向对象编程
+
+* 类
+
+  ```javascript
+  class Student{
+      sayHello(){
+          console.log("Hello");
+      }
+      // 和java的构造函数不同
+      constructor(name){
+          this.name = name;
+      }  
+  }
+  ```
+
+* 使用对象
+
+  ```javascript
+  let xiaoMing=new Student("小明");
+  ```
+
+* 继承
+
+  ```javascript
+  class Rectangle extends Shape{
+      constructor(type,name){
+          super(type);
+          this.name=name;
+      }
+      ...
+  }
+  ```
+
+
+
+## 7 操作BOM对象
+
+### 7.1获取当前浏览器范围高度宽度
+
+> window
+
+```javascript
+window.innerHeight;
+window.innerWith;
+```
+
+### 7.2 获取用户的浏览器信息
+
+> navigator
+
+* 比如用户是用的手机访问还是Windows访问，用户使用的是什么浏览器
+* 大多数时候不会使用navigator对象，因为它能够被人为修改
+
+```javascript
+navigator.userAgent;
+```
+
+### 7.3 获取屏幕的宽度和高度
+
+> screen
+
+* 当电脑缩放为150%时，分辨率变成了1280
+
+```javascript
+screen.height;
+screen.width;
+```
+
+### 7.4 导航
+
+> location 代表URL信息
+* host - 主机； href - URL； reload() - 重加载方法； assign() - 跳转方法
+```javascript
+console.log(location);
+location.reload();
+location.assign("https://www.bilibili.com")
+```
+
+### 7.5 文档树
+
+> document 
+
+* 可以对浏览器节点进行新增和删除，实现对界面的修改和动态变化
+* document可以获得cookie信息，可能会被恶意劫持暴露用户信息。
+
+### 7.6 历史记录
+
+> history  代表浏览器的历史记录
+
+```javascript
+history.back();
+history.forward();
+```
+
+### 7.7 删除节点
+
+> document    通过父节点来进行删除
+* 删除是一个动态的过程
+
+```javascript
+let father=son.parentElement;
+father.removeChild(son);
+father.children[i]; //删除了第一个过后，后面的索引依次减一
+```
+
+### 7.8 插入节点
+
+```javascript
+father.appendChild(son);
+```
+
