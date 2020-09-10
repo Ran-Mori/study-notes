@@ -292,3 +292,73 @@ father.children[i]; //删除了第一个过后，后面的索引依次减一
 father.appendChild(son);
 ```
 
+### 7.9 操作表单
+
+> 表单实际上也是一个DOM结点，下面有很多子节点
+
+```html
+<body>
+    <form>
+        用户名: <input type='text' id='username'>
+    </form>
+</body>
+<script>
+	var usrname=document.getElementById("username");  
+    console.log(username.value);
+</script>
+```
+
+### 7.10 表单提交密码加密
+
+* 提交表单密码的时候可以绑定提交事件，在事件中对密码进行加密
+* 可以使用隐藏域进行提交，不然提交的时候密码会突然变长
+
+
+
+## 8 jQuery
+
+### 8.1 和JavaScript的关系
+
+* jQuery里面封装了很多JavaScript的函数
+
+### 8.2 使用在线的CDN链接
+
+```html
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+```
+
+### 8.3 jQuery核心公式
+
+> **$(selector).action**()
+
+* **$**代表jQuery；**selector**代表CSS选择器；
+
+### 8.5 实际使用举例
+
+* **$('#id')** - id选择器
+* **$('span')** - 元素选择器
+* **$('.myClass')** - 类选择器
+
+```javascript
+$('#submit').click(function(){  
+    ...
+})
+```
+
+### 8.5 jQuery事件
+
+* 网页加载完成事件
+
+  ```javascript
+  $(function(){
+      ...
+  });
+  
+  $(document).ready(function(){
+      $('#divMove').mousemove(function(e){
+          $('#mouseMove').text('x='+e.pageX+';y='+e.pageY);
+      });
+  });
+  ```
+
+  
