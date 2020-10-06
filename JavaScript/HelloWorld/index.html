@@ -3,9 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>index</title>
-    <script src="alert.js"></script>
+    <script src="./jquery-3.5.1.min.js"></script>
 </head>
 <body>
-
+    <button id="button1" onclick="func()">点我</button>
 </body>
+    <script>
+        $("#button1").click(function (){
+
+        })
+        function func(){
+            $.ajax({
+                type: "GET",
+                url: "https://www.baidu.com/s?wd=Jquery%E4%B8%8B%E8%BD%BD",
+                //data: "csrftoken=ea32ddaf-089e-4b21-a597-62f1e39f293b,ea32ddaf089e4b21a59762f1e39f293b&yhm=2018302110326&mm=UeeAy/0WF5tcQm5U1kYD0o82GNkUUvhSnBBBWc8Tk9y1NioucyfDkT0RakQd63UpVxr2tUYnxkXV9Sah/95EiquCQMkdFzhor3phnwmXoHKTAa03hvvrf+gGzp+xxqpW+Twj1v1q1w70H95EO0nbvaC9bpmjOGhfGsSzKHM1/7A&mm=UeeAy/0WF5tcQm5U1kYD0o82GNkUUvhSnBBBWc8Tk9y1NioucyfDkT0RakQd63UpVxr2tUYnxkXV9Sah/95EiquCQMkdFzhor3phnwmXoHKTAa03hvvrf+gGzp+xxqpW+Twj1v1q1w70H95EO0nbvaC9bpmjOGhfGsSzKHM1/7A",
+                success: function(msg){
+                    alert( "Data Saved: " + msg );
+                }
+            });
+        }
+    </script>
 </html>
