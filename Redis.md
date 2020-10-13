@@ -113,8 +113,10 @@
 * 使用(在/usr/local/bin目录下)
 
   ```bash
+  # 指定配置文件
+  redis-server /usr/local/bin/myredisconfig/redis.conf
   # 连接
-  redis -cli -p 6379
+  redis-cli -p 6379
   # ping
   ping
   ```
@@ -139,15 +141,171 @@
   ```bash
   ps -ef | grep redis
   ```
-  
-  
 *************************
 
 
 
 
 
+## Redis性能测试
+
+* 基本测试过程
+
+  ```bash
+  redis-benchmark 参数
+  ```
+
+* 例子
+
+  ```bash
+  redis-benchmark -h 127.0.0.1 -p 6379 -c 50 -n 10000 # 指有50个并发连接，每个连接请求数为10000
+  ```
+
+******************
 
 
 
 
+
+## Redis基本知识
+
+* 数据库
+
+  * Redis一共有16个数据库，默认使用第0个数据库。可以从配置文件中查看以下配置
+
+    ```bash
+    databases 16
+    ```
+
+  * 操作
+
+    ```bash
+    # 切换到第四个数据库
+    SELECT 3(index)
+    # 查看数据库内容大小
+    DBSIZE
+    # 清楚当前数据库
+    FLUSHDB
+    ```
+
+* 线程 
+  * Redis 6之后是多线程，之前只支持单线程
+  * Redis是很快的，是基于内存的操作。它的性能瓶颈不是CPU，而是内存和带宽
+  * 一些误区
+    * 高性能的服务器一定是多线程的
+    * 多线程（特别是单CPU上下文切换）的性能一定比单线程高
+
+*******************
+
+
+
+## Redis-Key的基本操作
+
+* 举例
+
+  ```bash
+  # 是否存在一个Key
+  EXIST key # 是否存在name键
+  
+  # 删除一个key
+  del key
+  
+  #设置有效期
+  expire key 10(seconds) # 10s后name键就过期
+  
+  #查看有效期
+  ttl key
+  
+  # 查看类型
+  type key # age也是string类型
+  ```
+
+*******************
+
+
+
+
+
+## string
+
+* 操作
+
+  ```bash
+  # 字符串最加 
+  # 如果当前字符串不存在，就相当于set key
+  append key "append-string"(value) # 其中name是键
+  
+  # 获取字符串长度
+  strlen key 
+  
+  # 增加1/减少1
+  incr/decr views(key) # 其中views是键名
+  
+  # 增减/减少 步长
+  incrby/decrby views(key) 10(offset) # 其中name是key，10是步长
+  
+  # 截取字符串，当end是-1时代表全部截取
+  getrange key 0 3 # 0是begin，3是end
+  
+  # 替换字符串
+  setrange key offset value
+  
+  # 设置过期时间
+  setex key seconds value
+  
+  # 不存在则创建, 存在就报错不设置
+  setnx key value 
+  
+  # 批量设置(不存在则创建)
+  msetnx key value [key value]  # 原子性操作。只要其中一个不存在则其他都不创建。要么都创建要么都不创建
+  
+  # 批量获取
+  mget key [key]
+  
+  # 设置对象
+  setnx user:Izumi {name: "Izumi Sakai",age: 40} # 还是key-value的结构，本质没变
+  
+  # getset命令，先获取后设置
+  getset key value # {不存在：“返回null，在设置新值”，存在：“返回旧值，修改旧值为新值”}
+  ```
+
+
+
+******************************************
+
+
+
+## List
+
+* 操作
+
+  ```bash
+  # 新增元素
+  lpush/rpush key element [elements ...]
+  
+  # 获取元素(没有rrange)
+  lrange key start end
+  
+  # 根据index获取值(没有rindex)
+  lindex key index
+  
+  # 删除元素
+  lpop/rpop key
+  
+  # 查看长度
+  llen key
+  
+  # 精确移除元素(list允许元素重复)
+  lrem key count element
+  
+  # 截断list
+  ltrim key start end
+  
+  # rpoplpush命令
+  rpoplpush source destination # 相当于list最后一个pop，push到另一个list
+  
+  # 指定位置添加值
+  lset key index value
+  ```
+
+  
