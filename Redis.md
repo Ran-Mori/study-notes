@@ -306,6 +306,143 @@
   
   # 指定位置添加值
   lset key index value
+  
+  ```
+  
+* 注意
+
+  * 只有push和pop分l和r，其他的只有l
+  * list的底层是链表
+  * 根据入和出的顺序可以玩出栈和队列
+  * 里面的值可以重复，但set集合里面不能重复
+
+************************
+
+## 事务
+
+* 基础
+
+  * redis一条指令保证原子性，但是事务不保证原子性
+  * redis事务就是一串命令的集合
+
+* 事务过程
+
+  * 开启事务
+  * 命令入队
+  * 执行事务
+
+* 执行过程
+
+  ```bash
+  multi
+  setnx k1 v1
+  setnx k2 v2
+  setnx k3 v3
+  get k2
+  exec
   ```
 
-  
+*********************
+
+## 锁
+
+* 悲观锁： 认为什么时候都会出问题，都加锁。很影响性能
+* 乐观锁： 认为什么时候都不会出问题，都不加锁。只是更新数据的时候去判断检查一下，在此期间这个数据有没有被修改
+  * 一般使用version字段实现
+
+**************************************
+
+## Java连接redis
+
+* 一些事情
+
+  * 配置文件中的配置 **bind** 项是配置那个IP地址可以访问。比如配置 **bind 127.0.0.1**就是默认本机启动
+  * **redis-server  配置文件** 命令的实际作用在对应IP和对应端口启动redis，暴露端口访问
+  * **ps  -ef | grep redis** 可以查看开启的是那个IP和那个端口
+
+* 公网IP和私有IP
+
+  * 只有公网IP才能访问网络，私网IP不能访问网络
+  * 一个公网IP地址让很多歌私有IP地址访问
+  * 172开头的就是B类私有地址
+  * 198开头的就是D类私有地址
+
+* 此次访问条件
+
+  * bind 设置为私有IP地址 **172.18.65.13**
+  * 开启 **redis-server**
+
+* 连接过程
+
+  * 导入依赖
+
+    ```html
+    <dependency>
+         <groupId>redis.clients</groupId>
+         <artifactId>jedis</artifactId>
+         <version>3.3.0</version>
+    </dependency>
+    ```
+
+  * 连接
+
+    ```java
+    public static void main(String[] args) {
+        Jedis jedis = new Jedis("47.113.97.26", 6379);
+        System.out.println(jedis.ping());
+        jedis.set("age","40");
+        System.out.println(jedis.get("name"));
+        jedis.close();
+    }
+    ```
+
+  *******************
+
+## springboot整合redis
+
+* springboot底层不在使用jedis，而是使用 **lettuce**
+  * jedis: 采用的直连，当多个线程操作时，是不安全的。为了避免不安全，得使用连接池
+  * lettuce： 底层采用的是 **netty** 技术，实例可以在多个线程中共享。
+
+* 整合过程
+
+  * 导入依赖
+
+    ```html
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    ```
+
+  * 配置yaml文件
+
+    ```yaml
+    spring:
+      redis:
+        host: 172.18.65.13
+        port: 6379
+    ```
+
+  * 代码
+
+    * 一定要写 **@RestController**, 不然默认返回网页
+
+    ```java
+    @RestController
+    public class Test {
+    	//自动注入
+        @Autowired
+        private RedisTemplate redisTemplate;
+    
+        @RequestMapping("/")
+        public String testConnection(){
+            redisTemplate.opsForValue().set("test","testvalue");
+            return "result";
+        }
+    }
+    ```
+
+  * 自定义配置
+    * **Ctrl + shift + n** 搜索所有的类
+    * 搜索后可以查看到RedisTemplate类默认的序列化器是JDK序列化，最好改成json序列化
