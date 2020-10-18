@@ -96,6 +96,7 @@
   			[-it] # 使用交互方式运行，进入容器查看
   			[-P] # 指定端口
   			[-p] # 随机端口
+  			[-e] # 环境配置，比如MySQL的密码
   			
   docker ps # 查看运行容器
   			[-a] # 查看所有，包括其他
@@ -178,7 +179,7 @@
   ```
 
 * 其他如何启动运行
-   
+  
    * 进入 **https://hub.docker.com/** 搜索相应的应用，然后下面会有 **docker  run** 的指令，直接CV就能运行
 
   
@@ -201,3 +202,92 @@
   * 下载镜像的时候就分层下载，如果此层已经下载就不用下载了
   * docker镜像默认都是只读的，但镜像启动成容器时实际上就是在镜像上面在加一层。自己的操作是完全不影响原本的镜像文件
   * 你自己的操作添加后又多了一层，此时可以把这个打包，就成了一个新的镜像
+
+
+
+**************
+
+## 提交镜像
+
+* 命令
+
+  ``` bash
+  docker commit -a="author" -m="message" 容器ID 自定义镜像名: tag
+  ```
+
+*************
+
+
+
+## 容器数据卷
+
+* 命令
+
+  ```shell
+  docker run -itd -v 本机路径 : 容器路径 镜像名 # 执行挂载
+  docker inspect 镜像ID # 查看挂在，在Mouts节点可以看到详细信息
+  ```
+
+* 特点
+
+> 双向绑定，类似于Vue
+* 具名和匿名挂载
+
+  * 具名 ：**-v  mymysql:/var/lib/data**
+  * 匿名：**-v /var/lib/data**
+
+> 具名和匿名都挂载到 /var/lib/docker/volumes/***下
+
+****************
+
+## 使用MySQL
+
+* 命令
+
+  ```shell
+  docker run   -itd  # 后台交互运行
+  			-v /home/mysql/config:/etc/mysql/conf.d # 挂载配置文件目录
+  			-v /home/mysql/data:/var/lib/mysql # 挂载数据目录
+  			-p 3306:3306  # 主机端口映射
+  			-e MYSQL_ROOT_PASSWORD=542270191MSzyl # 配置环境(密码) 
+  			--name mysqlwithpw # 起别名
+  			mysql:5.7 # 运行的镜像
+  ```
+
+* 连接
+
+> 适应DataGrip输入h,p,u,p直接就可以连接
+
+***************
+
+
+
+## 数据卷容器
+
+* 作用
+
+> 使两个或多个本来相互隔离的容器之间实现数据同步。比如两个MySQL数据同步
+
+* 命令
+
+  ```shell
+  docker run 
+  			-itd 
+  			--name centos02 
+  			--volumes-from centos01 # 挂载
+  			centos
+  ```
+
+* 效果
+
+> centos1和centos2中的挂载目录实现了双向绑定
+>
+> 其中centos01是父容器
+>
+> 其中挂载目录是通过dockerfile里面编写的shell实现的，两个容器使用同样dockerfile构建的镜像，因此挂载目录相同
+>
+> 只有当全部的容器删除了挂载目录里面的内容才会删除，只要还有一个容器在使用挂载目录，那么里面的内容就不会删除
+>
+> --volumes-from 挂载和 -v挂载不同。一种是两个容器之间，另一种是一个容器和宿主机之间
+>
+> 
