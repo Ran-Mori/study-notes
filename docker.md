@@ -289,5 +289,37 @@
 > 只有当全部的容器删除了挂载目录里面的内容才会删除，只要还有一个容器在使用挂载目录，那么里面的内容就不会删除
 >
 > --volumes-from 挂载和 -v挂载不同。一种是两个容器之间，另一种是一个容器和宿主机之间
->
-> 
+
+
+
+************************************************
+
+
+
+## dockerfile
+
+* 作用： 是一个构建文件，定义一切步骤，源代码
+
+* 指令
+
+  * **FROM** —— 基础镜像
+  * **MAINTAINER** —— 作者姓名+邮箱
+  * **RUN** —— 镜像构造的时候需要运行的命令
+  * **ADD ** —— 添加内容
+  * **WORKDIR** —— 工作目录
+  * **VOLUME** —— 挂载目录
+  * **EXPOSE** ——暴露端口
+  * **CMD ** —— 指定容器启动时运行的命令
+
+* 举例
+
+  ```dockerfile
+  FROM centos
+  MAINTAINER IzumiSakai<izumisakai@aliyun.com>
+  ENV MYPATH /usr/local
+  WORKDIR $MYPATH
+  RUN yum -y install vim
+  RUN yum -y install net-tools
+  ```
+
+  
