@@ -4,15 +4,13 @@
 
 ## bug记录
 
-* gradle下载不了，进入 **https://services.gradle.org/distributions/**下载完成后拖入 **C:\users\izumi\.gradle\……**
-* 自定义的ViewModel不能设置构造函数，否则会出现应用无法进入闪退现象
-* 篮球计分板两个队撤销操作不用区分上一次操作的是谁，直接把两个之前的值都存下来，赋值就行。没有变化的项相当于重复赋了一次值
-*  **dataBinding.enabled true** 已经过时替换为 **buidFeatures.dataBinding true**
-* **"+".equals(operator.getValue())** 的 **getValue()不能省略**
-* **GET** 请求不能带请求体，不然绝对访问失败
-* **Volley框架** 有时返回的json数据默认不是使用UTF-8进行编码，可能会乱码。乱码可以重新Request
-
-
+> * gradle下载不了，进入 **https://services.gradle.org/distributions/**下载完成后拖入 **C:\users\izumi\.gradle\……**
+> * 自定义的ViewModel不能设置构造函数，否则会出现应用无法进入闪退现象
+> * 篮球计分板两个队撤销操作不用区分上一次操作的是谁，直接把两个之前的值都存下来，赋值就行。没有变化的项相当于重复赋了一次值
+> * **dataBinding.enabled true** 已经过时替换为 **buidFeatures.dataBinding true**
+> * **"+".equals(operator.getValue())** 的 **getValue()不能省略**
+> * **GET** 请求不能带请求体，不然绝对访问失败
+> * **Volley框架** 有时返回的json数据默认不是使用UTF-8进行编码，可能会乱码。乱码可以重新Request
 
 ## ViewModle入门
 
