@@ -128,36 +128,41 @@
 > >```
 > >* 常见的坑，docker后台启动时，必须要有一个前台的进程，docker发现没有其他应用，就会自动停止
 >
-> 
->### 查看日志
+>
+> ### 查看日志
 >
 > ```bash
->docker logs -ft 容器ID
+> docker logs -ft 容器ID
 > ```
-> 
+>
 > ### 查看容器里面的进程信息
 >
 > ```bash
->docker top 容器ID
+> docker top 容器ID
 > ```
-> 
+>
 > ### 查看容器的所有信息
 >
 > ```bash
->docker inspect 容器ID
+> docker inspect 容器ID
 > ```
-> 
+>
 > ### 进入当前正在运行的容器
 >
 > ```bash
->docker exec -it 容器ID 默认bash  # 进入容器后开启一个新的终端，可以在里面操作
+> docker exec -it 容器ID 默认bash  # 进入容器后开启一个新的终端，可以在里面操作
 > docker attach 容器ID # 进入容器正在执行的终端，不会启动新的进程
 > ```
-> 
+>
 > ### 从容器内拷贝文件到容器外
 >
 > ```bash
->docker cp 容器ID: 容器内路径 容器外路径
+> docker cp 容器ID: 容器内路径 容器外路径
+> ```
+> ### 从容器外拷贝文件到容器内
+> ```bash
+> docker cp 容器外路径 容器id:容器内路径
+> docker cp /opt/java_jars/izumisakai-zy-0.1.jar 4bef:/opt
 > ```
 
 ***************
