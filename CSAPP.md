@@ -1666,110 +1666,6 @@ a && 5/a  //可以防止除数为零
 >
 > ************
 
-## 作业
-
-> ### 2.55
->
-> ```c
-> #include<stdio.h>
-> 
-> typedef unsigned char* byte_pointer; //typedef不用加#，且末尾必须要加分号
-> 
-> void main(){
-> int x=0x00323130;
-> show_int(x);
-> }
-> 
-> /*要打印每个字节只能使用char指针，因为只有它每偏移一位是一个字节*/
-> void show_bytes(const char *s,size_t length){
-> size_t i=0;
-> for(i;i<length;i++){
-> 	//'%.2x'表示输出十六进制且高位为0保留
-> printf("%.2x ",s[i]);
-> }
-> printf("\n");
-> 	/*字符串结尾字节以0结束，0x00323130的位表示可以解释成字符串，恰好是012*/
-> printf("output by char*:  %s\n",s); 
-> }
-> 
-> void show_int(int x){
-> 	//转换成char*指针就可以按照字节读取
-> show_bytes((const char *)(&x),sizeof(int));
-> }
-> 
-> ```
->
-> ### 2.58
->
-> ```c
-> #include<stdio.h>
-> 
-> void main(){
-> is_little_end();
-> }
-> 
-> void is_little_end(){
-> int x=1;
-> const char first_byte=*((const char *)(&x));
-> //C语言不支持bool类型，C++才支持，就离谱
-> if(first_byte!=0)
-> printf("is little end: true");
-> else
-> printf("is little end: false");
-> printf("\n");
-> }
-> ```
->
-> ### 2.59
->
-> ```c
-> #include<stdio.h>
-> 
-> void main(){
-> int x=0x89ABCDEF;
-> int y=0x76543210;
-> printf("%x",swap((const char *)&x,(char *)&y));
-> printf("\n");
-> }
-> 
-> //因为要在函数内部修改指针指向的值，因此y不能是const
-> int swap(const char *x,char *y){
-> *y=*x;
-> return *((const int *)y);
-> }
-> ```
->
-> ************
-
-
-
-## 代码bug和笔记
-
-> ### 指针使用
->
-> ```c
-> #include<stdio.h>
-> void main(){
-> 	//指针必须分配内存后才能使用，指针的声明是不知道它指向那里的
-> int *x=(int *)malloc(4);
-> *x=3;
-> printf("%d\n",*x);
-> }
-> ```
->
-> ### 引入.h文件
->
-> ```c++
-> #include<stdio.h>
-> int main(){
-> printf("Hello World");
-> }
-> ```
->
-> * 必须引入 stdio.h 头文件有printf的定义才能进行重定向绑定
->
-> ***************
-
 ## 第九章
 
 > ### 概述
@@ -2170,3 +2066,221 @@ a && 5/a  //可以防止除数为零
 > > #### 作用
 > >
 > > * 用户自己创建新的虚拟内存区域，并将自定义对象映射到新创建的虚拟内存区域中
+> >
+> > ****************
+>
+> ### 动态内存分配
+>
+> > #### 分配位置
+> >
+> > * 进程虚拟空间的堆中
+> >
+> > #### 管理者
+> >
+> > * 动态内存分配器
+> >
+> > #### 堆
+> >
+> > * 初始化是请求二进制零
+> > * 内核维护一个brk变量指向堆顶
+> >
+> > #### 分配器工作
+> >
+> > * 将堆视作一组大小不同的块集合
+> > * 对这些块集合进行管理
+> >
+> > #### 分配器种类
+> >
+> > * 显式分配器 —— 类似maloc函数和free函数
+> > * 隐式分配器 —— 类似gc
+> >
+> > #### 使用动态分配原因
+> >
+> > * 直到程序运行时，才知道某些数据结构的大小
+> >
+> > ********
+>
+> ### malloc函数和free函数
+>
+> > #### molloc实现方式
+> >
+> > * 通过mmap和munmap函数
+> > * 通过sbrk函数
+> >
+> > #### sbrk实现原理
+> >
+> > * 通过改变指向堆顶的指针变量brk的值来分配内存
+> >
+> > *******
+>
+> ### 分配器目标
+>
+> > #### 吞吐率
+> >
+> > * 指单位时间进行分配和释放操作的能力
+> >
+> > #### 内存利用率
+> >
+> > * 指虚拟内存的空间利用率
+> >
+> > #### 关系
+> >
+> > * 两者成常常是反比关系
+> >
+> > **********
+>
+> ### 垃圾收集机制
+>
+> > #### 可达图实现原理
+> >
+> > * 将内存视作一个可达图
+> > * 可达图的边由各种引用、全局声明等其他信息表明
+> > * 图的一个结点就是一个已分配的内存块
+> > * 当可达时不是垃圾，不可达时是垃圾
+> >
+> > #### 不同语言区别
+> >
+> > * java这种语言能够精确表达可达，因而垃圾回收机制强
+> > * 而c、c++原因不能精确表示，因而垃圾回收机制弱
+> >
+> > #### Mark & Sweep实现原理
+> >
+> > * 标记过程从根节点递归标记所有可达已分配的后继
+> > * 清楚过程就清除未被标记的垃圾块
+> >
+> > *************
+>
+> ### 常见内存错误
+>
+> > #### 引用坏指针
+> >
+> > * 引用到虚拟地址空间中没有映射到任何物理内存的页
+> > * 引用到只读页但进行写操作
+> > * 举例 —— scanf函数传整数的地址结果传成了整数而导致引用坏指针
+> >
+> > #### 读未初始化内存
+> >
+> > * 堆内存分配后未进行初始化，不能默认堆内存初始化为0，要手动进行初始化
+> >
+> > #### 假设指针和它指向对象是相同大小
+> >
+> > ```c
+> > int **a = (int **)malloc(n*sizeof(int)); //此写法错误，应改成下面写法
+> > int **a = (int **)malloc(n*sizeof(int *));
+> > ```
+> >
+> > #### 误解指针运算
+> >
+> > * 指针运算的大小是它指向的对象而不是字节
+> >
+> > #### 引用不存在的变量
+> >
+> > * 变量未被初始化未分配内存就引用它的地址
+> >
+> > #### 内存泄漏
+> >
+> > * malloc了内存过后却不释放，导致堆空间溢出
+
+## 作业
+
+> ### 2.55
+>
+> ```c
+> #include<stdio.h>
+> 
+> typedef unsigned char* byte_pointer; //typedef不用加#，且末尾必须要加分号
+> 
+> void main(){
+> int x=0x00323130;
+> show_int(x);
+> }
+> 
+> /*要打印每个字节只能使用char指针，因为只有它每偏移一位是一个字节*/
+> void show_bytes(const char *s,size_t length){
+> size_t i=0;
+> for(i;i<length;i++){
+> 	//'%.2x'表示输出十六进制且高位为0保留
+> printf("%.2x ",s[i]);
+> }
+> printf("\n");
+> 	/*字符串结尾字节以0结束，0x00323130的位表示可以解释成字符串，恰好是012*/
+> printf("output by char*:  %s\n",s); 
+> }
+> 
+> void show_int(int x){
+> 	//转换成char*指针就可以按照字节读取
+> show_bytes((const char *)(&x),sizeof(int));
+> }
+> 
+> ```
+>
+> ### 2.58
+>
+> ```c
+> #include<stdio.h>
+> 
+> void main(){
+> is_little_end();
+> }
+> 
+> void is_little_end(){
+> int x=1;
+> const char first_byte=*((const char *)(&x));
+> //C语言不支持bool类型，C++才支持，就离谱
+> if(first_byte!=0)
+> printf("is little end: true");
+> else
+> printf("is little end: false");
+> printf("\n");
+> }
+> ```
+>
+> ### 2.59
+>
+> ```c
+> #include<stdio.h>
+> 
+> void main(){
+> int x=0x89ABCDEF;
+> int y=0x76543210;
+> printf("%x",swap((const char *)&x,(char *)&y));
+> printf("\n");
+> }
+> 
+> //因为要在函数内部修改指针指向的值，因此y不能是const
+> int swap(const char *x,char *y){
+> *y=*x;
+> return *((const int *)y);
+> }
+> ```
+>
+> ************
+
+
+
+## 代码bug和笔记
+
+> ### 指针使用
+>
+> ```c
+> #include<stdio.h>
+> void main(){
+> 	//指针必须分配内存后才能使用，指针的声明是不知道它指向那里的
+> int *x=(int *)malloc(4);
+> *x=3;
+> printf("%d\n",*x);
+> }
+> ```
+>
+> ### 引入.h文件
+>
+> ```c++
+> #include<stdio.h>
+> int main(){
+> printf("Hello World");
+> }
+> ```
+>
+> * 必须引入 stdio.h 头文件有printf的定义才能进行重定向绑定
+>
+> ***************
