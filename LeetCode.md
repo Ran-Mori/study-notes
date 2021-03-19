@@ -721,11 +721,64 @@
 > ### 思路
 >
 > * **回溯法**
->   * 组合非排列：要求下一个元素必须 **大于等于** 上一个元素
+>   * 组合非排列：要求下一个元素必须 **大于等于** 上一个元素。
+>     * `if (tempResult.size() > 0 && nums[i] < tempResult.get(tempResult.size() - 1))`
 >     * **等于**是因为数组中有同一个元素出现两次及以上
 >     * 不用担心加上等于会重复，因为`[-1, 0, 0, 1]`中的两个0是有顺序的，另一种会被 **continue**掉
->   * 元素只能用一次：维护Boolean数组
->   * 剪枝：大于0就break，相同的元素如两个0就continue一个
+>   * 元素只能用一次：维护Boolean数组。`if (isUsed[i])`
+>   * 同一个元素剪枝：`if (i > 0 && nums[i] == nums[i - 1] && !isUsed[i - 1])`
+>   * sum大于了后面直接剪枝：`if (nums[i] > 0 && sum + nums[i] > target)`。有一个`num[i] > 0`是因为`num[i]`可能为负数，即时大于了也有可能加上一个负数变小
+>
+> ### 代码
+>
+> ```java
+> private List<List<Integer>> result;
+> private List<Integer> tempResult;
+> private boolean[] isUsed;
+> private int target;
+> private int sum;
+> 
+> public List<List<Integer>> fourSum(int[] nums, int target) {
+>     result = new ArrayList<>();
+>     tempResult = new ArrayList<>();
+>     isUsed = new boolean[nums.length];
+>     this.target = target;
+>     sum = 0;
+> 
+>     Arrays.sort(nums);
+> 
+>     backTrack(nums,0);
+> 
+>     return result;
+> }
+> 
+> private void backTrack(int[] nums,int level){
+>     if (level == 4 && sum == target)
+>         result.add(new ArrayList<>(tempResult));
+>     else if (level != 4){
+>         for (int i = 0;i < nums.length;i++){
+>             if (nums[i] > 0 && sum + nums[i] > target)
+>                 break;
+>             if (isUsed[i])
+>                 continue;
+>             if (tempResult.size() > 0 && nums[i] < tempResult.get(tempResult.size() - 1))
+>                 continue;
+>             if (i > 0 && nums[i] == nums[i - 1] && !isUsed[i - 1])
+>                 continue;
+> 
+>             isUsed[i] = true;
+>             tempResult.add(nums[i]);
+>             sum += nums[i];
+>             backTrack(nums,level + 1);
+>             sum -= nums[i];
+>             tempResult.remove(level);
+>             isUsed[i] = false;
+>         }
+>     }
+> }
+> ```
+>
+> 
 >
 > ****
 
@@ -1866,6 +1919,72 @@
 >
 > ****
 
+## 92 反转链表
+
+> ### 题目
+>
+> * 给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入：head = [1,2,3,4,5], left = 2, right = 4
+> 输出：[1,4,3,2,5
+> ```
+>
+> ### 思路
+>
+> * 找到反转的首尾，进行反转
+>
+> ### 代码
+>
+> ```java
+> public ListNode reverseBetween(ListNode head, int left, int right) {
+>     int between = right - left;
+> 
+>     ListNode newHead = head;
+>     ListNode beforeHead = head;
+>     boolean isLeftEqualOne = left == 1 ? true : false;
+>     if (left == 1)
+>         newHead = head;
+>     else {
+>         while (left != 2){
+>             beforeHead = beforeHead.next;
+>             left--;
+>         }
+>         newHead = beforeHead.next;
+>     }
+> 
+> 
+>     ListNode newTail = newHead;
+>     ListNode afterTail = null;
+>     while (between != 0){
+>         newTail = newTail.next;
+>         between--;
+>     }
+>     afterTail = newTail.next;
+> 
+>     ListNode finalTail = newHead;
+>     ListNode finalHead = newTail;
+>     ListNode dump = null;
+>     ListNode temp = null;
+>     while (newHead != afterTail){
+>         temp = newHead.next;
+>         newHead.next = dump;
+>         dump = newHead;
+>         newHead = temp;
+>     }
+>     finalTail.next = afterTail;
+>     if (isLeftEqualOne)
+>         return finalHead;
+>     beforeHead.next = finalHead;
+>     return head;
+> }
+> ```
+>
+> ****
+
 ## 88 合并两个有序数组
 
 > ### 题目
@@ -2890,6 +3009,2221 @@
 >         ways.add(Integer.valueOf(input));
 >     }
 >     return ways;
+> }
+> ```
+>
+> ****
+
+## 242 有效的字母异位词
+
+> ### 题目
+>
+> * 给定两个字符串 *s* 和 *t* ，编写一个函数来判断 *t* 是否是 *s* 的字母异位词。
+> * 说明：你可以假设字符串只包含小写字母。
+>
+> ### 示例
+>
+> ```java
+> 输入: s = "anagram", t = "nagaram"
+> 输出: true
+> ```
+>
+> ### 思路
+>
+> * 使用 `int[26]`来存放每个char出现的次数
+>
+> ### 代码
+>
+> ```java
+> public boolean isAnagram(String s, String t) {
+>     if (s.length() != t.length())
+>         return false;
+> 
+>     int[] counts = new int[26];
+> 
+>     for (char temp : s.toCharArray())
+>             counts[temp - 'a']++;
+>     for (char temp : t.toCharArray())
+>         counts[temp - 'a']--;
+>     for (int temp : counts){
+>         if (temp != 0)
+>             return false;   
+>     }
+>     return true;
+> }
+> ```
+>
+> ****
+
+## 257 二叉树的所有路径
+
+> ### 题目
+>
+> * 给定一个二叉树，返回所有从根节点到叶子节点的路径。
+> * **说明:** 叶子节点是指没有子节点的节点。
+>
+> ### 示例
+>
+> ```java
+> 输入:
+> 
+>    1
+>  /   \
+> 2     3
+>  \
+>   5
+> 
+> 输出: ["1->2->5", "1->3"]
+> ```
+>
+> ### 思路
+>
+> * **BFS** 
+> * **DFS**
+>
+> ### 代码
+>
+> ```java
+> public List<String> binaryTreePaths(TreeNode root) {
+>     List<String> results = new ArrayList<String>();
+>     StringBuilder builder= new StringBuilder();
+>     dfs(results,builder,root);
+>     return results;
+> }
+> 
+> private void dfs(List<String> list,StringBuilder builder,TreeNode node){
+>     if (node == null)
+>         return;
+>     else if (node.left == null && node.right == null){
+>         builder.append(node.val);
+>         list.add(builder.toString());
+>         builder.delete(builder.lastIndexOf(">")+1,builder.length());
+>     }
+>     else {
+>         builder.append(node.val);
+>         builder.append("->");
+>         int tempLength = builder.length();
+>         dfs(list,builder,node.left);
+>         builder.delete(tempLength,builder.length());
+>         dfs(list,builder,node.right);
+>         builder.delete(tempLength,builder.length());
+>     }
+> }
+> ```
+>
+> ****
+
+## 268 丢失的数字
+
+> ### 题目
+>
+> * 给定一个包含 `[0, n]` 中 `n` 个数的数组 `nums` ，找出 `[0, n]` 这个范围内没有出现在数组中的那个数。
+>
+> ### 示例
+>
+> ```java
+> 输入：nums = [3,0,1]
+> 输出：2
+> 解释：n = 3，因为有 3 个数字，所以所有的数字都在范围 [0,3] 内。2 是丢失的数字，因为它没有出现在 nums 中。
+> ```
+>
+> ### 思路
+>
+> * **异或**
+> * 初始异或数字为`num.length`
+>
+> ### 代码
+>
+> ```java
+> public int missingNumber(int[] nums) {
+>     int missing = nums.length;
+>     for (int i = 0; i < nums.length; i++) {
+>         missing ^= i ^ nums[i];
+>     }
+>     return missing;
+> }
+> ```
+>
+> ****
+
+## 278 第一个错误的版本
+
+> ### 题目
+>
+> * 假设你有 `n` 个版本 `[1, 2, ..., n]`，你想找出导致之后所有版本出错的第一个错误的版本。
+> * 你可以通过调用 bool isBadVersion(version) 接口来判断版本号 version 是否在单元测试中出错。实现一个函数来查找第一个错误的版本。你应该尽量减少对调用 API 的次数。
+>
+>
+> ### 示例
+>
+> ```java
+> 给定 n = 5，并且 version = 4 是第一个错误的版本。
+> 
+> 调用 isBadVersion(3) -> false
+> 调用 isBadVersion(4) -> true
+> 调用 isBadVersion(5) -> true
+> 
+> 所以，4 是第一个错误的版本。
+> ```
+>
+> ### 思路
+>
+> * 问题实质是找 **第一次出现的true**
+> * 肯定得用**二分法**，但二分一些处理不同，具体看代码的边界
+>
+> ### 代码
+>
+> ```java
+> public int firstBadVersion(int n) {
+>     int i = 1;
+>     int j = n;
+>     int mid;
+>     while (i < j){
+>         mid = i + (j - i) / 2;
+>         if (isBadVersion(mid))
+>             j = mid;
+>         else
+>             i = ++mid;
+>     }
+>     return i;
+> }
+> ```
+>
+> ****
+
+## 279 完全平方数
+
+> ### 题目
+>
+> * 给定正整数 *n*，找到若干个完全平方数（比如 `1, 4, 9, 16, ...`）使得它们的和等于 *n*。你需要让组成和的完全平方数的个数最少。
+> * 给你一个整数 `n` ，返回和为 `n` 的完全平方数的 **最少数量** 。
+>
+> ### 示例
+>
+> ```java
+> 输入：n = 12
+> 输出：3 
+> 解释：12 = 4 + 4 + 4
+> ```
+>
+> ### 思路
+>
+> * **回溯法**会报超时
+> * 用 **动态规划**，但真不容易想到
+>
+> ### 代码
+>
+> ```java
+> public int numSquares(int n) {
+>     int[] dp = new int[n + 1]; // 默认初始化值都为0
+>     for (int i = 1; i <= n; i++) {
+>         dp[i] = i; // 最坏的情况就是每次+1
+>         for (int j = 1; i - j * j >= 0; j++) {
+>             dp[i] = Math.min(dp[i], dp[i - j * j] + 1); // 动态转移方程
+>         }
+>     }
+>     return dp[n];
+> }
+> ```
+>
+> ****
+
+## 283 移动零
+
+> ### 题目
+>
+> * 给定一个数组 `nums`，编写一个函数将所有 `0` 移动到数组的末尾，同时保持非零元素的相对顺序。
+>
+> ### 示例
+>
+> ```java
+> 输入: [0,1,0,3,12]
+> 输出: [1,3,12,0,0]
+> ```
+>
+> ### 思路
+>
+> * **双指针**
+> * 维护一个 **左边暂时正确答案**
+>
+> ### 代码
+>
+> ```java
+> public void moveZeroes(int[] nums) {
+>     int length = nums.length;
+>     int zeroNumberCount = 0;
+>     int index = 0;
+>     for (;index < length;index++){
+>         if (nums[index] == 0)
+>             zeroNumberCount++;
+>         else if (zeroNumberCount != 0)
+>             nums[index - zeroNumberCount] = nums[index];
+>     }
+>     index = length - 1;
+>     while (zeroNumberCount != 0){
+>         nums[index--] = 0;
+>         zeroNumberCount--;
+>     }
+> }
+> ```
+>
+> ****
+
+## 287 寻找重复数
+
+> ### 题目
+>
+> * 给定一个包含 `n + 1` 个整数的数组 `nums` ，其数字都在 `1` 到 `n` 之间（包括 `1` 和 `n`），可知至少存在一个重复的整数。
+> * 假设 `nums` 只有 **一个重复的整数** ，找出 **这个重复的数** 。
+>
+> ### 示例
+>
+> ```java
+> 输入：nums = [1,3,4,2,2]
+> 输出：2
+> ```
+>
+> ### 思路
+>
+> * **HashSet**
+> * **排序**
+> * **快慢指针成环**。即在找入环处结点
+>
+> ### 代码
+>
+> ```java
+> public int findDuplicate(int[] nums) {
+>     int slow = 0, fast = 0;
+>     do {
+>         slow = nums[slow];
+>         fast = nums[nums[fast]];
+>     } while (slow != fast);
+>     slow = 0;
+>     while (slow != fast) {
+>         slow = nums[slow];
+>         fast = nums[fast];
+>     }
+>     return slow;
+> }
+> ```
+>
+> ****
+
+## 328 奇偶链表
+
+> ### 题目
+>
+> * 给定一个单链表，把所有的奇数节点和偶数节点分别排在一起。请注意，这里的奇数节点和偶数节点指的是节点编号的奇偶性，而不是节点的值的奇偶性。
+> * 请尝试使用原地算法完成。你的算法的空间复杂度应为 O(1)，时间复杂度应为 O(nodes)，nodes 为节点总数。
+>
+> ### 示例
+>
+> ```java
+> 输入: 1->2->3->4->5->NULL
+> 输出: 1->3->5->2->4->NULL
+> ```
+>
+> ### 思路
+>
+> * 递归是递归不了的，只能 **强行遍历改指针**
+>
+> ### 代码
+>
+> ```java
+> public ListNode oddEvenList(ListNode head) {
+>     if (head == null) 
+>         return head;
+>     ListNode odd = head, even = head.next, evenHead = even;
+>     while (even != null && even.next != null) {
+>         odd.next = odd.next.next;
+>         odd = odd.next;
+>         even.next = even.next.next;
+>         even = even.next;
+>     }
+>     odd.next = evenHead;
+>     return head;
+> }
+> ```
+>
+> ****
+
+## 345 反转元音字母
+
+> ### 题目
+>
+> * 编写一个函数，以字符串作为输入，反转该字符串中的元音字母。
+>
+> ### 示例
+>
+> ```java
+> 输入："leetcode"
+> 输出："leotcede"
+> ```
+>
+> ### 思路
+>
+> * **双指针**
+>
+> ### 代码
+>
+> ```java
+> public String reverseVowels(String s) {
+>     Set<Character> set = new HashSet<Character>(){{
+>         add('a');
+>         add('e');
+>         add('i');
+>         add('o');
+>         add('u');
+>         add('A');
+>         add('E');
+>         add('I');
+>         add('O');
+>         add('U');
+>     }};
+> 
+>     StringBuilder builder = new StringBuilder(s);
+> 
+>     int i = 0;
+>     int j = builder.length() - 1;
+>     char temp = ' ';
+>     while (i < j){
+>         while (i < j && !set.contains(builder.charAt(i)))
+>             i++;
+>         while (i < j && !set.contains(builder.charAt(j)))
+>             j--;
+>         if (i<j){
+>             temp = builder.charAt(i);
+>             builder.setCharAt(i++, builder.charAt(j));
+>             builder.setCharAt(j--,temp);
+>         }
+>     }
+>     return builder.toString();
+> }
+> ```
+>
+> ****
+
+## 392 判断子序列
+
+> ### 题目
+>
+> * 给定字符串 **s** 和 **t** ，判断 **s** 是否为 **t** 的子序列。
+> * 字符串的一个子序列是原始字符串删除一些（也可以不删除）字符而不改变剩余字符相对位置形成的新字符串。（例如，"ace"是"abcde"的一个子序列，而"aec"不是）。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入：s = "abc", t = "ahbgdc"
+> 输出：true
+> ```
+>
+> ### 思路
+>
+> * **双指针**
+>
+> ### 代码
+>
+> ```java
+> public boolean isSubsequence(String s, String t) {
+>     int lengthS = s.length();
+>     int lengthT = t.length();
+>     int i = 0;
+>     int j = 0;
+>     while (i < lengthS && j< lengthT){
+>         if (s.charAt(i) == t.charAt(j)){
+>             i++;
+>             j++;
+>         }else 
+>             j++;
+>     }
+>     return i == lengthS;
+> }
+> ```
+>
+> ****
+
+## 406 根据身高重建队列
+
+> ### 题目
+>
+> * 假设有打乱顺序的一群人站成一个队列，数组 people 表示队列中一些人的属性（不一定按顺序）。每个 people[i] = [hi, ki] 表示第 i 个人的身高为 hi ，前面 正好 有 ki 个身高大于或等于 hi 的人。
+> * 请你重新构造并返回输入数组 people 所表示的队列。返回的队列应该格式化为数组 queue ，其中 queue[j] = [hj, kj] 是队列中第 j 个人的属性（queue[0] 是排在队列前面的人）。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入：people = [[7,0],[4,4],[7,1],[5,0],[6,1],[5,2]]
+> 输出：[[5,0],[7,0],[5,2],[6,1],[4,4],[7,1]]
+> 解释：
+> 编号为 0 的人身高为 5 ，没有身高更高或者相同的人排在他前面。
+> 编号为 1 的人身高为 7 ，没有身高更高或者相同的人排在他前面。
+> 编号为 2 的人身高为 5 ，有 2 个身高更高或者相同的人排在他前面，即编号为 0 和 1 的人。
+> 编号为 3 的人身高为 6 ，有 1 个身高更高或者相同的人排在他前面，即编号为 1 的人。
+> 编号为 4 的人身高为 4 ，有 4 个身高更高或者相同的人排在他前面，即编号为 0、1、2、3 的人。
+> 编号为 5 的人身高为 7 ，有 1 个身高更高或者相同的人排在他前面，即编号为 1 的人。
+> 因此 [[5,0],[7,0],[5,2],[6,1],[4,4],[7,1]] 是重新构造后的队列
+> ```
+>
+> ### 思路
+>
+> * **贪心思想**
+> * 按照 **身高从高到低，序号从低到高**排序，然后直接把编号当索引插入就行了
+> * 原理是身高最高的排好后，无论是前面还是插入什么元素都对结果没有影响
+>
+> ### 代码
+>
+> ```java
+> public int[][] reconstructQueue(int[][] people) {
+>     Arrays.sort(people, new Comparator<int[]>() {
+>         @Override
+>         public int compare(int[] o1, int[] o2) {
+>             if (o1[0] == o2[0])
+>                 return o1[1] - o2[1];
+>             else
+>                 return o2[0] - o1[0];
+>         }
+>     });
+> 
+>     List<int[]> ans = new ArrayList<int[]>();
+>     for (int[] person : people) {
+>         ans.add(person[1], person);
+>     }
+>     return ans.toArray(new int[ans.size()][]);
+> }
+> ```
+>
+> ****
+
+## 409 最长回文串
+
+> ### 题目
+>
+> * 给定一个包含大写字母和小写字母的字符串，找到通过这些字母构造成的最长的回文串。
+> * 在构造过程中，请注意区分大小写。比如 `"Aa"` 不能当做一个回文字符串。
+>
+> ### 示例
+>
+> ```java
+> 输入: "abccccdd"
+> 输出: 7
+> 解释: 我们可以构造的最长的回文串是"dccaccd", 它的长度是 7
+> ```
+>
+> ### 思路
+>
+> * 用`int[128]`存放每个字符出现的次数
+> * 代码思路不是算最长有多长，而是计算 **最少需要删除多少个**
+>
+> ### 代码
+>
+> ```java
+> public int longestPalindrome(String s) {
+>     int[] arr = new int[128];
+>     for(char c : s.toCharArray()) {
+>         arr[c]++;
+>     }
+>     int count = 0;
+>     for (int i : arr) {
+>         count += (i % 2);
+>     }
+>     return count == 0 ? s.length() : (s.length() - count + 1);
+> }
+> ```
+>
+> ****
+
+## 435 无重叠区间
+
+> ### 题目
+>
+> * 给定一个区间的集合，找到需要移除区间的最小数量，使剩余区间互不重叠。
+>
+> ### 示例
+>
+> ```java
+> 输入: [ [1,2], [2,3], [3,4], [1,3] ]
+> 输出: 1
+> 解释: 移除 [1,3] 后，剩下的区间没有重叠
+> ```
+>
+> ### 思路
+>
+> * **排序** + **贪心思想** 
+>
+> ### 代码
+>
+> ```java
+> public int eraseOverlapIntervals(int[][] intervals) {
+>     Arrays.sort(intervals, new Comparator<int[]>() {
+>         @Override
+>         public int compare(int[] o1, int[] o2) {
+>             if(o1[1] > o2[1])
+>                 return 1;
+>             else if (o1[1] == o2[1])
+>                 return 0;
+>             else
+>                 return -1;
+>         }
+>     });
+> 
+>     int length = intervals.length;
+> 
+>     if (length <= 1)
+>         return 0;
+>     if (length == 2)
+>         return intervals[0][1] <= intervals[1][0] ? 0:1;
+> 
+>     int i = 0;
+>     int j = 1;
+>     int result = 0;
+> 
+>     while (j < length){
+>         if (intervals[i][1] <= intervals[j][0]){
+>             i = j;
+>         }else {
+>             result++;
+>         }
+>         j++;
+>     }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 445 两数相加
+
+> ### 题目
+>
+> * 给你两个 **非空** 链表来代表两个非负整数。数字最高位位于链表开始位置。它们的每个节点只存储一位数字。将这两数相加会返回一个新的链表。
+> * 你可以假设除了数字 0 之外，这两个数字都不会以零开头。
+>
+> ### 示例
+>
+> ```java
+> 输入：(7 -> 2 -> 4 -> 3) + (5 -> 6 -> 4)
+> 输出：7 -> 8 -> 0 -> 7
+> ```
+>
+> ### 思路
+>
+> * **栈**
+>
+> ### 代码
+>
+> ```java
+> public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+>     Stack<ListNode> stackL1 = new Stack<>();
+>     Stack<ListNode> stackL2 = new Stack<>();
+> 
+>     while (l1 != null){
+>         stackL1.push(l1);
+>         l1 = l1.next;
+>     }
+>     while (l2 != null){
+>         stackL2.push(l2);
+>         l2 = l2.next;
+>     }
+>     ListNode result = null;
+>     ListNode temp = null;
+>     int remain = 0;
+>     int sum;
+>     int op1;
+>     int op2;
+>     while (!stackL1.isEmpty() || !stackL2.isEmpty()){
+>         op1 = stackL1.isEmpty() ? 0 : stackL1.pop().val;
+>         op2 = stackL2.isEmpty() ? 0 : stackL2.pop().val;
+>         sum = (op1 + op2 + remain) % 10;
+>         remain = (op1 + op2 + remain) / 10;
+>         if (result == null)
+>             result = new ListNode(sum,null);
+>         else{
+>             temp = new ListNode(sum,result);
+>             result = temp;
+>         }
+>     }
+>     if (remain != 0){
+>         temp = new ListNode(remain,result);
+>         result = temp;
+>     }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 452 用最数量的箭引爆气球
+
+> ### 示例
+>
+> ```java
+> 输入：points = [[10,16],[2,8],[1,6],[7,12]]
+> 输出：2
+> 解释：对于该样例，x = 6 可以射爆 [2,8],[1,6] 两个气球，以及 x = 11 射爆另外两个气球
+> ```
+>
+> ### 思路
+>
+> * **排序** + **贪心思想**
+>
+> ### 代码
+>
+> ```java
+> public int findMinArrowShots(int[][] points) {
+>     if (points.length == 0) {
+>         return 0;
+>     }
+>     Arrays.sort(points, new Comparator<int[]>() {
+>         public int compare(int[] point1, int[] point2) {
+>             if (point1[1] > point2[1]) {
+>                 return 1;
+>             } else if (point1[1] < point2[1]) {
+>                 return -1;
+>             } else {
+>                 return 0;
+>             }
+>         }
+>     });
+>     int pos = points[0][1];
+>     int ans = 1;
+>     for (int[] balloon: points) {
+>         if (balloon[0] > pos) {
+>             pos = balloon[1];
+>             ++ans;
+>         }
+>     }
+>     return ans;
+> }
+> ```
+>
+> ****
+
+## 455 分发饼干
+
+> ### 示例
+>
+> ```java
+> 输入: g = [1,2,3], s = [1,1]
+> 输出: 1
+> 解释: 
+> 你有三个孩子和两块小饼干，3个孩子的胃口值分别是：1,2,3。
+> 虽然你有两块小饼干，由于他们的尺寸都是1，你只能让胃口值是1的孩子满足。
+> 所以你应该输出1。
+> ```
+>
+> ### 思路
+>
+> * **排序** + **贪心思想**
+>
+> ****
+
+## 461 汉明距离
+
+> ### 题目
+>
+> * 两个整数之间的 **汉明距离** 指的是这两个数字对应二进制位不同的位置的数目。
+>
+> ### 示例
+>
+> ```java
+> 输入: x = 1, y = 4
+> 输出: 2
+> 解释:
+> 1   (0 0 0 1)
+> 4   (0 1 0 0)
+>        ↑   ↑
+> ```
+>
+> ### 思路
+>
+> * 直接 **模** 运算取低位看是否相同
+>
+> ### 代码
+>
+> ```java
+> public int hammingDistance(int x, int y) {
+>     int result = 0;
+>     while (x != 0 || y != 0){
+>         if (x % 2 != y % 2)
+>             result++;
+>         x >>= 1;
+>         y >>= 1;
+>     }
+>     return result;
+> }
+> ```
+> 
+>****
+
+## 485 最大连续1的个数
+
+> ### 题目
+>
+> * 给定一个二进制数组， 计算其中最大连续 1 的个数。
+>
+> ### 示例
+>
+> ```java
+> 输入：[1,1,0,1,1,1]
+> 输出：3
+> 解释：开头的两位和最后的三位都是连续 1 ，所以最大连续 1 的个数是 3.
+> ```
+>
+> ### 思路
+>
+> * 维护一个当前最大值的变量
+>
+> ### 代码
+>
+> ```java
+> public int findMaxConsecutiveOnes(int[] nums) {
+>     int max = 0;
+>     int temp = 0;
+>     for (int num :nums){
+>         if (num == 1)
+>             temp++;
+>         else {
+>             max = Math.max(max,temp);
+>             temp = 0;
+>         }
+>     }
+>     return Math.max(max,temp);
+> }
+> ```
+>
+> ****
+
+## 503 下一个更大的元素II
+
+> ### 题目
+>
+> * 给定一个循环数组（最后一个元素的下一个元素是数组的第一个元素），输出每个元素的下一个更大元素。数字 x 的下一个更大的元素是按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入: [1,2,1]
+> 输出: [2,-1,2]
+> 解释: 第一个 1 的下一个更大的数是 2；
+> 数字 2 找不到下一个更大的数； 
+> 第二个 1 的下一个最大的数需要循环搜索，结果也是 2。
+> ```
+>
+> ### 思路
+>
+> * 维护一个**递减栈**
+> * 第一遍正常遍历，并记录最大值
+> * 第二遍当栈顶不是最大值时，将大于栈顶的元素压栈；当栈顶元素为最大值时，就全部出栈赋值为-1
+> * 两遍遍历的巧妙做法是对index **取模**
+>
+> ### 代码
+>
+> ```java
+> public int[] nextGreaterElements(int[] nums) {
+>     int length = nums.length;
+>     if(length == 0)
+>         return new int[0];
+>     Stack<Integer> stack = new Stack<>();
+>     int max = nums[0];
+>     int maxIndex = 0;
+>     int currentNum = 0;
+>     int peekIndex = 0;
+>     int[] result = new int[length];
+>     for (int i = 0;i < length;i++){
+>         currentNum = nums[i];
+>         if (currentNum > max){
+>             max = currentNum;
+>             maxIndex = i;
+>         }
+>         while (!stack.isEmpty() && currentNum > nums[stack.peek()]){
+>             peekIndex = stack.pop();
+>             result[peekIndex] = currentNum;
+>         }
+>         stack.push(i);
+>     }
+>     for (int i = 0;i < length;i++){
+>         currentNum = nums[i];
+>         if (currentNum <= nums[stack.peek()])
+>             continue;
+>         while (!stack.isEmpty() && currentNum > nums[stack.peek()]){
+>             peekIndex = stack.pop();
+>             result[peekIndex] = currentNum;
+>         }
+>         if (currentNum == max)
+>             break;
+>     }
+>     while (!stack.isEmpty())
+>         result[stack.pop()] = -1;
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 513 找树左下角的值
+
+> ### 题目
+>
+> * 给定一个二叉树，在树的最后一行找到最左边的值。
+>
+> ### 示例
+>
+> ```java
+> 输入:
+> 
+>         1
+>        / \
+>       2   3
+>      /   / \
+>     4   5   6
+>        /
+>       7
+> 
+> 输出:
+> 7
+> ```
+>
+> ### 思路
+>
+> * **BFS** null指针作为层分界
+> * **递归**
+>
+> ### 代码
+>
+> ```java
+> //BFS
+> public int findBottomLeftValue(TreeNode root) {
+>     int result = root.val;
+>     Queue<TreeNode> queue = new LinkedList<TreeNode>();
+> 
+>     queue.add(root);
+>     queue.add(null);
+>     TreeNode peek;
+>     while (true){
+>         if ((peek = queue.poll()) == null){
+>             if (queue.isEmpty())
+>                 break;
+>             else {
+>                 result = queue.peek().val;
+>                 queue.add(null);
+>             }
+>         }else {
+>             if (peek.left != null)
+>                 queue.add(peek.left);
+>             if (peek.right != null)
+>                 queue.add(peek.right);
+>         }
+>     }
+>     return result;
+> }
+> 
+> //递归
+> public int findBottomLeftValue(TreeNode root) {
+>     if (root.left == null && root.right == null)
+>         return root.val;
+>     int leftLevel = treeLevel(root.left);
+>     int rightLevel = treeLevel(root.right);
+>     if (leftLevel >= rightLevel)
+>         return findBottomLeftValue(root.left);
+>     else
+>         return findBottomLeftValue(root.right);
+> }
+> 
+> private int treeLevel(TreeNode root){
+>     if (root == null)
+>         return 0;
+>     else
+>         return Math.max(treeLevel(root.left),treeLevel(root.right)) + 1;
+> }
+> ```
+>
+> ****
+
+## 515 在每个树中找最大值
+
+> ### 题目
+>
+> * 您需要在二叉树的每一行中找到最大的值。
+>
+> ### 示例
+>
+> ```java
+> 输入: 
+> 
+>           1
+>          / \
+>         3   2
+>        / \   \  
+>       5   3   9 
+> 
+> 输出: [1, 3, 9]
+> ```
+>
+> ### 思路
+>
+> * **BFS**
+>
+> ### 代码
+>
+> ```java
+> public List<Integer> largestValues(TreeNode root) {
+>     Queue<TreeNode> queue = new LinkedList<TreeNode>();
+>     List<Integer> result = new ArrayList<Integer>();
+> 
+>     if (root == null)
+>         return result;
+> 
+>     queue.add(root);
+>     queue.add(null);
+>     int tempMax = Integer.MIN_VALUE;
+>     TreeNode currentTreeNode = null;
+>     while (queue.peek() != null){
+>         while ((currentTreeNode = queue.poll()) != null){
+>             tempMax = Math.max(tempMax,currentTreeNode.val);
+>             if (currentTreeNode.left != null)
+>                 queue.add(currentTreeNode.left);
+>             if (currentTreeNode.right != null)
+>                 queue.add(currentTreeNode.right);
+>         }
+>         result.add(tempMax);
+>         tempMax = Integer.MIN_VALUE;
+>         queue.add(null);
+>     }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 524 通过删除字符匹配到字典最长的单词
+
+> ### 题目
+>
+> * 给定一个字符串和一个字符串字典，找到字典里面最长的字符串，该字符串可以通过删除给定字符串的某些字符来得到。如果答案不止一个，返回长度最长且字典顺序最小的字符串。如果答案不存在，则返回空字符串。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入: s = "abpcplea", d = ["ale","apple","monkey","plea"]
+> 输出: "apple"
+> ```
+>
+> ### 思路
+>
+> * 按照 **长度递减，字典序递增** 的顺序排序
+> * 然后顺序遍历，使用 **双指针** 返回
+> * java里字典序比较方法是`compareTo()`
+>
+> ### 代码
+>
+> ```java
+> public String findLongestWord(String s, List<String> dictionary) {
+>     dictionary.sort(new Comparator<String>() {
+>         @Override
+>         public int compare(String o1, String o2) {
+>             if (o1.length() > o2.length())
+>                 return -1;
+>             else if (o1.length() < o2.length())
+>                 return 1;
+>             else {
+>                 return o1.compareTo(o2);
+>             }
+>         }
+>     });
+> 
+>     int length = s.length();
+>     for (int k = 0; k<dictionary.size();k++){
+>         String current = dictionary.get(k);
+>         int currentLength = current.length();
+>         int i = 0;
+>         int j = 0;
+>         while (i < length && j < currentLength){
+>             if (s.charAt(i) == current.charAt(j)){
+>                 i++;
+>                 j++;
+>             }else
+>                 i++;
+>         }
+>         if (j == currentLength)
+>             return current;
+>     }
+>     return "";
+> }
+> ```
+>
+> ****
+
+## 539 最小时间差
+
+> ### 题目
+>
+> * 给定一个 24 小时制（小时:分钟 **"HH:MM"**）的时间列表，找出列表中任意两个时间的最小时间差并以分钟数表示。
+>
+> ### 示例
+>
+> ```java
+> 输入：timePoints = ["23:59","00:00"]
+> 输出：1
+> ```
+>
+> ### 思路
+>
+> * **排序**，每一位的分钟权重数分别是`600、60、10、1`
+> * 由于是 **循环数组** 还要考虑最后一位到第一位的间隔
+>
+> ### 代码
+>
+> ```java
+> public int findMinDifference(List<String> timePoints) {
+>     // 一天有 1440 分钟，如果 timePoints >= 1440 则表示有相等的时间，时间差为 0
+>     if (timePoints.size() >= 1440) {
+>         return 0;
+>     }
+>     // 用来存储每个时间的分钟
+>     int[] array = new int[timePoints.size()];
+>     for (int i = 0; i < timePoints.size(); i++) {
+>         // 计算分钟
+>         array[i] = minute(timePoints.get(i));
+>     }
+>     // 排序
+>     Arrays.sort(array);
+>     int min = Integer.MAX_VALUE;
+>     for (int i = 1; i < array.length; i++) {
+>         // 求出分钟差
+>         min = Math.min(min, array[i] - array[i - 1]);
+>         // 如果有最小分钟差，则直接返回
+>         if (min == 0) {
+>             return 0;
+>         }
+>     }
+>     // 最大时间和最小时间的分钟差可能最小，需要判断一下
+>     return Math.min(min, 1440 + array[0] - array[array.length - 1]);
+> }
+> 
+> public int minute(String s) {
+>     return s.charAt(0) * 600 + s.charAt(1) * 60 + s.charAt(3) * 10 + s.charAt(4);
+> }
+> ```
+>
+> ****
+
+## 540 有序数组中的单一元素
+
+> ### 题目
+>
+> * 给定一个只包含整数的有序数组，每个元素都会出现两次，唯有一个数只会出现一次，找出这个数。
+>
+> ### 示例
+>
+> ```java
+> 输入: [1,1,2,3,3,4,4,8,8]
+> 输出: 2
+> ```
+>
+> ### 思路
+>
+> * **异或**
+> * **二分**，但二分要考虑奇偶
+>
+> ### 代码
+>
+> ```java
+> public int singleNonDuplicate(int[] nums) {
+>     if (nums.length == 1)
+>         return nums[0];
+>     int i = 0;
+>     int j = nums.length - 1;
+>     int mid = 0;
+>     boolean isOdd;
+>     while (i < j){
+>         mid = (i + j) / 2;
+>         isOdd = (j - mid) % 2 == 1;
+>         if (nums[mid] == nums[mid - 1]){
+>             if (isOdd)
+>                 i = mid + 1;
+>             else
+>                 j = mid;
+>         }else if (nums[mid] == nums[mid + 1]){
+>             if (isOdd)
+>                 j = mid - 1;
+>             else
+>                 i = mid;
+>         }else{
+>             return nums[mid];
+>         }
+>     }
+>     return nums[i];
+> }
+> ```
+>
+> ****
+
+## 543 二叉树的直径
+
+> ### 题目
+>
+> * 给定一棵二叉树，你需要计算它的直径长度。一棵二叉树的直径长度是任意两个结点路径长度中的最大值。这条路径可能穿过也可能不穿过根结点。
+>
+> ### 示例
+>
+> ```java
+>           1
+>          / \
+>         2   3
+>        / \     
+>       4   5
+> 返回 3, 它的长度是路径 [4,2,1,3] 或者 [5,2,1,3]。
+> ```
+>
+> ### 思路
+>
+> * **递归**
+> * 递归思路看代码
+>
+> ### 代码
+>
+> ```java
+> public int diameterOfBinaryTree(TreeNode root) {
+>     if (root == null)
+>         return 0;
+>     else {
+>         int current = maxLength(root.left) + maxLength(root.right);
+>         int left = diameterOfBinaryTree(root.left);
+>         int right = diameterOfBinaryTree(root.right);
+>         return Math.max(current,Math.max(left,right));
+>     }
+> 
+> }
+> 
+> private int maxLength(TreeNode root){
+>     if (root == null)
+>         return 0;
+>     else
+>         return Math.max(maxLength(root.left),maxLength(root.right)) + 1;
+> }
+> ```
+>
+> ****
+
+## 565 数组嵌套
+
+> ### 题目
+>
+> * 索引从0开始长度为N的数组A，包含0到N - 1的所有整数。找到最大的集合S并返回其大小，其中 S[i] = {A[i], A[A[i]], A[A[A[i]]], ... }且遵守以下的规则。
+> * 假设选择索引为i的元素A[i]为S的第一个元素，S的下一个元素应该是A[A[i]]，之后是A[A[A[i]]]... 以此类推，不断添加直到S出现重复的元素。
+>
+>
+> ### 示例
+>
+> ```java
+> 输入: A = [5,4,0,3,1,6,2]
+> 输出: 4
+> 解释: 
+> A[0] = 5, A[1] = 4, A[2] = 0, A[3] = 3, A[4] = 1, A[5] = 6, A[6] = 2.
+> 
+> 其中一种最长的 S[K]:
+> S[0] = {A[0], A[5], A[6], A[2]} = {5, 6, 2, 0}
+> ```
+>
+> ### 思路
+>
+> * **快慢指针** ，此题类似于 **链表找环**
+> * 维护一个`boolean[]`用于减少情况
+>
+> ### 代码
+>
+> ```java
+> public int arrayNesting(int[] nums) {
+>     int slow = 0;
+>     int fast = 0;
+>     int count = 0;
+>     int result = 0;
+>     boolean[] hasLooked = new boolean[nums.length];
+>     for (int i = 0;i < nums.length;i++){
+>         if (hasLooked[i])
+>             continue;
+>         hasLooked[i] = true;
+>         slow = nums[i];
+>         fast = nums[i];
+>         count = 0;
+>         do {
+>             hasLooked[nums[slow]] = true;
+>             hasLooked[nums[nums[fast]]] = true;
+>             slow = nums[slow];
+>             fast = nums[nums[fast]];
+>             count++;
+>         }while (slow != fast);
+>         result = Math.max(result,count);
+>     }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 566 重塑矩阵
+
+> ### 题目
+>
+> * 
+>
+> ### 示例
+>
+> ```java
+> 输入: 
+> nums = [
+>     [1,2],
+>  	[3,4]
+> ]
+> r = 1, c = 4
+> 输出: [[1,2,3,4]]
+> 解释: 行遍历nums的结果是 [1,2,3,4]。新的矩阵是 1 * 4 矩阵, 用之前的元素值一行一行填充新矩阵。
+> ```
+>
+> ### 思路
+>
+> * 用 **取模** 运算来递增结果矩阵的索引
+>
+> ### 代码
+>
+> ```java
+> public int[][] matrixReshape(int[][] nums, int r, int c) {
+>     if (nums == null || nums.length == 0 || nums[0].length == 0)
+>         return nums;
+> 
+>     int row = nums.length;
+>     int column = nums[0].length;
+> 
+>     if (r * c != row * column)
+>         return nums;
+> 
+>     int[][] result = new int[r][c];
+> 
+>     int k = 0;
+>     int l = 0;
+>     for (int i = 0;i < row;i++)
+>         for (int j = 0;j < column;j++){
+>             result[k][l] = nums[i][j];
+>             k += ++l / c;
+>             l %= c;
+>         }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 594 最长和谐子序列
+
+> ### 题目
+>
+> * 和谐数组是指一个数组里元素的最大值和最小值之间的差别 **正好是 `1`** 。
+> * 现在，给你一个整数数组 `nums` ，请你在所有可能的子序列中找到最长的和谐子序列的长度。
+> * 数组的子序列是一个由数组派生出来的序列，它可以通过删除一些元素或不删除元素、且不改变其余元素的顺序而得到。
+>
+> ### 示例
+>
+> ```java
+> 输入：nums = [1,3,2,2,5,2,3,7]
+> 输出：5
+> 解释：最长的和谐子序列是 [3,2,2,2,3]
+>     
+> 输入：nums = [1,2,3,4]
+> 输出：2
+> ```
+>
+> ### 思路
+>
+> * **HashMap** + **map.getOrDefault()**
+>
+> ### 代码
+>
+> ```java
+> public int findLHS(int[] nums) {
+>     Map<Integer, Integer> countForNum = new HashMap<>();
+>     for (int num : nums)
+>         countForNum.put(num, countForNum.getOrDefault(num, 0) + 1);
+>     int longest = 0;
+>     for (int num : countForNum.keySet()) 
+>         if (countForNum.containsKey(num + 1))
+>             longest = Math.max(longest, countForNum.get(num + 1) + countForNum.get(num));
+>     return longest;
+> }
+> ```
+>
+> ****
+
+## 605 种花问题
+
+> ### 题目
+>
+> * 假设有一个很长的花坛，一部分地块种植了花，另一部分却没有。可是，花不能种植在相邻的地块上，它们会争夺水源，两者都会死去。
+> * 给你一个整数数组  flowerbed 表示花坛，由若干 0 和 1 组成，其中 0 表示没种植花，1 表示种植了花。另有一个数 n ，能否在不打破种植规则的情况下种入 n 朵花？能则返回 true ，不能则返回 false
+>
+>
+> ### 示例
+>
+> ```java
+> 输入：flowerbed = [1,0,0,0,1], n = 1
+> 输出：true
+> ```
+>
+> ### 思路
+>
+> * **贪心思想**
+> * 但要注意开始的第一盆花
+>
+> ### 代码
+>
+> ```java
+> public boolean canPlaceFlowers(int[] flowerbed, int n) {
+>     int result = 0;
+>     int length = flowerbed.length;
+>     if (length == 1){
+>         if (flowerbed[0] == 0)
+>             result = 1;
+>         return result >= n;
+>     }
+>     if (flowerbed[0] + flowerbed[1] == 0){
+>         result++;
+>         flowerbed[0] = 1;
+>     }
+>     int i = 1;
+>     while (i < length -1){
+>         if (flowerbed[i-1] + flowerbed[i] + flowerbed[i+1] == 0){
+>             result++;
+>             flowerbed[i] = 1;
+>             i += 2;
+>         }else {
+>             i++;
+>         }
+>     }
+>     if (flowerbed[length - 1] + flowerbed[length - 2] == 0)
+>         result++;
+>     return result >= n;
+> }
+> ```
+>
+> ****
+
+## 633 平方数之和
+
+> ### 题目
+>
+> * 给定一个非负整数 `c` ，你要判断是否存在两个整数 `a` 和 `b`，使得 `a * a + b * b = c` 。
+>
+> ### 示例
+>
+> ```java
+> 输入：c = 5
+> 输出：true
+> 解释：1 * 1 + 2 * 2 = 5
+> ```
+>
+> ### 思路
+>
+> * **双指针**
+> * 右边界由 **Math.sqrt()** 获得
+>
+> ### 代码
+>
+> ```java
+> public boolean judgeSquareSum(int c) {
+>     int i = 0;
+>     int j = (int) Math.sqrt(c);
+>     int tempSum = 0;
+>     while (i <= j){
+>         tempSum = i * i + j * j;
+>         if (tempSum == c)
+>             return true;
+>         else if (tempSum > c)
+>             j--;
+>         else 
+>             i++;
+>     }
+>     return false;
+> }
+> ```
+>
+> ****
+
+## 645 错误的集合
+
+> ### 题目
+>
+> * 集合 s 包含从 1 到 n 的整数。不幸的是，因为数据错误，导致集合里面某一个数字复制了成了集合里面的另外一个数字的值，导致集合 丢失了一个数字 并且 有一个数字重复 。
+>
+> * 给定一个数组 `nums` 代表了集合 `S` 发生错误后的结果。
+> * 请你找出重复出现的整数，再找到丢失的整数，将它们以数组的形式返回。
+>
+> ### 示例
+>
+> ```java
+> 输入：nums = [1,2,2,4]
+> 输出：[2,3]
+> ```
+>
+> ### 思路
+>
+> * 使用 **HashSet**
+>
+> ### 代码
+>
+> ```java
+> public int[] findErrorNums(int[] nums) {
+>     int[] result = new int[2];
+>     Set<Integer> set = new HashSet<Integer>();
+>     for (int num : nums){
+>         if (set.contains(num))
+>             result[0] = num;
+>         else
+>             set.add(num);
+>     }
+>     for (int i = 1;i <= nums.length;i++){
+>         if (!set.contains(i)){
+>             result[1] = i;
+>             return result;
+>         }
+>     }
+>     return result;
+> }
+> ```
+>
+> ****
+
+## 647 回文子串
+
+> ### 题目
+>
+> * 给定一个字符串，你的任务是计算这个字符串中有多少个回文子串。
+> * 具有不同开始位置或结束位置的子串，即使是由相同的字符组成，也会被视作不同的子串。
+>
+> ### 示例
+>
+> ```java
+> 输入："aaa"
+> 输出：6
+> 解释：6个回文子串: "a", "a", "a", "aa", "aa", "aaa"
+> ```
+>
+> ### 思路
+>
+> * **每一个** 和 **每两个** 分别向两边遍历，外部维护一个全局结果
+>
+> ### 代码
+>
+> ```java
+> private int cnt = 0;
+> 
+> public int countSubstrings(String s) {
+>     for (int i = 0; i < s.length(); i++) {
+>         extendSubstrings(s, i, i);     // 奇数长度
+>         extendSubstrings(s, i, i + 1); // 偶数长度
+>     }
+>     return cnt;
+> }
+> 
+> private void extendSubstrings(String s, int start, int end) {
+>     while (start >= 0 && end < s.length() && s.charAt(start) == s.charAt(end)) {
+>         start--;
+>         end++;
+>         cnt++;
+>     }
+> }
+> ```
+>
+> ****
+
+## 680 验证回文字符串II
+
+> ### 题目
+>
+> * 给定一个非空字符串 `s`，**最多**删除一个字符。判断是否能成为回文字符串。
+>
+> ### 示例
+>
+> ```java
+> 输入: "abca"
+> 输出: True
+> 解释: 你可以删除c字符
+> ```
+>
+> ### 思路
+>
+> * **双指针**从两边向中间遍历
+> * 如果不相等则分两种情况讨论，分别删除左指针和删除右指针
+>
+> ### 代码
+>
+> ```java
+> public boolean validPalindrome(String s) {
+>     int i = 0;
+>     int j = s.length() - 1;
+> 
+>     while (i < j){
+>         if (s.charAt(i) == s.charAt(j)){
+>             i++;
+>             j--;
+>         }else {
+>             return valid(s,i,j-1) || valid(s,i+1,j);
+>         }
+>     }
+>     return true;
+> }
+> 
+> private boolean valid(String s, int left,int right){
+>     while (left < right){
+>         if (s.charAt(left) == s.charAt(right)){
+>             left++;
+>             right--;
+>         }else {
+>             return false;
+>         }
+>     }
+>     return true;
+> }
+> ```
+>
+> ****
+
+## 695 岛屿的最大面积
+
+> ### 题目
+>
+> * 给定一个包含了一些 `0` 和 `1` 的非空二维数组 `grid` 。
+> * 一个 岛屿 是由一些相邻的 1 (代表土地) 构成的组合，这里的「相邻」要求两个 1 必须在水平或者竖直方向上相邻。你可以假设 grid 的四个边缘都被 0（代表水）包围着。
+> * 找到给定的二维数组中最大的岛屿面积。(如果没有岛屿，则返回面积为 `0` 。)
+>
+> ### 示例
+>
+> ```java
+> [[0,0,1,0,0,0,0,1,0,0,0,0,0],
+>  [0,0,0,0,0,0,0,1,1,1,0,0,0],
+>  [0,1,1,0,1,0,0,0,0,0,0,0,0],
+>  [0,1,0,0,1,1,0,0,1,0,1,0,0],
+>  [0,1,0,0,1,1,0,0,1,1,1,0,0],
+>  [0,0,0,0,0,0,0,0,0,0,1,0,0],
+>  [0,0,0,0,0,0,0,1,1,1,0,0,0],
+>  [0,0,0,0,0,0,0,1,1,0,0,0,0]]
+> 
+> 对于上面这个给定矩阵应返回 6。注意答案不应该是 11 ，因为岛屿只能包含水平或垂直的四个方向的 1 
+> ```
+>
+> ### 思路
+>
+> * **DFS**向四个方向遍历，遍历过了就将1设置成0
+>
+> ### 代码
+>
+> ```java
+> private int m, n;
+> private int[][] direction = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+> 
+> public int maxAreaOfIsland(int[][] grid) {
+>     if (grid == null || grid.length == 0) {
+>         return 0;
+>     }
+>     m = grid.length;
+>     n = grid[0].length;
+>     int maxArea = 0;
+>     for (int i = 0; i < m; i++) {
+>         for (int j = 0; j < n; j++) {
+>             maxArea = Math.max(maxArea, dfs(grid, i, j));
+>         }
+>     }
+>     return maxArea;
+> }
+> 
+> private int dfs(int[][] grid, int r, int c) {
+>     if (r < 0 || r >= m || c < 0 || c >= n || grid[r][c] == 0) {
+>         return 0;
+>     }
+>     grid[r][c] = 0;
+>     int area = 1;
+>     for (int[] d : direction) {
+>         area += dfs(grid, r + d[0], c + d[1]);
+>     }
+>     return area;
+> }
+> ```
+>
+> ****
+
+## 696 计算二进制子串
+
+> ### 题目
+>
+> * 给定一个字符串 `s`，计算具有相同数量 0 和 1 的非空（连续）子字符串的数量，并且这些子字符串中的所有 0 和所有 1 都是连续的。
+> * 重复出现的子串要计算它们出现的次数。
+>
+> ### 示例
+>
+> ```java
+> 输入: "00110011"
+> 输出: 6
+> 解释: 有6个子串具有相同数量的连续1和0：“0011”，“01”，“1100”，“10”，“0011” 和 “01”。
+> 请注意，一些重复出现的子串要计算它们出现的次数。
+> 另外，“00110011”不是有效的子串，因为所有的0（和1）没有组合在一起。
+> ```
+>
+> ### 思路
+>
+> * 每两个字符向**两边**遍历
+>
+> ### 代码
+>
+> ```java
+> public int countBinarySubstrings(String s) {
+>     int preLen = 0, curLen = 1, count = 0;
+>     for (int i = 1; i < s.length(); i++) {
+>         if (s.charAt(i) == s.charAt(i - 1)) {
+>             curLen++;
+>         } else {
+>             preLen = curLen;
+>             curLen = 1;
+>         }
+> 
+>         if (preLen >= curLen) {
+>             count++;
+>         }
+>     }
+>     return count;
+> }
+> ```
+>
+> ****
+
+## 696 数组的度
+
+> ### 题目
+>
+> * 给定一个非空且只包含非负数的整数数组 `nums`，数组的度的定义是指数组里任一元素出现频数的最大值。
+> * 你的任务是在 `nums` 中找到与 `nums` 拥有相同大小的度的最短连续子数组，返回其长度。
+>
+> ### 示例
+>
+> ```java
+> 输入：[1, 2, 2, 3, 1]
+> 输出：2
+> 解释：
+> 输入数组的度是2，因为元素1和2的出现频数最大，均为2.
+> 连续子数组里面拥有相同度的有如下所示:
+> [1, 2, 2, 3, 1], [1, 2, 2, 3], [2, 2, 3, 1], [1, 2, 2], [2, 2, 3], [2, 2]
+> 最短连续子数组[2, 2]的长度为2，所以返回2.
+> ```
+>
+> ### 思路
+>
+> * **HashMap**
+> * 只不过map的value属性要设置成`int[]`存放 **起始**和 **终止**的索引值
+>
+> ### 代码
+>
+> ```java
+> public int findShortestSubArray(int[] nums) {
+>     Map<Integer, int[]> map = new HashMap<Integer, int[]>();
+>     int n = nums.length;
+>     for (int i = 0; i < n; i++) {
+>         if (map.containsKey(nums[i])) {
+>             map.get(nums[i])[0]++;
+>             map.get(nums[i])[2] = i;
+>         } else {
+>             map.put(nums[i], new int[]{1, i, i});
+>         }
+>     }
+>     int maxNum = 0, minLen = 0;
+>     for (Map.Entry<Integer, int[]> entry : map.entrySet()) {
+>         int[] arr = entry.getValue();
+>         if (maxNum < arr[0]) {
+>             maxNum = arr[0];
+>             minLen = arr[2] - arr[1] + 1;
+>         } else if (maxNum == arr[0]) {
+>             if (minLen > arr[2] - arr[1] + 1) {
+>                 minLen = arr[2] - arr[1] + 1;
+>             }
+>         }
+>     }
+>     return minLen;
+> }
+> ```
+>
+> ****
+
+## 725 分隔链表
+
+> ### 题目
+>
+> * 给定一个头结点为 `root` 的链表, 编写一个函数以将链表分隔为 `k` 个连续的部分。
+> * 每部分的长度应该尽可能的相等: 任意两部分的长度差距不能超过 1，也就是说可能有些部分为 null。
+> * 这k个部分应该按照在链表中出现的顺序进行输出，并且排在前面的部分的长度应该大于或等于后面的长度。
+>
+> ### 示例
+>
+> ```java
+> 输入: 
+> root = [1, 2, 3], k = 5
+> 输出: [[1],[2],[3],[],[]]
+> ```
+>
+> ### 思路
+>
+> * 先计算出总长度，在计算出每部分的长度
+> * 最后按照长度截断
+>
+> ### 代码
+>
+> ```java
+> public ListNode[] splitListToParts(ListNode root, int k) {
+>     int count = 0;
+>     ListNode rootMark = root;
+>     while (root != null){
+>         count++;
+>         root = root.next;
+>     }
+>     int quotient = count / k;
+>     int remain = count % k;
+>     int[] nums = new int[k];
+>     for (int i = 0;i < k;i++)
+>         nums[i] = remain-- > 0 ? quotient + 1 : quotient;
+>     ListNode[] nodes = new ListNode[k];
+> 
+>     ListNode current = rootMark;
+>     ListNode temp = null;
+>     for (int i = 0;i < k;i++){
+>         nodes[i] = current;
+>         while (nums[i]-- > 1)
+>             current = current.next;
+>         if (current == null)
+>             break;
+>         temp = current;
+>         current = current.next;
+>         temp.next = null;
+>     }
+>     return nodes;
+> }
+> ```
+>
+> ****
+
+## 739 每日温度
+
+> ### 题目
+>
+> * 请根据每日 `气温` 列表，重新生成一个列表。对应位置的输出为：要想观测到更高的气温，至少需要等待的天数。如果气温在这之后都不会升高，请在该位置用 `0` 来代替。
+>
+> ### 示例
+>
+> ```java
+> 输入：temperatures = [73, 74, 75, 71, 69, 72, 76, 73]
+> 输出：[1, 1, 4, 2, 1, 1, 0, 0]
+> ```
+>
+> ### 思路
+>
+> * 维护一个**递减栈**
+> * 压栈的是 **索引**，温度的大小是 **索引 + 数组**求出来的
+>
+> ### 代码
+>
+> ```java
+> public int[] dailyTemperatures(int[] t) {
+>     int length = t.length;
+>     int[] ans = new int[length];
+>     Deque<Integer> stack = new LinkedList<Integer>();
+>     int temperature;
+>     int prevIndex;
+>     for (int i = 0; i < length; i++) {
+>         temperature = t[i];
+>         while (!stack.isEmpty() && temperature > t[stack.peek()]) {
+>             prevIndex = stack.pop();
+>             ans[prevIndex] = i - prevIndex;
+>         }
+>         stack.push(i);
+>     }
+>     return ans;
+> }
+> ```
+>
+> ****
+
+## 744 寻找比目标字母大的最小字母
+
+> ### 题目
+>
+> * 给你一个排序后的字符列表 `letters` ，列表中只包含小写英文字母。另给出一个目标字母 `target`，请你寻找在这一有序列表里比目标字母大的最小字母
+> * 在比较时，字母是依序循环出现的。
+>
+> ### 示例
+>
+> ```java
+> 输入:
+> letters = ["c", "f", "j"]
+> target = "a"
+> 输出: "c"
+> ```
+>
+> ### 思路
+>
+> * **二分法**
+>
+> ### 代码
+>
+> ```java
+> public char nextGreatestLetter(char[] letters, char target) {
+>     int i = 0;
+>     int j = letters.length - 1;
+>     int mid;
+>     char midChar;
+>     while (i <= j){
+>         mid = (i + j) / 2;
+>         midChar = letters[mid];
+>         if (midChar <= target)
+>             i = ++mid;
+>         else
+>             j = --mid;
+>     }
+>     int tempMax = Math.max(i,j);
+>     return tempMax >= letters.length ? letters[0] : letters[tempMax];
+> }
+> ```
+>
+> ****
+
+## 763 划分字母区间
+
+> ### 题目
+>
+> * 字符串 `S` 由小写字母组成。我们要把这个字符串划分为尽可能多的片段，同一字母最多出现在一个片段中。返回一个表示每个字符串片段的长度的列表。
+>
+> ### 示例
+>
+> ```java
+> 输入：S = "ababcbacadefegdehijhklij"
+> 输出：[9,7,8]
+> 解释：
+> 划分结果为 "ababcbaca", "defegde", "hijhklij"。
+> 每个字母最多出现在一个片段中。
+> 像 "ababcbacadefegde", "hijhklij" 的划分是错误的，因为划分的片段数较少。
+> ```
+>
+> ### 思路
+>
+> * `s.lastIndexof()`
+>
+> ### 代码
+>
+> ```java
+> public List<Integer> partitionLabels(String s) {
+>     int length = s.length();
+>     int left = 0;
+>     int right = 0;
+>     int index = 0;
+>     List<Integer> list = new ArrayList<Integer>();
+>     while (left < length){
+>         right = Math.max(right,s.lastIndexOf(s.charAt(left)));
+>         if (left == right){
+>             list.add(left + 1 -index);
+>             index = ++left;
+>             continue;
+>         }
+>         if (left < length)
+>             left++;
+>     }
+>     return list;
+> }
+> ```
+>
+> ****
+
+## 766 托普利茨矩阵
+
+> ### 题目
+>
+> * 给你一个 `m x n` 的矩阵 `matrix` 。如果这个矩阵是托普利茨矩阵，返回 `true` ；否则，返回 `false` *。*
+> * 如果矩阵上每一条由左上到右下的对角线上的元素都相同，那么这个矩阵是 **托普利茨矩阵** 。
+>
+> ### 示例
+>
+> ```java
+> 输入：matrix = [
+>     [1,2,3,4],
+>     [5,1,2,3],
+>     [9,5,1,2]
+> ]
+> 输出：true
+> 解释：在上述矩阵中, 其对角线为: 
+> "[9]", "[5, 5]", "[1, 1, 1]", "[2, 2, 2]", "[3, 3]", "[4]"。 
+> 各条对角线上的所有元素均相同, 因此答案是 True 
+> ```
+>
+> ### 思路
+>
+> * 顺序遍历一遍
+>
+> ### 代码
+>
+> ```java
+> public boolean isToeplitzMatrix(int[][] matrix) {
+>     int row = matrix.length;
+>     int column = matrix[0].length;
+> 
+>     for (int i = 0;i < row;i++)
+>         for (int j = 0;j < column;j++)
+>             if (i > 0 && j > 0 && matrix[i][j] != matrix[i - 1][j - 1])
+>                 return false;
+>     return true;
+> }
+> ```
+>
+> ****
+
+## 769 最多能完成排序的块
+
+> ### 题目
+>
+> * 数组arr是[0, 1, ..., arr.length - 1]的一种排列，我们将这个数组分割成几个“块”，并将这些块分别进行排序。之后再连接起来，使得连接的结果和按升序排序后的原数组相同。
+>
+> * 我们最多能将数组分成多少块？
+>
+> ### 示例
+>
+> ```java
+> 输入: arr = [1,0,2,3,4]
+> 输出: 4
+> 解释:
+> 我们可以把它分成两块，例如 [1, 0], [2, 3, 4]。
+> 然而，分成 [1, 0], [2], [3], [4] 可以得到最多的块数。
+> ```
+>
+> ### 思路
+>
+> * **双指针**
+>
+> ### 代码
+>
+> ```java
+> public int maxChunksToSorted(int[] arr) {
+>     if (arr == null) return 0;
+>     int ret = 0;
+>     int right = arr[0];
+>     for (int i = 0; i < arr.length; i++) {
+>         right = Math.max(right, arr[i]);
+>         if (right == i) ret++;
+>     }
+>     return ret;
+> }
+> ```
+>
+> ****
+
+## 1047 删除字符串中所有相邻的重复项
+
+> ### 题目
+>
+> * 给出由小写字母组成的字符串 `S`，**重复项删除操作**会选择两个相邻且相同的字母，并删除它们。
+> * 在 S 上反复执行重复项删除操作，直到无法继续删除。
+> * 在完成所有重复项删除操作后返回最终的字符串。答案保证唯一。
+>
+> ### 示例
+>
+> ```java
+> 输入："abbaca"
+> 输出："ca"
+> 解释：
+> 例如，在 "abbaca" 中，我们可以删除 "bb" 由于两字母相邻且相同，这是此时唯一可以执行删除操作的重复项。之后我们得到字符串 "aaca"，其中又只有 "aa" 可以执行重复项删除操作，所以最后的字符串为 "ca"。
+> ```
+>
+> ### 思路
+>
+> * **栈**
+>
+> ### 代码
+>
+> ```java
+> public String removeDuplicates(String s) {
+>     int length = s.length();
+>     StringBuilder builder = new StringBuilder(s);
+> 
+>     Stack<Character> stack = new Stack<>();
+> 
+>     for (int i = 0; i < s.length(); i++){
+>         if (stack.isEmpty())
+>             stack.push(builder.charAt(i));
+>         else if (stack.peek().equals(builder.charAt(i)))
+>             stack.pop();
+>         else
+>             stack.push(builder.charAt(i));
+>     }
+>     builder.replace(0,builder.length(),"");
+>     while (!stack.isEmpty())
+>         builder.append(stack.pop());
+>     return builder.reverse().toString();
+> }
+> ```
+>
+> ****
+
+## 1091 二进制矩阵中的最短路径
+
+> ### 题目
+>
+> * 给你一个 `n x n` 的二进制矩阵 `grid` 中，返回矩阵中最短 **畅通路径** 的长度。如果不存在这样的路径，返回 `-1` 。
+> * 二进制矩阵中的 畅通路径 是一条从 **左上角** 单元格（即，`(0, 0)`）到 **右下角** 单元格（即，`(n - 1, n - 1)`）的路径，该路径同时满足下述要求：
+>   * 路径途经的所有单元格都的值都是 `0` 。
+>   * 路径中所有相邻的单元格应当在 **8 个方向之一** 上连通
+> * **畅通路径的长度** 是该路径途经的单元格总数。
+>
+> ### 示例
+>
+> ```java
+> 输入：grid = [
+>     [0,0,0],
+>     [1,1,0],
+>     [1,1,0]
+> ]
+> 输出：4
+> ```
+>
+> ### 思路
+>
+> * **BFS**遍历，遍历过后将0设置为1
+>
+> ### 代码
+>
+> ```java
+> public int shortestPathBinaryMatrix(int[][] grids) {
+>     if (grids == null || grids.length == 0 || grids[0].length == 0) {
+>         return -1;
+>     }
+>     int[][] direction = {{1, -1}, {1, 0}, {1, 1}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, 1}};
+>     int m = grids.length, n = grids[0].length;
+>     Queue<Pair<Integer, Integer>> queue = new LinkedList<>();
+>     queue.add(new Pair<>(0, 0));
+>     int pathLength = 0;
+>     while (!queue.isEmpty()) {
+>         int size = queue.size();
+>         pathLength++;
+>         while (size-- > 0) {
+>             Pair<Integer, Integer> cur = queue.poll();
+>             int cr = cur.getKey(), cc = cur.getValue();
+>             if (grids[cr][cc] == 1) {
+>                 continue;
+>             }
+>             if (cr == m - 1 && cc == n - 1) {
+>                 return pathLength;
+>             }
+>             grids[cr][cc] = 1; // 标记
+>             for (int[] d : direction) {
+>                 int nr = cr + d[0], nc = cc + d[1];
+>                 if (nr < 0 || nr >= m || nc < 0 || nc >= n) {
+>                     continue;
+>                 }
+>                 queue.add(new Pair<>(nr, nc));
+>             }
+>         }
+>     }
+>     return -1;
+> }
+> ```
+>
+> ****
+
+## 1513 仅含1的子串数
+
+> ### 题目
+>
+> * 给你一个二进制字符串 `s`（仅由 '0' 和 '1' 组成的字符串）。
+> * 返回所有字符都为 1 的子字符串的数目。
+> * 由于答案可能很大，请你将它对 10^9 + 7 取模后返回。
+>
+> ### 示例
+>
+> ```java
+> 输入：s = "0110111"
+> 输出：9
+> 解释：共有 9 个子字符串仅由 '1' 组成
+> "1" -> 5 次
+> "11" -> 3 次
+> "111" -> 1 次
+> ```
+>
+> ### 思路
+>
+> * 找到连续出现1的个数，使用等差数列公式求结果
+> * 结果对题目要求数字取模
+>
+> ### 代码
+>
+> ```java
+> public int numSub(String s) {
+>     final int MODULO = 1000000007;
+>     long total = 0;
+>     int length = s.length();
+>     long consecutive = 0;
+>     for (int i = 0; i < length; i++) {
+>         char c = s.charAt(i);
+>         if (c == '0') {
+>             total += consecutive * (consecutive + 1) / 2;
+>             total %= MODULO;
+>             consecutive = 0;
+>         } else {
+>             consecutive++;
+>         }
+>     }
+>     total += consecutive * (consecutive + 1) / 2;
+>     total %= MODULO;
+>     return (int) total;
+> }
+> ```
+>
+> ****
+
+## 1647 字符频次唯一的最小删除次数
+
+> ### 题目
+>
+> * 如果字符串 `s` 中 **不存在** 两个不同字符 **频次** 相同的情况，就称 `s` 是 **优质字符串** 。
+> * 给你一个字符串 `s`，返回使 `s` 成为 **优质字符串** 需要删除的 **最小** 字符数。
+> * 字符串中字符的 **频次** 是该字符在字符串中的出现次数。例如，在字符串 `"aab"` 中，`'a'` 的频次是 `2`，而 `'b'` 的频次是 `1` 。
+>
+> ### 示例
+>
+> ```java
+> 输入：s = "aaabbbcc"
+> 输出：2
+> 解释：可以删除两个 'b' , 得到优质字符串 "aaabcc" 。
+> 另一种方式是删除一个 'b' 和一个 'c' ，得到优质字符串 "aaabbc" 
+> ```
+>
+> ### 思路
+>
+> * 首先计算出每个字符串出现的次数
+> * 使用 **贪心思想** 尽量保留 **高频** 字符，然后对低频相同字符递删
+>
+> ### 代码
+>
+> ```java
+> public int minDeletions(String s) {
+>     int[] counts = new int[26];
+>     for (char temp : s.toCharArray())
+>         counts[temp - 'a']++;
+> 
+>     Arrays.sort(counts);
+>     int currentMaxTime = counts[counts.length - 1] + 1;
+>     int result = 0;
+>     for (int i = counts.length - 1;i > -1 && counts[i] > 0;i--){
+>         if (counts[i] < currentMaxTime)
+>             currentMaxTime = counts[i];
+>         else {
+>             currentMaxTime = currentMaxTime > 0 ? currentMaxTime - 1 : 0;
+>             result += counts[i] - currentMaxTime;
+>         }
+>     }
+>     return result;
 > }
 > ```
 >
