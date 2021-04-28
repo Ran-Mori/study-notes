@@ -13,3 +13,50 @@
 .externalNativeBuild
 .cxx
 /Apk
+
+# Built application files and Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+ 
+# Compiled class files
+*.class
+ 
+# Log Files
+*.log
+ 
+# About IntelliJ
+/out/
+ 
+# BlueJ files
+*.ctxt
+ 
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+ 
+# macOS
+.DS_Store
+ 
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+ 
+# File-based project format
+*.iws
+ 
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+ 
+
+
