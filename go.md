@@ -186,4 +186,172 @@
 >
 > * 编码`json.Marshal()`
 > * 解码`json.Unmarshal()`
+>
+> ### 封装
+>
+> * go语言可见性是由字段的大小写决定的
+> * 因此go语言封装的最小啊单位是 **包package**
+>
+> ### 方法
+>
+> * 方法的接受者可以是对象也可以是指针，当对象能够直接.方法调用接受者是指针的方法时，这是go的语法糖，会隐式地做一个类型转换
+>
+> ***
 
+## 第七章 - 接口
+
+> ### go接口特点
+>
+> * 不需要显示地声明实现了某个接口，只需要实现类含有特定的方法就行
+>
+> * 类似Java里面的`toString()`，go语言有一个接口如下
+>
+>   ```go
+>   type Stringer interface{
+>       String() string
+>   }
+>   ```
+>
+> ### 空接口
+>
+> * `interface{}`空接口类型对实现它的类型没有任何要求，因此可以把任何一个类型赋值给空接口
+> * 有那么一点Java的Object内味了
+>
+> ### 接口的值
+>
+> * 接口的值就是一个具体的类型和那个类型的值
+> * 即如`var w io.Writer = os.Stdout`，此时w的type类型值为`*os.File`，它的类型的值为`os.Stdout`的指针副本
+> * 接口的零值就是具体类型和那个类型的值都为nil
+> * `var x interface{} = time.Now()`，不论接口值多大，理论上动态值都能把它容下
+>
+> ### Sort接口
+>
+> * sort接口代码
+>
+>   ```go
+>   package sort
+>   type Interface interface{
+>       Len() int
+>       Less(i,j int) bool
+>       Swap(i,j int)
+>   }
+>   ```
+>
+> * 如果要自定义排序就实现上面三个方法就行了
+>
+> ### Error接口
+>
+> * 一般都直接调用`fmt.Errorf(format string, args ...interface{}) error`方法
+>
+> ### 接口断言操作
+>
+> * 总结概括理解起来就是判断此接口对象的类型
+> * 如`if _,ok := w.(* os.File); ok{ ... }`
+>
+> ***
+
+## 第八章 - Goroutines和Channels
+
+> ### goroutines
+>
+> * 在go语言中，每一个并发执行的单元叫做一个goroutine
+> * 主函数在main goroutine执行
+> * 主函数返回时，所有其他的goroutine都会被直接打断
+> * 除了从主函数退出或者直接终止程序外，没有其他的编程方式能让一个goroutine打断另外一个goroutine的执行
+>
+> ### go关键字
+>
+> * `f()`调用函数f()并等待返回
+> * `go f()`创建一个goroutine，调用f()并不等待返回继续执行
+>
+> ### channel
+>
+> * 可以让一个goroutine通过channel给另一个goroutine发送消息
+> * 创建：`ch := make(char 发送的类型, size)`
+> * 发送：`ch <- x` ，接收：`x = <- ch`  ，关闭`close(channel)`
+>
+> ### 不带缓存的channel
+>
+> * 无缓存channel(即size默认为0的channel)的发送操作会使自身陷入阻塞状态，直到被接收方成功接收才会继续执行
+> * 如果接收着接收无缓存的channel，也会同样陷入阻塞状态
+> * 有那么一点同步阻塞内味了，实际就是一次同步操作
+>
+> ### Happen before原则
+>
+> * 通常说的X时间要在Y事件之前发生，不是说的X事件一定比Y事件先发生，而是指必须等X事件完成后才能进行B事件
+> * 即开始时间的先后没有关系，我们只看衔接的先后顺序
+>
+> ### 管道
+>
+> * 将多个channel串联起来就形成了管道
+>
+> ### 单方向channel
+>
+> * `chan<- type`只发送不接收
+> * `<-chan type`只接收不发送
+> * 将双向的channel赋值给单向的channel会做隐式的类型转换，而倒过来赋值则可能会报错
+>
+> ### 带缓存的channel
+>
+> * 创建：`var ch := make(chan int,3)`，其内含一个元素队列
+> * 真的有消息队列内味了，发送操作就是向队尾插入元素，接收操作就是从队头取元素
+> * `cap(channel)`返回的是元素队列的大小，`len(channel)`返回的是元素队列中含有多少个消息
+> * 当队列满了继续发送时会进入阻塞状态，当队列空了继续读入也会陷入阻塞状态
+> * 应用举例：并发地从三个源处获取信息，信息返回存放在channel中，且channel缓存设置成3，最后只从缓存中读取一次并做最后的返回，这样就能获取最先返回的内容，且慢的也不会被阻塞
+>
+> ### goroutine泄露
+>
+> * 某goroutine因为没人接收或等待读入而永远卡住，泄露的goroutine不会被自动回收，会对系统造成很大的风险
+>
+> ### select多路复用
+>
+> * select语句使用
+>
+>   ```go
+>   select{
+>       case <-ch :
+>       //...
+>       case x := <-ch2
+>       //...
+>   }
+>   ```
+>
+> * 整体结构类似于switch - case语句
+>
+> * select会等待case中有一个然后去执行，当case条件满足时就去执行其中一个case。
+>
+> * 一个没有任何case的select语句会永远阻塞在那里
+>
+> * 当多个case同时满足时会随机选择一个进行执行
+>
+> * 举例
+>
+>   ```go
+>   ch := make(chan int, 1)
+>   for i := 0;i < 10;i++{
+>       select {
+>           case ch <- i:
+>       case x := <-ch:
+>           fmt.Println(x)
+>       }
+>   }
+>   ```
+>
+> ***
+
+## 第九章 - 基于共享变量的并发
+
+> ### sync.Mutex
+>
+> * 就是Java里面的锁
+> * 只不过这个锁是不可重入的，和Java稍微有些不一样
+> * 特点是无论读和写都会上锁和释放锁
+>
+> ### sync.RWMutex
+>
+> * 读时不上锁，写时才上锁
+>
+> ### goroutine和线程
+>
+> * 动态栈：goroutine的栈大小是可以动态变化的，因此可以创建成千上万的goroutine
+> * 调度：goroutine的调度类似于协程调度
