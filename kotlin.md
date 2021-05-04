@@ -161,3 +161,128 @@
 >
 > ***
 
+## 属性与字段
+
+> ### 属性
+>
+> * var和val的一大区别是var既有getter也有setter，而val只有getter没有setter
+>
+> * kotlin可以实现类似于C#的计算属性
+>
+>   ```kotlin
+>   var num: Int = 0
+>   var isOdd: Boolean
+>       get() = this.isOdd
+>       set(value) {
+>           num % 2 == 1
+>   }
+>   ```
+>
+> * 且getter和setter支持访问权限控制和注解
+>
+> ***
+
+## 接口
+
+> ### 接口
+>
+> * 和Java一样
+> * 只不过支持getter而已
+>
+> ### 函数式接口(SAM)
+>
+> * SAM：single abstract method
+>
+> * 定义：只有一个抽象方法的接口。即可以有多个非抽象成员，但抽象成员只能有一个
+>
+> * 声明
+>
+>   ```kotlin
+>   fun interface SAM{
+>       fun test(num: Int): Int
+>   }
+>   ```
+>
+> * 使用lamba表达式方便创建实例举例
+>
+>   ```kotlin
+>   fun interface IntPredicate {
+>      fun accept(i: Int): Boolean
+>   }
+>   
+>   val isEven = IntPredicate { it % 2 == 0 }
+>   
+>   fun main() {
+>      println("Is 7 even? - ${isEven.accept(7)}")
+>   }
+>   ```
+>
+> ***
+
+## 可见性修饰符
+
+> ### 四种类型
+>
+> * public，protected，internal，private
+>
+> ### internal
+>
+> * 次声明在同一个模块下保持可见性
+>
+> ### 方法位置
+>
+> * 和Java不一样，kotlin直接允许方法定义在package下
+>
+> ### 模块
+>
+> * 模块是编译在一起的一套kotlin文件
+>
+> ### 构造函数
+>
+> * kotlin构造函数也能有修饰符
+>
+> ***
+
+## 拓展函数
+
+> ### 功能
+>
+> * 不必修改一个类的前提下拓展次类的属性和方法
+>
+> ### 做法
+>
+> * 声明方法时指明方法的接收者，在方法中使用this代替接收者
+>
+>   ```kotlin
+>   fun <T> MutableList<T>.swap(index1: Int, index2: Int) {}
+>   ```
+>
+> ### 静态解析
+>
+> * 拓展并没有真正地去改变这个类，而是在调用时做静态解析，即编译期就确定其调用行为
+>
+> ### 可空接收者
+>
+> * 接收者甚至可以为空，即声明接收者为`Int?`类型
+>
+> ***
+
+## 数据类
+
+> ### 特点
+>
+> * 只保存数据的类
+>
+> ### 声明
+>
+> ```kotlin
+> data class User(val name: String, val age: Int)
+> ```
+>
+> ***
+
+## 对象表达式
+
+> ### 使用情况
+>
+> * 当想创建一个对某个类做出了轻微改动的对象，而不用为之显示地声明子类的时候
