@@ -5,6 +5,14 @@
 > ### 前述
 >
 > * Kotlin同Java一样，一切皆对象
+> * kotlin百分之百兼容Java，能使用Java的所有框架
+> * 因此kotlin可以说是继承了Java的所有财富，而自己本省更加的优秀
+>
+> ### kotlin历史
+>
+> * kotlin是由jetbrains公司设计开发的语言‘
+> * 在发布第一个版本后就被谷歌推荐为Android开发的首选语言
+> * 之所以jetbrains能够以一个第三方的身份设计出Android的开发语言，是因为JVM只认class文件，而对于class文件从何而来根本不care，因此kotlin可以认为是Java的语法糖
 >
 > ### 数字
 >
@@ -111,6 +119,10 @@
 >   ){
 >       ...
 >   }
+>   //省略后
+>   class Student (var name: String,var age: Int,var sex:Boolean){
+>       //...
+>   }
 >   ```
 >
 > * 当既无访问权限修饰符，也无注解时，`constructor`关键字可以进行省略
@@ -130,13 +142,33 @@
 >           this.age = age
 >       }
 >       constructor(name: String) :this(name,30){
->           
+>
 >       }
 >   }
 >   ```
 >
 > * 执行顺序：首先`init块`，其次`次构委托给主构部分`,最后`次构造`
+>
 > * 以上面举例，此Student对象有两种初始化方式，分别是传入(name, age)，另一种是只传入age
+>
+> ### 构造函数理解整体举例
+>
+> ```kotlin
+> class Student(var sno: String, var grade: Int, name: String, age: Int): Person(name,age){
+>     constructor(name: String,age: Int): this("", 0, name, age){
+>         println("次构造函数一被调用")
+>     }
+>     constructor():this("", 0){
+>         println("次构造函数二别调用")
+>     }
+> }
+> ```
+>
+> * 注意`name: Stirng, age: Int`不能添加`val`和var ，因为如果加了就等于是声明称成员变量，就会覆盖父类。这里的意思只是传递给父类构造函数，并不是想覆盖，因此不加
+> * 当执行`val student = Student("",0,"",0)`时执行的是主构造函数
+> * 当执行`val student = Student(name = "name",age = 3)`，会先调用主构造函数，在调用次构造函数一
+> * 当执行`val student = Student()`会先调用主构造函数，在调用次构造函数一，在调用次构造函数二
+> * 但是次构造函数一般不会使用，因为kotlin的参数支持默认值，有了默认值后基本不会使用次构造函数
 >
 > ### 创建对象
 >
@@ -188,6 +220,7 @@
 >
 > * 和Java一样
 > * 只不过支持getter而已
+> * kotlin的接口支持默认实现，其实Java8以后也支持，即给抽象方法一个默认实现，在子类实现接口时可以选择重写也可以选择不重写
 >
 > ### 函数式接口(SAM)
 >
@@ -280,6 +313,14 @@
 > ```
 >
 > ***
+
+## 单例类
+
+> ### 概述
+>
+> * kotlin中的单例类有编写简单，可以当静态方法用的特点
+> * 因此kotlin这门语言极度弱化静态方法，当需要使用工具类时一般也是推荐使用单例类
+> * 单例类的方法可以
 
 ## 对象表达式
 
