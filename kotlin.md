@@ -242,9 +242,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->   
+>             
 >   val isEven = IntPredicate { it % 2 == 0 }
->   
+>             
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -305,6 +305,7 @@
 > ### 特点
 >
 > * 只保存数据的类
+> * 自动生成getter，setter，hashCode，toString，equal方法
 >
 > ### 声明
 >
@@ -320,10 +321,260 @@
 >
 > * kotlin中的单例类有编写简单，可以当静态方法用的特点
 > * 因此kotlin这门语言极度弱化静态方法，当需要使用工具类时一般也是推荐使用单例类
-> * 单例类的方法可以
-
-## 对象表达式
-
-> ### 使用情况
+> * 单例类的方法可以像静态方法一样正常使用，可以说是非常强大
+> * kotlin使用一行代码写出来的单例其实和Java的双锁检测单例模式的安全性是一样的
 >
-> * 当想创建一个对某个类做出了轻微改动的对象，而不用为之显示地声明子类的时候
+> ### 声明
+>
+> ```kotlin
+> object Util{
+>     fun do(){
+>         
+>     }
+> }
+> 
+> //调用
+> Util.do()
+> ```
+>
+> 
+
+## 集合
+
+> ### 不可变集合
+>
+> * 所有的类似于`listOf()`这种方法全是不可变集合，即无法对集合进行增删改。使用`listof()`只是简化了初始化的过程，是一种语法糖
+>
+> ### 可变集合
+>
+> * 所有的类似于`mutabeSetOf()`全是可变集合，这种集合就和普通正常使用的Java集合相差无几了。只是对初始化过程有所简化，想`listOf()`一样提供了语法糖
+>
+> ### map
+>
+> * map初始化过程`map = mutableMapOf("Apple" to 1)`，这里的`to`不是关键字，而是一个`infix`函数
+
+## Lamba表达式
+
+> ### 实质
+>
+> * 就是一段包含参数和执行体的代码当做参数进行传递
+>
+> ### 化简过程
+>
+> ```kotlin
+> val length = list.maxBy({fruit: String -> fruit.length})
+> 
+> //lamba表达式作为最后一个参数可以写出括号
+> val length = list.maxBy(){fruit: String -> fruit.length}
+> 
+> //只有一个参数时，括号可以省略
+> val length = list.maxBy{fruit: String -> fruit.length}
+> 
+> //类型自动推断系统化很强，类型可以省略
+> val length = list.maxBy(){fruit -> fruit.length}
+> 
+> //只有一个参数时，可以用it代替
+> val length = list.maxBy{it.length}
+> ```
+>
+> ### Java函数式API使用
+>
+> * 使用条件：在kotlin中调用Java方法，该方法接收一个接口作为参数，且该接口是单抽象接口
+>
+> * 举例
+>
+>   ```java
+>   //Java写法，实际上是使用了匿名类
+>   button.setOnClickListener(new View.OnClickListner(){
+>       @Override
+>       public void onClick(View v){
+>           //代码逻辑
+>       }
+>   })
+>   ```
+>
+>   ```kotlin
+>   //复杂写法，实际上也是匿名类
+>   button.setOnclickListner(object: View.OnClickListner{
+>       override fun onClick(v: View){
+>           //代码逻辑
+>       }
+>   })
+>       
+>   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
+>   button.setOnClickListner(View.OnClickLinstner{
+>       //代码逻辑
+>   })
+>       
+>   //根据lamba表达式化简原则，移到括号外面，去除括号
+>   button.setOnClickListner{
+>       //代码逻辑
+>   }
+>   ```
+>
+> ***
+
+## 空指针检查
+
+> ### 实现原理
+>
+> * 在编译期就进行空指针检查，将空指针检查提前到编译期
+> * 不带?的类型是根本不可能为空的，因此可以不检查。凡是带?的就有可能会为空，编译期使用时就必须进行检查
+>
+> ### 判空辅助工具
+>
+> * `?.` ：如果不为空就执行，如果为空就什么都不执行
+> * `?:` 如果左边不为空就取左边，如果左边为空就取右边。如`list?.length?:-1`
+>
+> ### 强制忽略编译
+>
+> * `!! `：两个感叹号表示让编译期不做空指针检查，但很可能程序员认为的不可能空指针正是有可能出现空指针的时候，不能对自己过于自信
+>
+> ### let函数
+>
+> * 使用举例
+>
+>   ```kotlin
+>   fun doStudy(student: Student?){
+>       study?.let{
+>           it.readBook()
+>           it.doHomeWork()
+>       }
+>   }
+>   ```
+>
+> * 解释：即把let函数体包含study的上下文
+>
+> ***
+
+## 标准函数
+
+> ### 何为标准函数
+>
+> * 定义在`Standard.kt`文件中的几个函数，是任何kotlin对象都可以自由调用的标准函数
+>
+> ### with
+>
+> ```kotlin
+> val result = with(obj){
+>     //obj的上下文
+>     "value" //返回值
+> }
+> ```
+>
+> * 即`{}`中的代码隐式包含了对象obj，且最后一行为返回值
+>
+> ### run
+>
+> ```kotlin
+> val result = obj.run{
+>     //obj的上下文
+>     "value"//返回值
+> }
+> ```
+>
+> ### apply
+>
+> ```kotlin
+> val result = obj.apply{
+>     //obj的上下文
+> }
+> println(obj.toString())
+> ```
+>
+> * apply相比于上面两个的区别就是没有返回值，只提供了一个上下文环境
+>
+> ### 静态方法
+>
+> * kotlin中极度弱化静态方法，因为kotlin中的单例类能够很好地提供类似于静态方法的功能，因此实在没有太大的必要去实现静态方法
+> * 但单例类有一个缺点就是所有的方法都是静态的，如果希望一部分静态而另一部分非静态就不能实现我们的目的
+> * 但kotlin也支持类似于Java的静态类的使用，只不过语法稍微有些变化而已
+>
+> ### 伴生类
+>
+> * 定义
+>
+>   ```kotlin
+>   class Student{
+>       companion object{
+>           fun doSomething(){
+>               //代码逻辑
+>           }
+>       }
+>   }
+>   ```
+>
+> * 伴生类实际上就是一个类，JVM会保证永远只存在一个伴生对象，就有点类似于单例类的感觉。因此调用伴生类的方法就可以不用创建对象直接调用
+>
+> * 但这其实只是kotlin的语法糖而已，实际上还是通过对象点.方法的形式调用了方法，只不过这个对象在全局只有一个而已
+>
+> * 因此这不是真正的JVM层面的静态方法，只能说是披着静态方法外衣的单例对象方法
+>
+> ### 顶层方法
+>
+> * 只有kotlin中才有顶层方法的概念，Java中没有顶层方法的概念
+> * 顶层方法在JVM层面就会被编译成传统Java意义上的静态方法
+> * kotlin中直接声明在包下面，类外的方法就是顶层方法；而Java的方法只允许声明在类中
+> * kotlin不管包路径啥都不管，顶层方法无论在那里都能直接随便调用。
+> * Java中无法直接调用kotlin的顶层方法，只有通过`类名.方法名`，像调用静态方法，实际上就是静态方法那样调用
+>
+> ***
+
+## 延迟加载
+
+> ### 诞生原因
+>
+> * 由于kotlin这门语言是禁止在编译期出现空指针的
+> * 因此对于我们很多的类的成员变量，我们其实每次使用的时候都会进行初始化，它是不会为空的
+> * 但是由于kotlin的语法规则限制，每次使用都要进行`?.`的判断
+> * 当全局变量数量非常非常大时，这种方法不太好
+> * 因此有了延迟加载
+>
+> ### 写法
+>
+> ```kotlin
+> private lazyinit var num:Int
+> ```
+>
+> * 声明成了延迟加载后，不用对其进行初始化(一般就是赋值为null)
+> * 且`:`后面的类型可以不加`?`，因为延迟加载就是认为其不会为空
+> * 既然不是空对象，因此编译期就可以随便用了
+>
+> ### 依然可能出错
+>
+> * 当使用延迟加载对象但并未对其进行初始化时，就会报空指针异常
+> * 因此使用延迟加载对象时一定要对其进行初始化
+>
+> ***
+
+## 密封类
+
+> ### 出现原因
+>
+> * 对于`when()`这种判断语句，一定要在最后加上一句`else`，否则就会报错
+> * 但是有些情况我们可以肯定出现的情况可能性一定就只有这几种，不可能会出现其他情况。但由于kotlin的语法规则我们依然要写`else`部分
+> * 使用密封类就能有效避免这个问题，会在编译期对其所有的可能性做一个检查
+>
+> ### 写法
+>
+> ```kotlin
+> sealed class Result
+> class Success(val msg: String): Result()
+> class Failure(val err: Exception):Result()
+> ```
+>
+> * `sealed class`是一个类而不是接口，因此继承的时候要加()代表无参主构造方法
+>
+> ### when语句
+>
+> ```kotlin
+> when(result){
+>     is Success -> result.msg
+>     is Failure -> result.err.toString()
+> }
+> ```
+>
+> * 不用在写else
+>
+> ***
+
