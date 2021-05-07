@@ -242,9 +242,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->             
+>               
 >   val isEven = IntPredicate { it % 2 == 0 }
->             
+>               
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -282,6 +282,11 @@
 >
 > * 不必修改一个类的前提下拓展次类的属性和方法
 >
+> ### Java对比
+>
+> * 在Java中想去拓展一个类的行为时，一把都是通过创建一个Util类，在类中创建一个静态方法，并且此静态方法的第一个参数一般是想要拓展类的实例
+> * 但kotlin的拓展函数其实更符合面向对象的思维。虽然它说白了其实也是一种语法糖，在JVM层是使用的静态分配即在编译期就确定了函数的调用版本。但至少从使用层面来说它是十分符合面向对象的思维的
+>
 > ### 做法
 >
 > * 声明方法时指明方法的接收者，在方法中使用this代替接收者
@@ -293,6 +298,12 @@
 > ### 静态解析
 >
 > * 拓展并没有真正地去改变这个类，而是在调用时做静态解析，即编译期就确定其调用行为
+>
+> ### 定义位置
+>
+> * kotlin并没有规定拓展函数一定要定义在那里
+> * 不过一般建议把kotlin函数定义成顶层函数，因为这样无论在什么地方都能使用
+> * 而且建议重新创建一个`拓展类名.kt`的文件，不然你根不不知道扩展函数定义在那里
 >
 > ### 可空接收者
 >
@@ -400,12 +411,12 @@
 >           //代码逻辑
 >       }
 >   })
->       
+>         
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->       
+>         
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -578,3 +589,32 @@
 >
 > ***
 
+## 运算符重载
+
+> ### 概述
+>
+> * 就是运算符重载，使用得好往往能有非常奇妙的效果
+> * 多的不说，直接举个例子就懂了
+>
+> ### 举例
+>
+> ```kotlin
+> //StringExtend.kt
+> 
+> //运算法重载 + 拓展函数
+> operator fun String.times(n: Int):String{
+>     val builder = StringBuilder()
+>     repeat(n){
+>         builder.append(this)
+>     }
+>     return builder.toString()
+> }
+> 
+> fun String.getTimes(n: Int):String{
+>     return this.times(n)
+> }
+> 
+> class StringExtend {}
+> ```
+>
+> 
