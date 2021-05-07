@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->   
+>         
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->   
+>         
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -258,6 +258,133 @@
 > * singleTop：当它在栈顶时就不创建，否则就要创建
 > * singleTask：如果栈中存在它，就把上面的全部出栈，知道它在栈顶
 > * singleInstance：最极端，相当于单例模式。此种情况下此activity在整个Android系统中同时永远只会存在一个实例，且由于其single性，它还单独享有一个调用栈，不能和task共栈，共栈的话无法实现如此极端的单例性
+>
+> ***
+
+## 第三章 - UI
+
+> ### dp sp px
+>
+> * dp 和 sp是一个概念，只不过dp一般用于表示长宽大小，而sp一般用于表示字体大小
+> * dp 和 sp是一个于密度无关的单位，不会因为ppi很高而显得非常小，也不会因为ppi很小而显得非常大
+> * 转换公式为`px = dp * ppi / 160`，即160的ppi下`1 dp = 1 px`，随着ppi的增长，视觉上同样dp的组件大小不变
+>
+> ### 居中
+>
+> * 内容居中：`android:gravity = ""`
+> * 布局居中：`android:layout_gravity = ""`
+> * 指定多个值；`android:gravity="left|center_vertical"`
+>
+> ### Button
+>
+> * Android Studio默认会把button上的字母都改成大写，只需要加上`android:textAllCaps="false"`就行
+>
+> ### ImageView
+>
+> * 现在主流手机的分辨率都是`xxhdpi`，因此图片文件放在`drawable-xxhdpi`文件夹下面
+> * 引用src：`android:src = "@drawable/img_1"`
+> * 注意：Android Studio不以文件拓展名区分图片，即不允许有重名图片，即使拓展名不同
+>
+> ### 可见性
+>
+> * 可见：`android:visibility="visible"`
+> * 不可见但是占据空间：`android:visibility="invisible"`
+> * 完全隐藏：`android:visibility="gone"`
+>
+> ### ProgressBar
+>
+> * 默认是一个圆圈在那里转，修改style可以变成水平加载的进度条
+> * `style="?android:attr/progressBarStyleHorizontal"`
+>
+> ### 警告框AlertDialog
+>
+> ```kotlin
+> AlertDialog.Builder(this).apply {
+>     setTitle("测试警告框标题")
+>     setMessage("测试警告框信息")
+>     setPositiveButton("确定"){
+>         dialog, which -> Log.d("警告框","点击确定")
+>     }
+>     setNegativeButton("取消"){
+>         dialog, which -> Log.d("警告框","点击取消")
+>     }
+>     show()
+> }
+> ```
+>
+> * 最后一定不要忘了加上`show()`，经常忘加
+>
+> ### LinearLayout
+>
+> * 有垂直和水平两种可以选择
+> * 水平的layout不能把`layout_height`设置成`match_parent`；同理可得垂直方向的`layout`
+> * 水平的layout的`layout_gravity`只有垂直方向上的设置才会生效，水平方向上的设置会被忽略
+>
+> ### 比例布局
+>
+> * 核心参数`layout_weight`
+> * 且通常把想要指定的宽度或高度方向设置为`0dp`来表示使用weight
+> * 一个`warp_content`，一个`layout_weigth = "1"`可以实现非常美观的布局
+>
+> ### RelativeLayout
+>
+> * 相对于父布局：`layout_alignParentBottom`等
+> * 相对于某组件：`layout_above="@id/button"`，通过`@id`来指定相对的组件
+>
+> ### 自定义样式无逻辑布局
+>
+> * 直接include就行`<include layout = "@layout/slef_define_layout"`
+>
+> ### 自定义带逻辑布局
+>
+> * 首先要创建一个类继承系统中的如`LinearLayout`
+> * 然后再布局xml文件中使用全限定类名引入`<whu.layout.SelfDefineLayout />`
+>
+> ***
+
+## RecycleView
+
+> ### 引入依赖
+>
+> * `implementation 'androidx.recyclerview:recyclerview:1.1.0'`
+>
+> ### SongAdapter
+>
+> ```kotlin
+> class SongAdapter(val songList: List<Song>): RecyclerView.Adapter<SongAdapter.ViewHolder>() {
+> 
+>     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
+>         val songIdTextView: TextView = view.findViewById(R.id.songId)
+>         val songNameTextView: TextView = view.findViewById(R.id.songName)
+>         val songSingerTextView: TextView = view.findViewById(R.id.songSinger)
+>     }
+> 
+>     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+>         val view: View = LayoutInflater.from(parent.context).inflate(R.layout.song_item,parent,false)
+>         val viewHolder = ViewHolder(view)
+>         viewHolder.songNameTextView.setOnClickListener {
+>             Toast.makeText(parent.context,"songname = ${viewHolder.songNameTextView.text}",Toast.LENGTH_SHORT).show()
+>         }
+>         return viewHolder
+>     }
+> 
+>     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+>         val song: Song = songList[position]
+>         holder.songIdTextView.text = song.id.toString()
+>         holder.songNameTextView.text = song.songName
+>         holder.songSingerTextView.text = song.songSinger
+>     }
+> 
+>     override fun getItemCount() = songList.size
+> }
+> ```
+>
+> ### Main
+>
+> ```kotlin
+> recyclerView.layoutManager = LinearLayoutManager(this)
+> recyclerView.adapter = SongAdapter(songList)
+> ```
 >
 > ***
 
