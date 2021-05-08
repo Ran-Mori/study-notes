@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->         
+>               
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->         
+>               
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -385,6 +385,222 @@
 > recyclerView.layoutManager = LinearLayoutManager(this)
 > recyclerView.adapter = SongAdapter(songList)
 > ```
+>
+> ***
+
+## 第六章 - 广播
+
+> ### IP广播
+>
+> * 一句网段中最大的IP地址为广播地址
+> * 如192.168.0.0网段，子网掩码为255.255.255.0，则广播地址为192.168.0.255
+>
+> ### 广播分类
+>
+> * 标准广播
+>   * 全异步广播
+>   * 同一时刻所有注册的接收器都会收到
+>   * 不可阻断
+> * 有序广播
+>   * 同步广播
+>   * 接收顺序有先后，只有等前面接收到了处理完逻辑以后后面才能接收
+>   * 也就是说前面可以把后面给阻断
+>
+> ### 接收广播举例
+>
+> ```kotlin
+> class MainActivity : AppCompatActivity() {
+>     private lateinit var broadcastReceiver:TimeChangeBroadCastReceiver
+>     private var count: Int = 0
+>     inner class TimeChangeBroadCastReceiver: BroadcastReceiver(){
+>         override fun onReceive(context: Context?, intent: Intent?) {
+>             Log.d("MainActivityChange","${count++}")
+>         }
+>     }
+> 
+>     override fun onCreate(savedInstanceState: Bundle?) {
+>         super.onCreate(savedInstanceState)
+>         setContentView(R.layout.activity_main)
+>         val intentFilter = IntentFilter()
+>         intentFilter.addAction("android.intent.action.TIME_TICK")
+>         broadcastReceiver = TimeChangeBroadCastReceiver()
+>         registerReceiver(broadcastReceiver,intentFilter)
+>     }
+> 
+>     override fun onDestroy() {
+>         super.onDestroy()
+>         unregisterReceiver(broadcastReceiver)
+>     }
+> }
+> ```
+>
+> * 程序每隔一分钟会接收到一条系统时间变化的广播，然后可以进行相应的逻辑处理
+> * 注册后一定要在`onDestroy()`方法中取消注册才行，不然会重复注册
+>
+> ### 两种注册方式
+>
+> * 静态注册：在`AndroidManifest.xml`中进行注册
+> * 动态注册：在activity的代码中使用`Intent registerReceiver(BroadcastReceiver receiver,IntentFilter filter)`进行注册
+>
+> ### 静态注册特点
+>
+> * 之前的注册都是动态注册。动态注册要求接收广播的activity一定要处于运行的状态，这对于那些未启动但依然想要接收广播的activity来说是不友好的
+> * 静态注册允许某个activity未启动依然可以接收广播
+> * 但这产生了一个新的问题，即很多应用滥用静态注册这个功能，当其处于未启动状态时频繁监听全局的广播信息，造成电量消耗过快，运行内存紧张，系统卡顿的问题
+> * 因此Android一直都在限制静态注册的使用，但依然还是可以使用的
+>
+> ### 静态注册示例
+>
+> * 创建一个接收器
+>
+>   ```kotlin
+>   class MyReceiver: BroadcastReceiver() {
+>       override fun onReceive(context: Context?, intent: Intent?) {
+>           Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()
+>       }
+>   }
+>   ```
+>
+> * 静态注册都是在`AndroidManifest.xml`中进行注册的
+>
+>   ```xml
+>   <receiver android:name=".MyReceiver"
+>               android:enabled="true"
+>               android:exported="true" >
+>       <intent-filter>
+>           <action android:name="android.intent.action.BOOT_COMPLETED" ></action>
+>       </intent-filter>
+>   </receiver>
+>   ```
+>
+>   * `android:exported`表示是否允许它接收本程序以外的广播。此处肯定要设置为true，因此系统开机广播不是本程序的广播
+>   * 在`intent-filter`中声明接收那种广播
+>
+> * 使用权限
+>
+>   ```xml
+>   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+>   ```
+>
+>   * android做了很多权限管理，某些通知想要使用必须显示地声明拥有这些权限才能使用
+>
+> ### 发送自定义广播
+>
+> * 创建一个接收器
+>
+>   ```kotlin
+>   class MyReceiver: BroadcastReceiver() {
+>       override fun onReceive(context: Context?, intent: Intent?) {
+>           Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()
+>       }
+>   }
+>   ```
+>
+> * 在`AndroidManifest.xml`中进行注册
+>
+>   ```xml
+>   <receiver android:name=".MyReceiver"
+>               android:enabled="true"
+>               android:exported="true" >
+>       <intent-filter>
+>           <action android:name="android.intent.action.MY_BROADCAST" ></action>
+>       </intent-filter>
+>   </receiver>
+>   ```
+>
+> * 发送广播
+>
+>   ```kotlin
+>   val intent = Intent("com.whu.MY_BROADCAST")
+>   intent.setPackage(packageName)
+>   sendBroadcast(intent)
+>   ```
+>
+>   * 发送过程实际上就是发送一个`Intent`
+>
+> * 隐式广播和显示广播
+>
+>   * 几乎所有的系统广播都是隐式广播，隐式广播有一个特点就是所有的接收器都能接收到，只是看它是否进行响应
+>   * 显示广播指的是限定了只有那个部分的接收器才能收到
+>   * 基于安卓权限混乱，频繁唤醒的现况。静态注册的接收器是无法接收到隐式广播的，如果要接收到就要进行权限声明(和开机权限声明类似)
+>   * 因此此处的`setPackage`方法必须进行调用，因为调用次方法相当于是把隐式广播转换成了显示广播
+>
+> ### 发送有序广播
+>
+> * 发送处
+>
+>   ```kotlin
+>   val intent = Intent("com.whu.MY_BROADCAST")
+>   intent.setPackage(packageName)
+>   sendOrderedBroadcast(intent,null)
+>   ```
+>
+>   * 仅仅变了一处即`sendOrderedBroadcast(intent,null)`
+>
+> * 优先级声明
+>
+>   ```xml
+>   <receiver android:name=".MyReceiver"
+>             android:enabled="true"
+>             android:exported="true">
+>       <intent-filter android:priority="100">
+>           <action android:name="android.intent.action.BOOT_COMPLETED" ></action>
+>       </intent-filter>
+>   </receiver>
+>   ```
+>
+>   * 仅仅加了一个`android:priority="100"`
+>
+> * 截断广播
+>
+>   ```kotlin
+>   abortBroadcast()
+>   ```
+>
+>   * 直接在`MyBroadcastRecevier`中调用此方法
+>
+> ### 强制下线逻辑
+>
+> * 总逻辑
+>
+>   * 发送一个广播通知，让栈顶的activity接收到通知
+>   * 接收到通知的逻辑是弹出一个警告框，此警告框不能返回，不能干其他，只能点确定
+>   * 确定的逻辑是结束所有的activity并最后压入一个LoginActivity
+>
+> * 实现原理
+>
+>   * `结束所有`：创一个含有List的单例类，并创一个基类，`onCreate()`和`onDestroy()`时执行增删
+>   * `让栈顶接到通知`：使用动态注册，每次`resume`注册接收器，每次`pause`就取消注册接收器。这样就能保证只有栈顶的activity接收到通知。注意`create`时没有必要进行注册
+>   * `不能所有的类都写`：那就把逻辑都写在自己创建的`BaseActivity`中
+>
+> * 单例类
+>
+>   ```kotlin
+>   object ActivityUtil {
+>       private val list = ArrayList<Activity>()
+>   
+>       fun add(activity: Activity){
+>           list.add(activity)
+>       }
+>       fun remove(activity: Activity){
+>           list.remove(activity)
+>       }
+>       fun finishAll(){
+>           for (activity in list){
+>               if (!activity.isFinishing)
+>                   activity.finish()
+>           }
+>           list.clear()
+>       }
+>   }
+>   ```
+>
+>   * 因为finish一个activity有可能需要时间比较久，因此要做一个判断，不然多线程时感觉会炸
+>   * finish后按照逻辑栈是没有activity了，因此要把list给清空
+>
+> * 登录成功要调用一遍`finish()`。因为总不可能让用户登录成功后按返回又是登录吧
+>
+> * 禁用返回取消。`setCancelabe(false)`，这样用户就迫不得已只能点确定
 >
 > ***
 
