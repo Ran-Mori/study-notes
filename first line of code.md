@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->               
+>                   
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->               
+>                   
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -601,6 +601,156 @@
 > * 登录成功要调用一遍`finish()`。因为总不可能让用户登录成功后按返回又是登录吧
 >
 > * 禁用返回取消。`setCancelabe(false)`，这样用户就迫不得已只能点确定
+>
+> ***
+
+## 第七章 - 持久化
+
+> ### 持久化为本地文件
+>
+> * 一般适合持久化二进制文件，不需要自定义存储结构
+> * 操作过程就是使用Java的输入输出流
+>
+> ### SharedPreferences简介
+>
+> * 使用键值对来进行存储
+> * 支持多种不同的数据格式存储
+>
+> ### 获取对象
+>
+> * `Context`类的`getSharedPreferences(val name:String,val mode:Int)`方法。
+> * `Activity`类的`getPreferences(val mode:Int)`方法
+> * 两者的区别就是`activity`的方法的`name`参数是固定的，固定为activity的类名，即每一个activity都有一个自己的preference
+> * `mode`参数就默认是0，其他的模式已经被Android取消了
+>
+> ### 对象的重要方法
+>
+> * `edit()`：获取一个editor对象
+> * `apply()`：提交修改
+>
+> ### 使用举例
+>
+> ```kotlin
+> override fun onCreate(savedInstanceState: Bundle?) {
+>     super.onCreate(savedInstanceState)
+>     setContentView(R.layout.activity_main)
+>     val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)
+>     val value = sharedPreference.getString("key", "默认值")
+>     editText.setText(value)
+> }
+> 
+> override fun onDestroy() {
+>     super.onDestroy()
+>     val editor = getSharedPreferences("song", Context.MODE_PRIVATE).edit()
+>     editor.putString("key","${editText.text.toString()}")
+>     editor.apply()
+> }
+> ```
+>
+> ### ROOM
+>
+> * jetpack下面的一个组件
+> * 一个成熟的ORM框架
+>
+> ### 导入依赖
+>
+> ```json
+> plugins {
+>     id 'kotlin-android-extensions'
+>     id 'kotlin-kapt'
+> }
+> 
+> dependencies {
+>     implementation 'androidx.room:room-runtime:2.3.0'
+>     kapt 'androidx.room:room-compiler:2.3.0'
+> }
+> ```
+>
+> * kapt是kotlin的一个注解处理器
+> * 注解处理器就是类似于javac的过程中对注解进行解析的处理器
+>
+> ### entity
+>
+> ```kotlin
+> @Entity
+> data class Song(var songName:String,var songSinger:String) {
+>     @PrimaryKey(autoGenerate = true)
+>     var id: Long = 0
+> }
+> ```
+>
+> ### dao
+>
+> ```kotlin
+> @Dao
+> interface SongDao {
+>     @Insert
+>     fun insert(song: Song):Long
+> 
+>     @Query("delete from song where id = :id")
+>     fun deleteById(id: Long):Int
+> 
+>     @Update
+>     fun update(song:Song):Int
+> 
+>     @Query("select * from song")
+>     fun queryAll(): List<Song>
+> 
+>     @Query("select * from song where id = :id")
+>     fun queryOneById(id: Long):List<Song>
+> }
+> ```
+>
+> * sqlite规定了ID必须是`long`类型，因此无论是entity还是dao的ID类型都要设置成long
+> * 而update和delete返回的修改行数，sqlite规定了只能是Int类型，因此dao的返回值只能是Int
+> * 具体定义在`SupportSQLiteDatabase`
+>
+> ### Database
+>
+> ```kotlin
+> @Database(version = 1,entities = [Song::class])
+> abstract class NeteaseDatabase: RoomDatabase() {
+>     abstract fun songDao():SongDao
+> 
+>     companion object{
+>         private var instance: NeteaseDatabase? =null
+>         @Synchronized
+>         fun getDatabase(context:Context):NeteaseDatabase{
+>             instance?.let {
+>                 return it
+>             }
+>             return Room.databaseBuilder(
+>                 context.applicationContext,
+>                 NeteaseDatabase::class.java,
+>                 "netease_database").
+>             build().apply {
+>                 instance = this
+>             }
+>         }
+>     }
+> }
+> ```
+>
+> * 注解的entitys选项是一个数组，可以填很多类
+> * 一定要有抽象方法获取`songDao`
+> * 使用单例模式获取数据库对象
+>
+> ### 使用
+>
+> ```kotlin
+> val songDao = NeteaseDatabase.getDatabase(this).songDao()
+> 
+> var foreverYou = Song("Izumi Sakai","Forever You")
+> 
+> insert.setOnClickListener {
+>     thread {
+>         foreverYou.id = songDao.insert(foreverYou)
+>     }
+> }
+> ```
+>
+> * 主要是要先获取`SongDao`
+> * 然后数据库的操作一定要在另外一个线程，Android规定了必须在另外一个线程，不然数据库卡太久影响体验
 >
 > ***
 
