@@ -111,17 +111,17 @@
 >   //显示
 >   val intent = Intent(this, SecondActivity::class)
 >   startActivity(intent)
->
+>   
 >   //隐式
 >   val intent = Intent("whu.activityTest.ACTION_START")
 >   intent.addCategory("whu.activityTest.MY_CATEGORY")
 >   startActivity(intent)
->
+>   
 >   //调用系统浏览器
 >   val intent = Intent(Intent.ACTION_VIEW) //一个常量View，代表浏览器
 >   intent.data = Uri.parse("https://www.baidu.com") //传入需要解析的data内容
 >   startActivity(intent)
->
+>   
 >   //调用系统拨号界面
 >   val intent = Intent(Intent.ACTION_DIAL)
 >   intent.data = Uri.parse("tel:10086")
@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                   
+>       
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -148,13 +148,13 @@
 >   //接收数据的一方, 进行页面跳转时
 >   //一个intent代表想跳转的activity，一个int表示唯一请求码，在后面会用
 >   startActivityForResult(intent: Intent, statusCode: Int)
->
+>   
 >   //发送数据的一方
 >   val intent = Intent() //由于不进行跳转，只是一个容纳数据的容器，因此不用进行跳转页面设置
 >   intent.putStringExtra("name","IzumiSakai")
 >   setResult(RESULT_OK,intent) //RESULT_OK表示返回的状态码，后面要用，可以不唯一
 >   finish()
->
+>   
 >   //接收数据的一方，获取传递的数据时
 >   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 >       super.onActivityResult(requestCode, resultCode, data)
@@ -192,36 +192,36 @@
 >       setContentView(R.layout.activity_main)
 >       Log.d("MainActivity","onCreateCalled")
 >   }
->
+>   
 >   //由不可见变成可见
 >   override fun onStart() {
 >       super.onStart()
 >       Log.d("MainActivity","onStartCalled")
 >   }
->
+>   
 >   //由不可交互变成可以交互
 >   override fun onResume() {
 >       super.onResume()
 >       Log.d("MainActivity","onResumeCalled")
 >   }
->
+>   
 >   //由可交互变成不可交互
 >   override fun onPause() {
 >       super.onPause()
 >       Log.d("MainActivity","onPauseCalled")
 >   }
->
+>   
 >   //由可见变成不可见
 >   override fun onStop() {
 >       super.onStop()
 >       Log.d("MainActivity","onStopCalled")
 >   }
->
+>   
 >   override fun onDestroy() {
 >       super.onDestroy()
 >       Log.d("MainActivity","onDestroyCalled")
 >   }
->
+>   
 >   //当未被销毁非处于栈顶又由于切换处于栈顶时会调用此方法
 >   override fun onRestart() {
 >       super.onRestart()
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                   
+>       
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -631,20 +631,7 @@
 > ### 使用举例
 >
 > ```kotlin
-> override fun onCreate(savedInstanceState: Bundle?) {
->     super.onCreate(savedInstanceState)
->     setContentView(R.layout.activity_main)
->     val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)
->     val value = sharedPreference.getString("key", "默认值")
->     editText.setText(value)
-> }
-> 
-> override fun onDestroy() {
->     super.onDestroy()
->     val editor = getSharedPreferences("song", Context.MODE_PRIVATE).edit()
->     editor.putString("key","${editText.text.toString()}")
->     editor.apply()
-> }
+> override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)    val value = sharedPreference.getString("key", "默认值")    editText.setText(value)}override fun onDestroy() {    super.onDestroy()    val editor = getSharedPreferences("song", Context.MODE_PRIVATE).edit()    editor.putString("key","${editText.text.toString()}")    editor.apply()}
 > ```
 >
 > ### ROOM
@@ -655,15 +642,7 @@
 > ### 导入依赖
 >
 > ```json
-> plugins {
->     id 'kotlin-android-extensions'
->     id 'kotlin-kapt'
-> }
-> 
-> dependencies {
->     implementation 'androidx.room:room-runtime:2.3.0'
->     kapt 'androidx.room:room-compiler:2.3.0'
-> }
+> plugins {    id 'kotlin-android-extensions'    id 'kotlin-kapt'}dependencies {    implementation 'androidx.room:room-runtime:2.3.0'    kapt 'androidx.room:room-compiler:2.3.0'}
 > ```
 >
 > * kapt是kotlin的一个注解处理器
@@ -672,63 +651,22 @@
 > ### entity
 >
 > ```kotlin
-> @Entity
-> data class Song(var songName:String,var songSinger:String) {
->     @PrimaryKey(autoGenerate = true)
->     var id: Long = 0
-> }
+> @Entitydata class Song(var songName:String,var songSinger:String) {    @PrimaryKey(autoGenerate = true)    var id: Long = 0}
 > ```
 >
 > ### dao
 >
 > ```kotlin
-> @Dao
-> interface SongDao {
->     @Insert
->     fun insert(song: Song):Long
-> 
->     @Query("delete from song where id = :id")
->     fun deleteById(id: Long):Int
-> 
->     @Update
->     fun update(song:Song):Int
-> 
->     @Query("select * from song")
->     fun queryAll(): List<Song>
-> 
->     @Query("select * from song where id = :id")
->     fun queryOneById(id: Long):List<Song>
-> }
+> @Daointerface SongDao {    @Insert    fun insert(song: Song):Long    @Query("delete from song where id = :id")    fun deleteById(id: Long):Int    @Update    fun update(song:Song):Int    @Query("select * from song")    fun queryAll(): List<Song>    @Query("select * from song where id = :id")    fun queryOneById(id: Long):List<Song>}
 > ```
 >
 > * sqlite规定了ID必须是`long`类型，因此无论是entity还是dao的ID类型都要设置成long
 > * 而update和delete返回的修改行数，sqlite规定了只能是Int类型，因此dao的返回值只能是Int
 > * 具体定义在`SupportSQLiteDatabase`
->
-> ### Database
+> * 这是一个接口，在编译时Room会自动生成一个它的实现类
 >
 > ```kotlin
-> @Database(version = 1,entities = [Song::class])
-> abstract class NeteaseDatabase: RoomDatabase() {
->     abstract fun songDao():SongDao
-> 
->     companion object{
->         private var instance: NeteaseDatabase? =null
->         @Synchronized
->         fun getDatabase(context:Context):NeteaseDatabase{
->             instance?.let {
->                 return it
->             }
->             return Room.databaseBuilder(
->                 context.applicationContext,
->                 NeteaseDatabase::class.java,
->                 "netease_database").
->             build().apply {
->                 instance = this
->             }
->         }
->     }
-> }
+> @Database(version = 1,entities = [Song::class])abstract class NeteaseDatabase: RoomDatabase() {    abstract fun songDao():SongDao    companion object{        private var instance: NeteaseDatabase? =null        @Synchronized        fun getDatabase(context:Context):NeteaseDatabase{            instance?.let {                return it            }            return Room.databaseBuilder(                context.applicationContext,                NeteaseDatabase::class.java,                "netease_database").            build().apply {                instance = this            }        }    }}
 > ```
 >
 > * 注解的entitys选项是一个数组，可以填很多类
@@ -752,5 +690,135 @@
 > * 主要是要先获取`SongDao`
 > * 然后数据库的操作一定要在另外一个线程，Android规定了必须在另外一个线程，不然数据库卡太久影响体验
 >
+> ### 数据库升级
+>
+> * sqlite数据库是可以进行升级的
+>
+> * 首先要明确一点就是数据库不是存放在云端的，数据库是每个用户所私有的，存放在每个用户的本地
+>
+> * 最简单粗暴的方式升级数据库就是把用户本地的数据库删除了，然后重新创建。这样最严重也是最致命的问题就是用户的数据全部丢失，就像重新安装一样，是绝对不允许的
+>
+> * 因此现在都是通过定义当前数据库版本号，每次版本迁移都设定好特定的函数，这样每个之前版本的数据库就都能根据自己所处的数据版本执行相应的升级方法升级到最新版本的数据库
+>
+> * 示例
+>
+>   ```kotlin
+>   @Database(version = 2,entities = [Song::class])
+>   abstract class NeteaseDatabase: RoomDatabase() {
+>       companion object{
+>           @Synchronized
+>           fun getDatabase(context:Context):NeteaseDatabase{
+>               val version1_to_2 = object : Migration(1,2){
+>                   override fun migrate(database: SupportSQLiteDatabase) {
+>                       database.execSQL("")
+>                   }
+>               }
+>           }
+>       }
+>   }
+>   ```
+>
+> * 首先是头部注解的`version`字段给设置为2
+>
+> * 其此是使用匿名类实现了从version1 - 2的升级逻辑
+>
 > ***
 
+## 第八章 - ContentProvider
+
+> ### 申请权限
+>
+> * 要申请运行时权限就要在`AndoirdManifest.xml`中进行权限声明
+> * 但为何只要进行了一个声明就能保证权限的安全呢？
+>
+> ### 声明的作用
+>
+> * 声明了权限过后，在用户安装时和安装后进入权限管理页面就能看到这个程序申请了那些权限。
+> * 如果有用户不想给的权限，那么用户就可以拒绝安装
+> * 但这种想法只是表面上很美好，但很多巨型APP，比如微信QQ这类，你明知道它申请了过多的权限，但你却必须安装它，因此很多时候用户都是被逼无奈只能点击允许
+>
+> ### 运行时权限
+>
+> * 为了解决这个问题，提出了一种运行时权限的概念
+> * 即在运行过程中当程序需要申请某权限时，需要得到用户的允许才可以，否则就不行
+>
+> ### 权限分类
+>
+> * 普通权限：指对用户没有什么影响和危害或者隐私性很弱的权限。这类权限的特点是系统会自动进行授权，不用用户手动操作
+> * 危险权限：指对用户隐私性和安全性影响极大的权限。这类权限的特点是必须进行用户手动授权
+>   * 危险权限一共有11组共30个。其他的就都是普通权限
+>   * 一般同意了某一组的某一个权限后，此组的其他权限会默认进行授权
+>
+> ### 处理逻辑改变
+>
+> * 普通权限申请就在`AndroidManifest.xml`中进行申请，这部分一般都是允许的，因为这些普通权限无伤大雅
+> * 运行时权限就需要在运行时动态处理，分为允许和拒绝的情况。注意：运行时权限也要在`AndroidManifest.xml`中声明使用权限，不声明直接是永远拒绝
+>
+> ### 代码逻辑
+>
+> ```kotlin
+> override fun onCreate(savedInstanceState: Bundle?) {
+>     super.onCreate(savedInstanceState)
+>     setContentView(R.layout.activity_main)
+>     makeCall.setOnClickListener {
+>         if (ContextCompat.checkSelfPermission(
+>             this, 
+>             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+>             ActivityCompat.requestPermissions(
+>                 this, 
+>                 arrayOf(Manifest.permission.CALL_PHONE),
+>                 1)
+>         }else{
+>             call()
+>         }
+>     }
+> }
+> 
+> override fun onRequestPermissionsResult(
+>     requestCode: Int,
+>     permissions: Array<out String>,
+>     grantResults: IntArray
+> ) {
+>     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+> 
+>     when(requestCode){
+>         1 ->{
+>             if (grantResults.isNotEmpty() &&
+>                 grantResults[0] == PackageManager.PERMISSION_GRANTED){
+>                 call()
+>             }else{
+>                 Toast.makeText(this,"apply for permission denied",Toast.LENGTH_SHORT).show()
+>             }
+>         }
+>     }
+> }
+> 
+> private fun call(){
+>     try {
+>         val intent = Intent(Intent.ACTION_CALL)
+>         intent.data = Uri.parse("tel:10086")
+>         startActivity(intent)
+>     }catch (error: Exception){
+>         Log.e("MainActivity","${error.printStackTrace()}")
+>     }
+> }
+> ```
+>
+> ### ContentProvider两种用法
+>
+> * 一是使用ContentProvider读取和操作其他程序的数据
+> * 一是自定义此程序的ContentProvider，供其他用户进行访问
+>
+> ### 读其他基本用法
+>
+> * 使用`ContentResolver`类作为接口操作
+> * 一般就是增删改查
+> * 此处注意定位的唯一标志符换成了URI，如`content://whu.example.app.provider/songTable`
+> * 然后增删改查逻辑和之前低配版的`sqlite`一样，总之不能用SQL就特别蠢
+>
+> ### 自定义基本用法
+>
+> * 创建一个类继承`ContentProvider`，然后重写6个方法
+> * 然后在`AndroidManifest.xml`中进行provider的注册
+>
+> ***
