@@ -242,9 +242,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->                 
+>                   
 >   val isEven = IntPredicate { it % 2 == 0 }
->                 
+>                   
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -411,12 +411,12 @@
 >           //代码逻辑
 >       }
 >   })
->           
+>             
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->           
+>             
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -694,6 +694,145 @@
 > * 此关键字的作用就是在编译期检查高阶函数的函数体中的lambda表达式中一定没有return语句
 > * 只要没有return语句，那无论怎么嵌套其实都是合乎逻辑无伤大雅的
 > * 一旦有return语句就在编译期进行报错
+>
+> ***
+
+## 泛型
+
+> ### 概述
+>
+> * Java的泛型很垃圾
+> * kotlin的泛型于Java的泛型是有区别的
+> * 此节先学习它们相同的部分
+>
+> ### 泛型上界
+>
+> * 泛型不是什么类都可以填进来的，填什么类也是有一定限度的
+>
+> * 一般的过滤方式是可以在声明时填入泛型的上界，这种情况下只有上界的子类才能填入泛型，其他的泛型填入就会报错
+>
+> * 举例。此处声明了泛型只能填入Number及其子类
+>
+>   ```kotlin
+>   fun <T : Number> myFunction(param: T): T{
+>       return param
+>   }
+>   ```
+>
+> ### 默认上界和可空
+>
+> * 不添加上界时默认的泛型上界是`Any?`，即默认是可以为空的
+> * 如果不想为空即可以手动声明函数的上界为`Any`
+>
+> ***
+
+## 委托
+
+> ###  基本理念
+>
+> * 操作对象自己不会去处理某段逻辑，而是会把工作委托给另外一个辅助对象去处理
+>
+> ### 类委托
+>
+> * 把一个类的工作委托给另外一个类来实现
+> * 好处：大部分方法由委托类来实现，少部分方法重写，甚至自己添加几个新方法。这样就很容易创建一个全新的类
+>
+> ### 类委托举例
+>
+> ```kotlin
+> class MySet<T : Any?>(val helper: HashSet<T>): Set<T> by helper{
+>     fun addNewFunction(){
+>         Log.d("MySet","新添加的方法")
+>     }
+> 
+>     override fun isEmpty(): Boolean {
+>         Log.d("MySet","重写一个方法")
+>         return helper.isEmpty()
+>     }
+> }
+> ```
+>
+> * 使用关键字`by`
+>
+> ### 属性委托思想
+>
+> * 将一个属性(字段)委托给**另一个类**去完成
+>
+> ### 语法结构
+>
+> * 委托者
+>
+>   ```kotlin
+>   var p by MyDelegate()
+>   ```
+>
+> * 被委托者
+>
+>   ```kotlin
+>   class MyDelegate {
+>       private var value: Any? = null
+>       
+>       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
+>           return this.value
+>       }
+>       
+>       operator fun setValue(myClass: Any?,prop: KProperty<*>,value: Any?){
+>           this.value = value
+>       }
+>   }
+>   ```
+>
+>   * 这种实现是一种标准模板
+>   * 其中myclass指定了什么类能够委托给此类，此处设置成Any，即都可以
+>
+> ### 委托属性实现延迟加载
+>
+> * 代码
+>
+>   ```kotlin
+>   val p by lazy{
+>       //...
+>       //最后一行是返回值
+>   }
+>   ```
+>
+> * `by`是委托的一个关键字，`lazy`是一个高阶函数
+>
+> * lazy函数实际返回的是一个对象，此对象接收一个函数作为参数。即返回的对象是`MyDelegate(code)`
+>
+> ### 延迟加载代码
+>
+> * 被委托者
+>
+>   ```kotlin
+>   class MyDelegate(val block: () -> Any?) {
+>       private var value: Any? = null
+>   
+>       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
+>           return block
+>       }
+>   }
+>   ```
+>
+>   * 构造函数参数是一个函数
+>
+> * 顶层方法
+>
+>   ```kotlin
+>   fun laterInit(block: () -> Any?) = MyDelegate(block)
+>   ```
+>
+>   * 返回的实际上是一个被委托者的实例对象
+>
+> * 委托者
+>
+>   ```kotlin
+>   val p: Any? by laterInit {
+>   
+>   }
+>   ```
+>
+>   * 在`{}`中编写代码，最后一行作为初始化的结果。就实现了延迟加载
 >
 > ***
 
