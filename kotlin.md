@@ -242,9 +242,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->                   
+>                         
 >   val isEven = IntPredicate { it % 2 == 0 }
->                   
+>                         
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -411,12 +411,12 @@
 >           //代码逻辑
 >       }
 >   })
->             
+>                   
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->             
+>                   
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -636,6 +636,26 @@
 >
 > * 即`operation:(Int,Int) -> Int`
 >
+> ### 函数参数声明带调用者
+>
+> * 有时候某个高阶函数不是直接调用的(像上面一样)，而是有一个调用的接收者
+>
+> * 这种情况下应该在传入函型参数的时候就声明好函数的调用者
+>
+>   ```kotlin
+>   //此处声明了高阶函数的调用者是intent
+>   inline fun <reified T> startActivity(context: Context,block:Intent.() -> Unit){
+>       val intent = Intent(context,T::class.java)
+>       intent.block()
+>       context.startActivity(intent)
+>   }
+>       
+>   //调用
+>   startActivity<MainActivity>(this){
+>       putExtra("key","value")
+>   }
+>   ```
+>
 > ### 函数参数传入
 >
 > ```kotlin
@@ -771,11 +791,11 @@
 >   ```kotlin
 >   class MyDelegate {
 >       private var value: Any? = null
->       
+>             
 >       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
 >           return this.value
 >       }
->       
+>             
 >       operator fun setValue(myClass: Any?,prop: KProperty<*>,value: Any?){
 >           this.value = value
 >       }
@@ -828,11 +848,110 @@
 >
 >   ```kotlin
 >   val p: Any? by laterInit {
->   
+>         
 >   }
 >   ```
 >
 >   * 在`{}`中编写代码，最后一行作为初始化的结果。就实现了延迟加载
+>
+> ***
+
+## infix函数
+
+> ### to例子
+>
+> * `map`初始化过程中的`to`不是kotlin的关键字，相反它是kotlin中定义的一个顶层infix函数
+>
+> ### infix函数本质
+>
+> * infix函数实际上就是一个高级的语法糖
+> * 它让函数调用的形式更贴近了英语的语法，从而让可读性更高
+> * 即`A to B`的实际写法是`A.to(B)`，即B作为A的参数
+> * 在比如`A.constains(B)` 可以使用infix函数简化成`A contains B`
+>
+> ### 定义
+>
+> * `public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)`
+>
+> ***
+
+## 泛型的实例化
+
+> ### java泛型
+>
+> * Java的泛型约束只存在在编译期，在运行期会对泛型进行擦除
+> * 即Java在运行期是获取不到泛型的类型信息的
+>
+> ### kotlin泛型
+>
+> * kotlin中调用`val t = T()`是合法的
+> * kotlin实现泛型可实例化即运行时可以获得泛型信息的途径是内联函数
+> * 即将泛型声明时的函数设置成内联函数`inline`，然后在实际运行时做一个替换，这样就根本没有了擦除的影响，即实现了泛型可实例化
+>
+> ### 可实例化的两个条件
+>
+> * 定义泛型的函数必须是内联函数`inline`
+> * 声明泛型的地方必须要加上`reified`才行
+> * 如`inline fun <reified T>getGenericType(){}`
+>
+> ### 注意
+>
+> * kotlin中的泛型声明位置是在`fun`关键字的前面，而Java的泛型声明一般是在`fun`关键字的后面，这要注意区分。
+>
+> ### 泛型实例化的应用
+>
+> ```kotlin
+> inline fun <reified T> startActivity(context: Context,block:Intent.() -> Unit){
+>     val intent = Intent(context,T::class.java)
+>     intent.block()
+>     context.startActivity(intent)
+> }
+> ```
+>
+> * 即此处将高阶函数和泛型的实例化结合，提供了非常便捷的应用
+>
+> ***
+
+## 泛型协逆变
+
+> ### in和out的约定
+>
+> * 约定在泛型类或者泛型接口中
+> * 传入参数的地方的泛型是`in`泛型；返回返回值的地方的泛型是`out`泛型
+>
+> ### 冲突原因
+>
+> * `A extends B`，即A是B的子类。按照道理来说`AnnotherClass<A>`应该是`AnnotherClass<B>`子类，但是Java不允许他们像子类那样进行传参
+> * 现在假设他们可以像子类那样传参。即某处接收`AnotherClass<B>`作为参数实际上传入了`AnnotherClass<A>`
+> * 首先是读问题。正常读肯定没有任何问题，正常读那里会有问题
+> * 然后是写问题。写其实也是没有任何问题的，因为静态类型声明为父类但是实际类型完全可以赋值成子类的类型，即子类向上转型为父类并赋值。但真正的问题是出在写后的读上面，当某静态类型为父类但赋值的实际类型是子类时，当调用get获取时。返回值肯定是父类类型，但接收的静态类型是子类类型。这样就会出错
+>
+> ### 解决办法
+>
+> * 在泛型可以协变时，禁止进行写即赋值操作，就可以实现协变的安全
+> * 即泛型只能声明在返回值`out`上面，而不能声明在参数`in`上面，这样就可以完成泛型协变
+>
+> ### 示例
+>
+> ```kotlin
+> public interface Collection<out E> : Iterable<E> {
+>     public operator fun contains(element: @UnsafeVariance E): Boolean
+> }
+> ```
+>
+> * 对于kotlin中的不可变集合，是不存在赋值行为的，因此就声明时泛型为`out`
+> * 对于`contains`方法，此时泛型在`in`位置，按照道理来说是不符合要求的，但使用了`@UnsafeVariance`注解。表示让kotlin编译期忽略，实际上`contains`方法的逻辑中并没有进行赋值的行为。因此这种使用是合理的
+>
+> ### 逆变定义
+>
+> * 即`A extends B`，A是B的父类，但`AnnotherClass<A>`是`AnnotherClass<B>`的子类
+> * 也就是逆变时泛型只能出现在`in`上，而不能出现在`out`上
+>
+> ### 逆变一般用法
+>
+> * 逆变一般是泛型类或者泛型方法不返回泛型内容，而是返回统一的内容如`String`，"Boolean"这种
+> * 那么在这种情况下理论上只要传进去都能处理
+> * 这也就是会有协变的原因
 >
 > ***
 
