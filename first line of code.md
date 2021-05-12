@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->       
+>           
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->       
+>           
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -822,3 +822,38 @@
 > * 然后在`AndroidManifest.xml`中进行provider的注册
 >
 > ***
+
+## 第九章 - 丰富的多媒体
+
+> ### 通知
+>
+> * 通知是Android一开始就有的功能，iOS最开始是没有通知功能的，直到后面意识到了通知的重要性才加入了通知功能
+> * 通知一开始的设计是非常好的。但开发者为了让自己的APP保持活跃，不断向用户发送源源不断的通知，导致用户十分厌恶
+>
+> ### 通知渠道
+>
+> * 之前某个应用的通知要么全部查看要么全部关闭，粒度很粗
+> * 而通知渠道就是为了细化通知的粒度。即一个应用的通知分为很多个渠道，用户可以自定义选择关闭某个或者打开某些通知渠道，收看自己感兴趣的通知
+>
+> ### 通知渠道创建
+>
+> ```kotlin
+> if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+>     val channel = NotificationChannel("id", "music comes", NotificationManager.IMPORTANCE_HIGH)
+>     val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+>     manager.createNotificationChannel(channel)
+> }
+> ```
+>
+> ### 通知创建
+>
+> ```kotlin
+> val notice = NotificationCompat.Builder(this,"id")
+> 	.setContentTitle("contentTitle")
+> 	.setContentText("contentText")
+> 	.setSmallIcon(R.drawable.ic_launcher_background)
+> 	.build()
+> manager.notify(1,notice)
+> ```
+>
+> 
