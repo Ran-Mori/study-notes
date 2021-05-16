@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->           
+>       
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -244,7 +244,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->           
+>       
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -382,8 +382,7 @@
 > ### Main
 >
 > ```kotlin
-> recyclerView.layoutManager = LinearLayoutManager(this)
-> recyclerView.adapter = SongAdapter(songList)
+> recyclerView.layoutManager = LinearLayoutManager(this)recyclerView.adapter = SongAdapter(songList)
 > ```
 >
 > ***
@@ -409,29 +408,7 @@
 > ### 接收广播举例
 >
 > ```kotlin
-> class MainActivity : AppCompatActivity() {
->     private lateinit var broadcastReceiver:TimeChangeBroadCastReceiver
->     private var count: Int = 0
->     inner class TimeChangeBroadCastReceiver: BroadcastReceiver(){
->         override fun onReceive(context: Context?, intent: Intent?) {
->             Log.d("MainActivityChange","${count++}")
->         }
->     }
-> 
->     override fun onCreate(savedInstanceState: Bundle?) {
->         super.onCreate(savedInstanceState)
->         setContentView(R.layout.activity_main)
->         val intentFilter = IntentFilter()
->         intentFilter.addAction("android.intent.action.TIME_TICK")
->         broadcastReceiver = TimeChangeBroadCastReceiver()
->         registerReceiver(broadcastReceiver,intentFilter)
->     }
-> 
->     override fun onDestroy() {
->         super.onDestroy()
->         unregisterReceiver(broadcastReceiver)
->     }
-> }
+> class MainActivity : AppCompatActivity() {    private lateinit var broadcastReceiver:TimeChangeBroadCastReceiver    private var count: Int = 0    inner class TimeChangeBroadCastReceiver: BroadcastReceiver(){        override fun onReceive(context: Context?, intent: Intent?) {            Log.d("MainActivityChange","${count++}")        }    }    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        setContentView(R.layout.activity_main)        val intentFilter = IntentFilter()        intentFilter.addAction("android.intent.action.TIME_TICK")        broadcastReceiver = TimeChangeBroadCastReceiver()        registerReceiver(broadcastReceiver,intentFilter)    }    override fun onDestroy() {        super.onDestroy()        unregisterReceiver(broadcastReceiver)    }}
 > ```
 >
 > * 程序每隔一分钟会接收到一条系统时间变化的广播，然后可以进行相应的逻辑处理
@@ -454,23 +431,13 @@
 > * 创建一个接收器
 >
 >   ```kotlin
->   class MyReceiver: BroadcastReceiver() {
->       override fun onReceive(context: Context?, intent: Intent?) {
->           Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()
->       }
->   }
+>   class MyReceiver: BroadcastReceiver() {    override fun onReceive(context: Context?, intent: Intent?) {        Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    }}
 >   ```
 >
 > * 静态注册都是在`AndroidManifest.xml`中进行注册的
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"
->               android:enabled="true"
->               android:exported="true" >
->       <intent-filter>
->           <action android:name="android.intent.action.BOOT_COMPLETED" ></action>
->       </intent-filter>
->   </receiver>
+>   <receiver android:name=".MyReceiver"            android:enabled="true"            android:exported="true" >    <intent-filter>        <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    </intent-filter></receiver>
 >   ```
 >
 >   * `android:exported`表示是否允许它接收本程序以外的广播。此处肯定要设置为true，因此系统开机广播不是本程序的广播
@@ -489,31 +456,19 @@
 > * 创建一个接收器
 >
 >   ```kotlin
->   class MyReceiver: BroadcastReceiver() {
->       override fun onReceive(context: Context?, intent: Intent?) {
->           Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()
->       }
->   }
+>   class MyReceiver: BroadcastReceiver() {    override fun onReceive(context: Context?, intent: Intent?) {        Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    }}
 >   ```
 >
 > * 在`AndroidManifest.xml`中进行注册
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"
->               android:enabled="true"
->               android:exported="true" >
->       <intent-filter>
->           <action android:name="android.intent.action.MY_BROADCAST" ></action>
->       </intent-filter>
->   </receiver>
+>   <receiver android:name=".MyReceiver"            android:enabled="true"            android:exported="true" >    <intent-filter>        <action android:name="android.intent.action.MY_BROADCAST" ></action>    </intent-filter></receiver>
 >   ```
 >
 > * 发送广播
 >
 >   ```kotlin
->   val intent = Intent("com.whu.MY_BROADCAST")
->   intent.setPackage(packageName)
->   sendBroadcast(intent)
+>   val intent = Intent("com.whu.MY_BROADCAST")intent.setPackage(packageName)sendBroadcast(intent)
 >   ```
 >
 >   * 发送过程实际上就是发送一个`Intent`
@@ -530,9 +485,7 @@
 > * 发送处
 >
 >   ```kotlin
->   val intent = Intent("com.whu.MY_BROADCAST")
->   intent.setPackage(packageName)
->   sendOrderedBroadcast(intent,null)
+>   val intent = Intent("com.whu.MY_BROADCAST")intent.setPackage(packageName)sendOrderedBroadcast(intent,null)
 >   ```
 >
 >   * 仅仅变了一处即`sendOrderedBroadcast(intent,null)`
@@ -540,13 +493,7 @@
 > * 优先级声明
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"
->             android:enabled="true"
->             android:exported="true">
->       <intent-filter android:priority="100">
->           <action android:name="android.intent.action.BOOT_COMPLETED" ></action>
->       </intent-filter>
->   </receiver>
+>   <receiver android:name=".MyReceiver"          android:enabled="true"          android:exported="true">    <intent-filter android:priority="100">        <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    </intent-filter></receiver>
 >   ```
 >
 >   * 仅仅加了一个`android:priority="100"`
@@ -576,23 +523,7 @@
 > * 单例类
 >
 >   ```kotlin
->   object ActivityUtil {
->       private val list = ArrayList<Activity>()
->   
->       fun add(activity: Activity){
->           list.add(activity)
->       }
->       fun remove(activity: Activity){
->           list.remove(activity)
->       }
->       fun finishAll(){
->           for (activity in list){
->               if (!activity.isFinishing)
->                   activity.finish()
->           }
->           list.clear()
->       }
->   }
+>   object ActivityUtil {    private val list = ArrayList<Activity>()    fun add(activity: Activity){        list.add(activity)    }    fun remove(activity: Activity){        list.remove(activity)    }    fun finishAll(){        for (activity in list){            if (!activity.isFinishing)                activity.finish()        }        list.clear()    }}
 >   ```
 >
 >   * 因为finish一个activity有可能需要时间比较久，因此要做一个判断，不然多线程时感觉会炸
@@ -676,15 +607,7 @@
 > ### 使用
 >
 > ```kotlin
-> val songDao = NeteaseDatabase.getDatabase(this).songDao()
-> 
-> var foreverYou = Song("Izumi Sakai","Forever You")
-> 
-> insert.setOnClickListener {
->     thread {
->         foreverYou.id = songDao.insert(foreverYou)
->     }
-> }
+> val songDao = NeteaseDatabase.getDatabase(this).songDao()var foreverYou = Song("Izumi Sakai","Forever You")insert.setOnClickListener {    thread {        foreverYou.id = songDao.insert(foreverYou)    }}
 > ```
 >
 > * 主要是要先获取`SongDao`
@@ -703,19 +626,7 @@
 > * 示例
 >
 >   ```kotlin
->   @Database(version = 2,entities = [Song::class])
->   abstract class NeteaseDatabase: RoomDatabase() {
->       companion object{
->           @Synchronized
->           fun getDatabase(context:Context):NeteaseDatabase{
->               val version1_to_2 = object : Migration(1,2){
->                   override fun migrate(database: SupportSQLiteDatabase) {
->                       database.execSQL("")
->                   }
->               }
->           }
->       }
->   }
+>   @Database(version = 2,entities = [Song::class])abstract class NeteaseDatabase: RoomDatabase() {    companion object{        @Synchronized        fun getDatabase(context:Context):NeteaseDatabase{            val version1_to_2 = object : Migration(1,2){                override fun migrate(database: SupportSQLiteDatabase) {                    database.execSQL("")                }            }        }    }}
 >   ```
 >
 > * 首先是头部注解的`version`字段给设置为2
@@ -757,51 +668,7 @@
 > ### 代码逻辑
 >
 > ```kotlin
-> override fun onCreate(savedInstanceState: Bundle?) {
->     super.onCreate(savedInstanceState)
->     setContentView(R.layout.activity_main)
->     makeCall.setOnClickListener {
->         if (ContextCompat.checkSelfPermission(
->             this, 
->             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
->             ActivityCompat.requestPermissions(
->                 this, 
->                 arrayOf(Manifest.permission.CALL_PHONE),
->                 1)
->         }else{
->             call()
->         }
->     }
-> }
-> 
-> override fun onRequestPermissionsResult(
->     requestCode: Int,
->     permissions: Array<out String>,
->     grantResults: IntArray
-> ) {
->     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-> 
->     when(requestCode){
->         1 ->{
->             if (grantResults.isNotEmpty() &&
->                 grantResults[0] == PackageManager.PERMISSION_GRANTED){
->                 call()
->             }else{
->                 Toast.makeText(this,"apply for permission denied",Toast.LENGTH_SHORT).show()
->             }
->         }
->     }
-> }
-> 
-> private fun call(){
->     try {
->         val intent = Intent(Intent.ACTION_CALL)
->         intent.data = Uri.parse("tel:10086")
->         startActivity(intent)
->     }catch (error: Exception){
->         Log.e("MainActivity","${error.printStackTrace()}")
->     }
-> }
+> override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    makeCall.setOnClickListener {        if (ContextCompat.checkSelfPermission(            this,             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){            ActivityCompat.requestPermissions(                this,                 arrayOf(Manifest.permission.CALL_PHONE),                1)        }else{            call()        }    }}override fun onRequestPermissionsResult(    requestCode: Int,    permissions: Array<out String>,    grantResults: IntArray) {    super.onRequestPermissionsResult(requestCode, permissions, grantResults)    when(requestCode){        1 ->{            if (grantResults.isNotEmpty() &&                grantResults[0] == PackageManager.PERMISSION_GRANTED){                call()            }else{                Toast.makeText(this,"apply for permission denied",Toast.LENGTH_SHORT).show()            }        }    }}private fun call(){    try {        val intent = Intent(Intent.ACTION_CALL)        intent.data = Uri.parse("tel:10086")        startActivity(intent)    }catch (error: Exception){        Log.e("MainActivity","${error.printStackTrace()}")    }}
 > ```
 >
 > ### ContentProvider两种用法
@@ -856,4 +723,185 @@
 > manager.notify(1,notice)
 > ```
 >
+> ### 设置通知点击事件
+>
+> ```kotlin
+> button.setOnClickListener {
+>     //新增的两行代码
+>     val intent = Intent(this,SecondActivity::class.java)
+>     val pendingIntent = PendingIntent.getActivity(this,0,intent,0)
 > 
+>     val notice = NotificationCompat.Builder(this,"id")
+>     .setContentTitle("contentTitle")
+>     .setContentText("contentText")
+>     .setSmallIcon(R.drawable.ic_launcher_background)
+>     .setContentIntent(pendingIntent)//新增的一行代码
+>     .setAutoCancel(true)
+>     .build()
+>     manager.notify(1,notice)
+> }
+> ```
+>
+> * PendingIntent可以理解成延迟执行的Intent
+>
+> ***
+
+## 第十章 - Service
+
+> ### 后台功能
+>
+> * Android是一开始就支持丰富的后台功能，也正是由于其后台功能过于开发，以至于后面的版本都在限制其后台的功能
+> * iOS一开始是没有后台功能的，它是在后面意识到了后后台的重要性才加入了后台功能
+>
+> ### service是什么
+>
+> * service并不是独立存在并运行的一个进程
+> * 一个service必须依赖于某一个特定的进程之中，当这个进程被杀死时，对应的service也会终止
+> * service并不会自己主动去开启多线程，当需要时比我我们自己去创建多线程，否则就有可能阻塞掉主线程
+>
+> ### kotlin中的线程写法
+>
+> ```kotlin
+> thread{    //代码逻辑}
+> ```
+>
+> ### 多线程异步更新UI
+>
+> ```kotlin
+> val toChangeText = 1var isChanged = falseval handler = object : Handler(Looper.getMainLooper()){    override fun handleMessage(msg: Message) {        super.handleMessage(msg)        when(msg.what){            toChangeText -> textView.text = if (isChanged){isChanged = false;"true"}else{isChanged = true;"false"}        }    }}override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    changeText.setOnClickListener {        thread {            val msg = Message()            msg.what = toChangeText            handler.sendMessage(msg)        }    }}
+> ```
+>
+> * Android中更新UI只能在主线程中进行，在子线程中更新被认为是不安全的行为
+> * 首先创建一个消息处理器handler，这个handler有点类似于epoll的感觉，会传入一个循环器来一直查询可以处理的任务
+> * 然后在通过这个处理器来发送消息
+>
+> ### 异步消息的四个部分
+>
+> * `Handler`：最后所用的消息处理逻辑都会回调到`handlerMessage()`当中，根据不同的消息值进行不同的处理
+> * `Message`：可以理解成一个唯一的定位ID
+> * `MessageQueue`
+> * `Looper`：管家作用，会循环查看有无任务，如果有就从`MessageQueue`取出
+>
+> ### Service创建
+>
+> * 创建了过后一定要在`AndroidManifest.xml`中进行注册
+> * 只不过Android Studio已经自动化帮助我们完成了注册工作
+>
+> ### Service方法
+>
+> * `onBind(intent:Intent):IBinder`
+> * `onCreate()`：调用`context.startServie()`第一次未创建时调用
+> * `onStartCommand(intent:Intent,flags:Int,startId:Int):Int`：每次`context.startServie()`进行调用
+> * `onDestroy()`：每次`context.stopServie()`调用
+>
+> ### 启动停止Service
+>
+> ```kotlin
+> val intent = Intent(this,MainService::class)startService(intent)stopService(intent)
+> ```
+>
+> ### 不稳定性
+>
+> * 只有当service对应的activity处于前台时，才能保证service的稳定运行
+> * 否则由于很多滥用后台，service随时可能会被Android系统给回收掉
+>
+> ### 与Activity绑定
+>
+> * 首先在Service中要重写`onBind()`方法，重写之前还要自定义绑定后可以做的事情的`Binder`对象
+>
+>   ```kotlin
+>   class MainService : Service() {    class DownLoadBinder: Binder() {        fun startDownLoad(){            Log.d("MainService","startDownload called")        }        fun getProgress(){            Log.d("MainService","getProgress called")        }    }    override fun onBind(intent: Intent): IBinder {        Log.d("MainService","onBind called")        return DownLoadBinder()    }}
+>   ```
+>
+> * 在Activity中创建一个用于实现绑定的连接connection。并在连接里面调用自定义的方法
+>
+>   ```kotlin
+>   lateinit var downloadBinder: MainService.DownLoadBinderprivate val connection = object : ServiceConnection{    override fun onServiceDisconnected(name: ComponentName?) {        Log.d("MainService","disconect called")    }    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {        downloadBinder = service as MainService.DownLoadBinder        downloadBinder.startDownLoad()        downloadBinder.getProgress()    }}
+>   ```
+>
+> * 最后绑定和解绑
+>
+>   ```kotlin
+>   val intent = Intent(this,MainService::class.java)
+>   startBind.setOnClickListener {
+>       bindService(intent,connection,Context.BIND_AUTO_CREATE)
+>   }
+>     
+>   stopBind.setOnClickListener {
+>       unbindService(connection)
+>   }
+>   ```
+>
+>   * 其中`Context.BIND_AUTO_CREATE`表示绑定时如果service未创建会自动创建
+>
+> ### 绑定的生命周期
+>
+> * 当`bindService()`调用时，首先执行`onCreate()`方法，然后执行`onBind()`方法，然后用户就可以执行Binder里面自定义的逻辑
+> * 当`unBindService()`执行时，首先执行`onUnBind()`，然后执行`onDestroy()`方法
+>
+> ### 执行的生命周期
+>
+> * 当`startService()`执行时，如果未创建就首先执行`onCreat()`方法，然后执行`onStartCommand()`方法
+> * 当`stopService()`执行时，执行`onDestroy()`方法
+>
+> ### 前台Service
+>
+> * 即一直运行在前台的service，例如下滑网易云的播放暂停那个
+> * 总之就非常类似于通知的效果，系统一般不会回收前台的service
+> * 创建前台service的方法和通知的方法非常类似
+> * 注意Android 9.0后面的版本，前台service必须要在`AndroidManifest.xml`中进行声明
+>
+> ### 线程
+>
+> * service中的所有逻辑默认都是运行在主线程中的
+> * 因此service中耗时的逻辑应该放在其他的线程
+>
+> ### IntentService
+>
+> * IntentService就是带有多线程处理耗时逻辑，进行了高层封装的一个service
+>
+>   ```kotlin
+>   class MyIntentService : IntentService("intentService") {
+>       override fun onHandleIntent(intent: Intent?) {
+>           //处理耗时逻辑
+>           //处理完毕会自动调用stopItselt()方法
+>       }
+>   }
+>   ```
+>
+> ***
+
+## 第十一章 - 网络技术
+
+> ### 使用webview
+>
+> * 添加控件，webview实际上就是一个控件
+>
+>   ```xml
+>   <WebView
+>       android:layout_width="match_parent"
+>       android:layout_height="match_parent"
+>       android:id="@+id/webView" />
+>   ```
+>
+> * `AndroidManifest.xml`中声明网络权限和`usesCleartextTraffic`
+>
+>   ```xml
+>   <uses-permission android:name="android.permission.INTERNET" />
+>       <application
+>           android:usesCleartextTraffic="true" />
+>   ```
+>
+> * 使用
+>
+>   ```kotlin
+>   webView.settings.javaScriptEnabled = true
+>   webView.webViewClient = WebViewClient()
+>   webView.loadUrl("http://47.108.63.126")
+>   ```
+>
+>   * 其中`webViewClient`作用是当进行网页跳转时依然使用webview，而不是打开系统的浏览器
+>
+> ### 导入依赖
+>
+> * `implementation 'com.squareup.okhttp3:okhttp:4.9.1'`
