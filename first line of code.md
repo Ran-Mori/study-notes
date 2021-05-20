@@ -111,17 +111,17 @@
 >   //显示
 >   val intent = Intent(this, SecondActivity::class)
 >   startActivity(intent)
->   
+>
 >   //隐式
 >   val intent = Intent("whu.activityTest.ACTION_START")
 >   intent.addCategory("whu.activityTest.MY_CATEGORY")
 >   startActivity(intent)
->   
+>
 >   //调用系统浏览器
 >   val intent = Intent(Intent.ACTION_VIEW) //一个常量View，代表浏览器
 >   intent.data = Uri.parse("https://www.baidu.com") //传入需要解析的data内容
 >   startActivity(intent)
->   
+>
 >   //调用系统拨号界面
 >   val intent = Intent(Intent.ACTION_DIAL)
 >   intent.data = Uri.parse("tel:10086")
@@ -135,10 +135,41 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->       
+>   
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
+>
+> ### 隐式Intent
+>
+> * `action`：`xml`文件中一个`activity`可以指定多个`action`，但隐式intent中只能设置一个`action`，即在构造函数中设置如`val intent = Intent("MyAction")`
+> * `category`：`xml`文件中一个`activity`可以使用多个`category`，隐式Intent也可以设置多个category。当且仅当`xml`中的category大于等于隐式Intent中的category才能匹配成功
+> * `data`：`xml`文件中可以用多个`data`标签来设置URL的属性诸如`schema,host,path`，一旦`xml`中设置了`data`属性。则当且仅当隐式Intent的data值和`xml`中的匹配才行。如`intent.data = Uri.parse("https://47.108.63.126/songs")`
+> * 匹配规则是先匹配`action`，保证`data`是匹配的，再匹配`category`
+> * 隐式Intent必须有`android.intent.category.DEFAULT`的`categroy`，否则只能进行显示匹配
+> * 其中`action`和`category`的名字可以随便自己乱取，不过最好以`包.类名`来命名知道实际指那个实体Activity
+>
+> ### 协调合作确定好某一个Activity需要什么数据
+>
+> ```kotlin
+> class SecondActivity : BaseActivity() {
+>     companion object {
+>         fun actionStart(context: Context, data1: String, data2: String) {
+>             val intent = Intent(context, SecondActivity::class.java).apply {
+>                 putExtra("param1", "data1")
+>                 putExtra("param2", "data2")
+>             }
+>             context.startActivity(intent)
+>         }
+>     }
+> }
+> ```
+>
+> * 写一个伴生对象
+> * 这样无论是谁跳转到`SecondActivity`，都知道了这个Activity需要两个数据，这样就很好地做到了数据传递的规范性
+> * 在`FirstActivity`中实现跳转`SecondActivity.actionStart(this, "data1", "data2")`
+>
+> ### 退出并返回数据
 >
 > ### 返回数据给上一个Activity
 >
@@ -148,13 +179,13 @@
 >   //接收数据的一方, 进行页面跳转时
 >   //一个intent代表想跳转的activity，一个int表示唯一请求码，在后面会用
 >   startActivityForResult(intent: Intent, statusCode: Int)
->   
+>
 >   //发送数据的一方
 >   val intent = Intent() //由于不进行跳转，只是一个容纳数据的容器，因此不用进行跳转页面设置
 >   intent.putStringExtra("name","IzumiSakai")
 >   setResult(RESULT_OK,intent) //RESULT_OK表示返回的状态码，后面要用，可以不唯一
 >   finish()
->   
+>
 >   //接收数据的一方，获取传递的数据时
 >   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 >       super.onActivityResult(requestCode, resultCode, data)
@@ -180,6 +211,8 @@
 >   }
 >   ```
 >
+> * 此种结束返回数据的方式要注意结束的方式一共有两种，一种是调用`finish`方法，一种是返回键。因此在这两个地方都要写上返回回传数据的逻辑
+>
 > ### 生命周期
 >
 > * 各个生命周期执行的函数
@@ -192,36 +225,36 @@
 >       setContentView(R.layout.activity_main)
 >       Log.d("MainActivity","onCreateCalled")
 >   }
->   
+>
 >   //由不可见变成可见
 >   override fun onStart() {
 >       super.onStart()
 >       Log.d("MainActivity","onStartCalled")
 >   }
->   
+>
 >   //由不可交互变成可以交互
 >   override fun onResume() {
 >       super.onResume()
 >       Log.d("MainActivity","onResumeCalled")
 >   }
->   
+>
 >   //由可交互变成不可交互
 >   override fun onPause() {
 >       super.onPause()
 >       Log.d("MainActivity","onPauseCalled")
 >   }
->   
+>
 >   //由可见变成不可见
 >   override fun onStop() {
 >       super.onStop()
 >       Log.d("MainActivity","onStopCalled")
 >   }
->   
+>
 >   override fun onDestroy() {
 >       super.onDestroy()
 >       Log.d("MainActivity","onDestroyCalled")
 >   }
->   
+>
 >   //当未被销毁非处于栈顶又由于切换处于栈顶时会调用此方法
 >   override fun onRestart() {
 >       super.onRestart()
@@ -232,6 +265,11 @@
 > * 注意事项：pause和stop的主要区别之一就是当activity是对话框形式时只会执行pause而不会执行stop，因为对话框即使暂时退出了也是可见的
 >
 > * 调度形式：栈。activity不停地压栈和出栈就形成了activity的调度
+>
+> ### Android:Theme
+>
+> * 在`AndroidManifest.xml`中可以设置此属性，可以设置`Activity`的主题样式
+> * 如`android:theme="@style/Theme.AppCompat.Dialog`
 >
 > ### activity被清理后恢复数据
 >
@@ -244,11 +282,11 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->       
+>   
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
->       val name = savedInstanceState?.getString("name")
+>       val name = savedInstanceState?.getString("name")?:""
 >   }
 >   ```
 >
@@ -826,7 +864,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->     
+>       
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
