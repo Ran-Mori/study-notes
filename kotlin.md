@@ -242,9 +242,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->                         
+>                           
 >   val isEven = IntPredicate { it % 2 == 0 }
->                         
+>                           
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -348,7 +348,7 @@
 > Util.do()
 > ```
 >
-> 
+> ***
 
 ## 集合
 
@@ -411,12 +411,12 @@
 >           //代码逻辑
 >       }
 >   })
->                   
+>                     
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->                   
+>                     
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -649,7 +649,7 @@
 >       intent.block()
 >       context.startActivity(intent)
 >   }
->       
+>         
 >   //调用
 >   startActivity<MainActivity>(this){
 >       putExtra("key","value")
@@ -791,11 +791,11 @@
 >   ```kotlin
 >   class MyDelegate {
 >       private var value: Any? = null
->             
+>               
 >       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
 >           return this.value
 >       }
->             
+>               
 >       operator fun setValue(myClass: Any?,prop: KProperty<*>,value: Any?){
 >           this.value = value
 >       }
@@ -848,7 +848,7 @@
 >
 >   ```kotlin
 >   val p: Any? by laterInit {
->         
+>           
 >   }
 >   ```
 >
