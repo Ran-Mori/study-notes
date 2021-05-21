@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->   
+>       
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->   
+>       
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -337,20 +337,22 @@
 > ### 警告框AlertDialog
 >
 > ```kotlin
-> AlertDialog.Builder(this).apply {
->     setTitle("测试警告框标题")
->     setMessage("测试警告框信息")
->     setPositiveButton("确定"){
->         dialog, which -> Log.d("警告框","点击确定")
+> val alertDialog = AlertDialog.Builder(this).apply {
+>     setCancelable(false)
+>     setPositiveButton("Ok"){
+>         alertDialog, which -> Toast.makeText(this@MainActivity,"you click ok",Toast.LENGTH_SHORT).show()
 >     }
->     setNegativeButton("取消"){
->         dialog, which -> Log.d("警告框","点击取消")
+>     setNegativeButton("refuse"){
+>         alertDialog, which -> Toast.makeText(this@MainActivity,"you click refuse",Toast.LENGTH_SHORT).show()
 >     }
->     show()
-> }
+>     setTitle("title")
+>     setMessage("message")
+>     create()
+> }.show()
 > ```
 >
 > * 最后一定不要忘了加上`show()`，经常忘加
+> * `setPositiveButton()`函数接收两个参数，一个是`AlertDialog`警告对象，一个是(int -> unit)的高阶函数
 >
 > ### LinearLayout
 >
@@ -368,6 +370,54 @@
 >
 > * 相对于父布局：`layout_alignParentBottom`等
 > * 相对于某组件：`layout_above="@id/button"`，通过`@id`来指定相对的组件
+>
+> ### 自定义布局复用
+>
+> * 首先创建一个布局的`layout.xml`文件，自己设计样式
+>
+>   ```xml
+>   <?xml version="1.0" encoding="utf-8"?>
+>   <LinearLayout
+>       xmlns:android="http://schemas.android.com/apk/res/android"
+>       android:layout_width="match_parent"
+>       android:layout_height="wrap_content"
+>       android:orientation="horizontal">
+>   
+>      	//...
+>   </LinearLayout>
+>   ```
+>
+> * 创建一个kotlin类即代表这个布局的实体类
+>
+>   ```kotlin
+>   class TitleLayout(context: Context, attrs: AttributeSet) : LinearLayout(context, attrs) {
+>       init {
+>           LayoutInflater.from(context).inflate(R.layout.title,this)
+>           backButton.setOnClickListener {
+>               val activity = context as Activity
+>               activity.finish()
+>           }
+>           toastButton.setOnClickListener {
+>               Toast.makeText(context,"toast",Toast.LENGTH_SHORT).show()
+>           }
+>       }
+>   }
+>   ```
+>
+> * 在另外的`xml`布局文件中引入这个布局
+>
+>   ```xml
+>   <whu.uilearning.TitleLayout
+>           android:id="@+id/customer"
+>           android:layout_width="wrap_content"
+>           android:layout_height="wrap_content" />
+>   ```
+>
+> * 注：虽然`LinearLayout`有众多的构造函数，但只传入一个`context`参数会构造失败，还是要传`(context: Context, attrs: AttributeSet)`
+>
+> ### 隐藏最上面的的`ActionBar`
+>
+> * `supportActionBar?.hide()`
 >
 > ### 自定义样式无逻辑布局
 >
@@ -420,8 +470,14 @@
 > ### Main
 >
 > ```kotlin
-> recyclerView.layoutManager = LinearLayoutManager(this)recyclerView.adapter = SongAdapter(songList)
+> recyclerView.layoutManager = LinearLayoutManager(this)
+> recyclerView.adapter = SongAdapter(songList)
 > ```
+>
+> ### 垂直其他布局
+>
+> * RecycleView实现其他的布局主要是通过`LayoutManager`来进行实现，如果要实现垂直的瀑布流布局。可以对`Manager`进行响应的一些设置
+> * 即`StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)`即是实现3列垂直瀑布布局
 >
 > ***
 
@@ -864,7 +920,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->       
+>           
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
