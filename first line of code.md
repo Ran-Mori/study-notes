@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->       
+>           
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->       
+>           
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -481,6 +481,140 @@
 >
 > ***
 
+## 第四章 - Fragment
+
+> ### 特点
+>
+> * 有自己的生命周期
+> * 必须依附于`Activity`而存在，自己不能单独存在
+>
+> ### 创建一个Fragment
+>
+> * 首先先自定义一个`xml`的布局
+> * 最简单的一行代码就可以构建一个Fragment如`class ExampleFragment : Fragment(R.layout.example_fragment`
+>
+> ### 将Fragment添加到Activity中显示
+>
+> * Android官方强烈推荐使用`FragmentContainerView`进行Fragment的添加和显示
+>
+> * 方法一：静态在`xml`中指明全限定类名，这样一加载时就可以添加
+>
+>   ```xml
+>   <androidx.fragment.app.FragmentContainerView
+>       xmlns:android="http://schemas.android.com/apk/res/android"
+>       android:id="@+id/fragment_container_view"
+>       android:layout_width="match_parent"
+>       android:layout_height="match_parent"
+>       android:name="com.example.ExampleFragment" />
+>   ```
+>
+>   * 其中`name`属性就是全限定类名
+>
+> * 方法二：动态在代码中进行添加
+>
+>   ```kotlin
+>   supportFragmentManager.commit {
+>       setReorderingAllowed(true)//开启事务优化
+>       add<LeftFragment>(R.id.fragment_container_view_tag,"left",bundle)
+>   }
+>   ```
+>
+>   * 其中`commit`和`add`方法都是kotlin的拓展函数，方便了程序员进行api的调用
+>
+> ### 在Fragment创建时从Activity传入数据
+>
+> * Activity发送数据
+>
+>   ```kotlin
+>   supportFragmentManager.commit {
+>       val bundle = Bundle()
+>       bundle.putString("key","value")
+>       replace<LeftFragment>(R.id.fragment_container_view_tag,"tag",bundle)
+>   }
+>   ```
+>
+>   * 实际上就是自定义一个Bundle然后作为参数传过去
+>
+> * Fragment接收数据
+>
+>   ```kotlin
+>   class LeftFragment: Fragment(R.layout.msg_left){
+>       override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+>           super.onViewCreated(view, savedInstanceState)
+>           Log.d("MainActivity",requireArguments().getString("key").toString())
+>       }
+>   }
+>   ```
+>
+>   * 在`onViewCreated()`方法中调用`requireArguments()`获取之前传过来的`Buddle`
+>
+> ### FragmentManager
+>
+> * 只要涉及到`Fragment`必然涉及到`FragmentManager`
+> * 只是看是实际使用它还是使用高层的api屏蔽掉它，比如使用`jetpack navigation`就几乎感觉不到使用`FragmentManager`，但底层实际上还是在使用
+>
+> ### 获取FragmentManager
+>
+> * `Activity`中：`getSurrportFragmentManager()`
+> * `Fragment`中：
+>   * 获取管理此`Fragment`的manager：`getParentFragmentManager()`
+>   * 获取此`Fragment`管理的子Fragment的manager：`getChildFragmentManager()`
+> * 注意：按照Fragment层级的嵌套关系，每个层级都有管理它下一个层级的`FragmentManager`，即最底层的Fragment没有`FragmentManager`，它只能被管理
+>
+> ### 栈式存储
+>
+> * 使用`FragmentManager`开始事务后的整个操作被算作是一次原子操作。
+> * 如果最后提交前调用了`addToBackStack("name")`，其中name可以为空
+> * 就可以点击`back`键或者调用`popBackStack()`方法就可以进行回退操作
+> * 不添加进栈就直接`destroy`，添加了就是`stop`
+>
+> ### 找到一个Fragment
+>
+> * 通过`android:id`找：`supportFragmentManager.findFragmentById(R.id.fragment_container) as ExampleFragment`
+> * 通过`android:tag`或者`replace<ExampleFragment>(R.id.fragment_container, "tag")`设置的tag找：`supportFragmentManager.findFragmentByTag("tag") as ExampleFragment`
+>
+> ### 同级多个只有一个能当主导航栈
+>
+> * `Note that when two or more fragments are displayed at the same time, only one of them can be the primary navigation fragment`
+>
+> ### 自定义构造函数
+>
+> * 首先定义自己的Fragment
+>
+>   ```kotlin
+>   class SongsFragment(val songs:List<String>):Fragment() {}
+>   ```
+>
+> * 然后创建一个`FragmentFactory`的子类来重写方法
+>
+>   ```kotlin
+>   class SongsFactory(val songs:List<String>):FragmentFactory() {
+>       override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
+>           when(loadFragmentClass(classLoader, className)){
+>               SongsFragment::class.java -> return SongsFragment(songs)
+>               else -> return super.instantiate(classLoader, className)
+>           }
+>       }
+>   }
+>   ```
+>
+>   * 其实`when`里面的逻辑还可以加，这样就完全成了自己自定义的构造工厂了
+>
+> #### 生命周期
+>
+> * 注意：`Fragment`是一个对象，它依赖于一个`Activity`或者父`Fragment`，它最后呈现在页面上是一个view。这三者都有它们各自的生命周期
+> * `onAttach`：在Fragment和FragmentManger绑定时触发
+> * `onCreate`
+> * `onCreateView`
+> * `onViewCreated`
+> * `onStart`
+> * `onResume`
+> * `onPaused`
+> * `onStop`
+> * `onDestroyView`
+> * `onDestroy`
+> * `onDetach`
+
 ## 第六章 - 广播
 
 > ### IP广播
@@ -502,7 +636,27 @@
 > ### 接收广播举例
 >
 > ```kotlin
-> class MainActivity : AppCompatActivity() {    private lateinit var broadcastReceiver:TimeChangeBroadCastReceiver    private var count: Int = 0    inner class TimeChangeBroadCastReceiver: BroadcastReceiver(){        override fun onReceive(context: Context?, intent: Intent?) {            Log.d("MainActivityChange","${count++}")        }    }    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        setContentView(R.layout.activity_main)        val intentFilter = IntentFilter()        intentFilter.addAction("android.intent.action.TIME_TICK")        broadcastReceiver = TimeChangeBroadCastReceiver()        registerReceiver(broadcastReceiver,intentFilter)    }    override fun onDestroy() {        super.onDestroy()        unregisterReceiver(broadcastReceiver)    }}
+> class MainActivity : AppCompatActivity() {    
+>     private lateinit var broadcastReceiver:TimeChangeBroadCastReceiver    
+>     private var count: Int = 0    
+>     inner class TimeChangeBroadCastReceiver: BroadcastReceiver(){        
+>         override fun onReceive(context: Context?, intent: Intent?) {            
+>             Log.d("MainActivityChange","${count++}")        
+>         }    
+>     }    
+>     override fun onCreate(savedInstanceState: Bundle?) {        
+>         super.onCreate(savedInstanceState)        
+>         setContentView(R.layout.activity_main)        
+>         val intentFilter = IntentFilter()        
+>         intentFilter.addAction("android.intent.action.TIME_TICK")        
+>         broadcastReceiver = TimeChangeBroadCastReceiver()        
+>         registerReceiver(broadcastReceiver,intentFilter)    
+>     }    
+>     override fun onDestroy() {        
+>         super.onDestroy()        
+>         unregisterReceiver(broadcastReceiver)    
+>     }
+> }
 > ```
 >
 > * 程序每隔一分钟会接收到一条系统时间变化的广播，然后可以进行相应的逻辑处理
@@ -550,19 +704,31 @@
 > * 创建一个接收器
 >
 >   ```kotlin
->   class MyReceiver: BroadcastReceiver() {    override fun onReceive(context: Context?, intent: Intent?) {        Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    }}
+>   class MyReceiver: BroadcastReceiver() {    
+>       override fun onReceive(context: Context?, intent: Intent?) {        
+>           Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    
+>       }
+>   }
 >   ```
 >
 > * 在`AndroidManifest.xml`中进行注册
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"            android:enabled="true"            android:exported="true" >    <intent-filter>        <action android:name="android.intent.action.MY_BROADCAST" ></action>    </intent-filter></receiver>
+>   <receiver android:name=".MyReceiver"            
+>             android:enabled="true"            
+>             android:exported="true" >    
+>       <intent-filter>        
+>           <action android:name="android.intent.action.MY_BROADCAST" ></action>    
+>       </intent-filter>
+>   </receiver>
 >   ```
 >
 > * 发送广播
 >
 >   ```kotlin
->   val intent = Intent("com.whu.MY_BROADCAST")intent.setPackage(packageName)sendBroadcast(intent)
+>   val intent = Intent("com.whu.MY_BROADCAST")
+>   intent.setPackage(packageName)
+>   sendBroadcast(intent)
 >   ```
 >
 >   * 发送过程实际上就是发送一个`Intent`
@@ -617,7 +783,22 @@
 > * 单例类
 >
 >   ```kotlin
->   object ActivityUtil {    private val list = ArrayList<Activity>()    fun add(activity: Activity){        list.add(activity)    }    fun remove(activity: Activity){        list.remove(activity)    }    fun finishAll(){        for (activity in list){            if (!activity.isFinishing)                activity.finish()        }        list.clear()    }}
+>   object ActivityUtil {    
+>       private val list = ArrayList<Activity>()    
+>       fun add(activity: Activity){        
+>           list.add(activity)    
+>       }    
+>       fun remove(activity: Activity){        
+>           list.remove(activity)    
+>       }    
+>       fun finishAll(){        
+>           for (activity in list){            
+>               if (!activity.isFinishing)                
+>               activity.finish()        
+>           }        
+>           list.clear()    
+>       }
+>   }
 >   ```
 >
 >   * 因为finish一个activity有可能需要时间比较久，因此要做一个判断，不然多线程时感觉会炸
@@ -656,7 +837,19 @@
 > ### 使用举例
 >
 > ```kotlin
-> override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)    val value = sharedPreference.getString("key", "默认值")    editText.setText(value)}override fun onDestroy() {    super.onDestroy()    val editor = getSharedPreferences("song", Context.MODE_PRIVATE).edit()    editor.putString("key","${editText.text.toString()}")    editor.apply()}
+> override fun onCreate(savedInstanceState: Bundle?) {    
+>     super.onCreate(savedInstanceState)    
+>     setContentView(R.layout.activity_main)    
+>     val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)    
+>     val value = sharedPreference.getString("key", "默认值")    
+>     editText.setText(value)}
+> 
+> override fun onDestroy() {    
+>     super.onDestroy()    
+>     val editor = getSharedPreferences("song", Context.MODE_PRIVATE).edit()    
+>     editor.putString("key","${editText.text.toString()}")    
+>     editor.apply()
+> }
 > ```
 >
 > ### ROOM
@@ -667,7 +860,14 @@
 > ### 导入依赖
 >
 > ```json
-> plugins {    id 'kotlin-android-extensions'    id 'kotlin-kapt'}dependencies {    implementation 'androidx.room:room-runtime:2.3.0'    kapt 'androidx.room:room-compiler:2.3.0'}
+> plugins {    
+>     id 'kotlin-android-extensions'    
+>     id 'kotlin-kapt'
+> }
+> dependencies {    
+>     implementation 'androidx.room:room-runtime:2.3.0'    
+>     kapt 'androidx.room:room-compiler:2.3.0'
+> }
 > ```
 >
 > * kapt是kotlin的一个注解处理器
@@ -676,13 +876,27 @@
 > ### entity
 >
 > ```kotlin
-> @Entitydata class Song(var songName:String,var songSinger:String) {    @PrimaryKey(autoGenerate = true)    var id: Long = 0}
+> @Entitydata class Song(var songName:String,var songSinger:String) {    
+>     @PrimaryKey(autoGenerate = true)    
+>     var id: Long = 0
+> }
 > ```
 >
 > ### dao
 >
 > ```kotlin
-> @Daointerface SongDao {    @Insert    fun insert(song: Song):Long    @Query("delete from song where id = :id")    fun deleteById(id: Long):Int    @Update    fun update(song:Song):Int    @Query("select * from song")    fun queryAll(): List<Song>    @Query("select * from song where id = :id")    fun queryOneById(id: Long):List<Song>}
+> @Daointerface SongDao {    
+>     @Insert    
+>     fun insert(song: Song):Long    
+>     @Query("delete from song where id = :id")    
+>     fun deleteById(id: Long):Int    
+>     @Update    
+>     fun update(song:Song):Int    
+>     @Query("select * from song")    
+>     fun queryAll(): List<Song>    
+>     @Query("select * from song where id = :id")    
+>     fun queryOneById(id: Long):List<Song>
+> }
 > ```
 >
 > * sqlite规定了ID必须是`long`类型，因此无论是entity还是dao的ID类型都要设置成long
@@ -691,7 +905,26 @@
 > * 这是一个接口，在编译时Room会自动生成一个它的实现类
 >
 > ```kotlin
-> @Database(version = 1,entities = [Song::class])abstract class NeteaseDatabase: RoomDatabase() {    abstract fun songDao():SongDao    companion object{        private var instance: NeteaseDatabase? =null        @Synchronized        fun getDatabase(context:Context):NeteaseDatabase{            instance?.let {                return it            }            return Room.databaseBuilder(                context.applicationContext,                NeteaseDatabase::class.java,                "netease_database").            build().apply {                instance = this            }        }    }}
+> @Database(version = 1,entities = [Song::class])
+> abstract class NeteaseDatabase: RoomDatabase() {    
+>     abstract fun songDao():SongDao    
+>     companion object{        
+>         private var instance: NeteaseDatabase? =null        
+>         @Synchronized        
+>         fun getDatabase(context:Context):NeteaseDatabase{            
+>             instance?.let {                
+>                 return it            
+>             }            
+>             return Room.databaseBuilder(                
+>                 context.applicationContext,                
+>                 NeteaseDatabase::class.java,                
+>                 "netease_database").            
+>             build().apply {               
+>                 instance = this            
+>             }        
+>         }    
+>     }
+> }
 > ```
 >
 > * 注解的entitys选项是一个数组，可以填很多类
@@ -701,7 +934,13 @@
 > ### 使用
 >
 > ```kotlin
-> val songDao = NeteaseDatabase.getDatabase(this).songDao()var foreverYou = Song("Izumi Sakai","Forever You")insert.setOnClickListener {    thread {        foreverYou.id = songDao.insert(foreverYou)    }}
+> val songDao = NeteaseDatabase.getDatabase(this).songDao()
+> var foreverYou = Song("Izumi Sakai","Forever You")
+> insert.setOnClickListener {    
+>     thread {        
+>         foreverYou.id = songDao.insert(foreverYou)    
+>     }
+> }
 > ```
 >
 > * 主要是要先获取`SongDao`
@@ -720,7 +959,19 @@
 > * 示例
 >
 >   ```kotlin
->   @Database(version = 2,entities = [Song::class])abstract class NeteaseDatabase: RoomDatabase() {    companion object{        @Synchronized        fun getDatabase(context:Context):NeteaseDatabase{            val version1_to_2 = object : Migration(1,2){                override fun migrate(database: SupportSQLiteDatabase) {                    database.execSQL("")                }            }        }    }}
+>   @Database(version = 2,entities = [Song::class])
+>   abstract class NeteaseDatabase: RoomDatabase() {    
+>       companion object{        
+>           @Synchronized        
+>           fun getDatabase(context:Context):NeteaseDatabase{            
+>               val version1_to_2 = object : Migration(1,2){                
+>                   override fun migrate(database: SupportSQLiteDatabase) {                   
+>                       database.execSQL("")                
+>                   }            
+>               }        
+>           }    
+>       }
+>   }
 >   ```
 >
 > * 首先是头部注解的`version`字段给设置为2
@@ -762,7 +1013,47 @@
 > ### 代码逻辑
 >
 > ```kotlin
-> override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    makeCall.setOnClickListener {        if (ContextCompat.checkSelfPermission(            this,             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){            ActivityCompat.requestPermissions(                this,                 arrayOf(Manifest.permission.CALL_PHONE),                1)        }else{            call()        }    }}override fun onRequestPermissionsResult(    requestCode: Int,    permissions: Array<out String>,    grantResults: IntArray) {    super.onRequestPermissionsResult(requestCode, permissions, grantResults)    when(requestCode){        1 ->{            if (grantResults.isNotEmpty() &&                grantResults[0] == PackageManager.PERMISSION_GRANTED){                call()            }else{                Toast.makeText(this,"apply for permission denied",Toast.LENGTH_SHORT).show()            }        }    }}private fun call(){    try {        val intent = Intent(Intent.ACTION_CALL)        intent.data = Uri.parse("tel:10086")        startActivity(intent)    }catch (error: Exception){        Log.e("MainActivity","${error.printStackTrace()}")    }}
+> override fun onCreate(savedInstanceState: Bundle?) {    
+>     super.onCreate(savedInstanceState)    
+>     setContentView(R.layout.activity_main)    
+>     makeCall.setOnClickListener {        
+>         if (ContextCompat.checkSelfPermission(            
+>             this,             
+>             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){            
+>             ActivityCompat.requestPermissions(                
+>                 this,                 
+>                 arrayOf(Manifest.permission.CALL_PHONE),                
+>                 1)        
+>         }else{            
+>             call()        
+>         }    }
+> }
+> 
+> override fun onRequestPermissionsResult(    
+>     requestCode: Int,    
+>     permissions: Array<out String>,    
+>     grantResults: IntArray) {    
+>     super.onRequestPermissionsResult(requestCode, permissions, grantResults)    
+>     when(requestCode){        
+>         1 ->{            
+>             if (grantResults.isNotEmpty() &&                
+>                 grantResults[0] == PackageManager.PERMISSION_GRANTED){                
+>                 call()            
+>             }else{                
+>                 Toast.makeText(this,"apply for permission denied",Toast.LENGTH_SHORT).show()               }        
+>         }    
+>     }
+> }
+> 
+> private fun call(){    
+>     try {        
+>         val intent = Intent(Intent.ACTION_CALL)        
+>         intent.data = Uri.parse("tel:10086")        
+>         startActivity(intent)    
+>     }catch (error: Exception){        
+>         Log.e("MainActivity","${error.printStackTrace()}")    
+>     }
+> }
 > ```
 >
 > ### ContentProvider两种用法
@@ -920,7 +1211,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->           
+>               
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
