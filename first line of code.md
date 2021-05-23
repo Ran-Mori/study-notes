@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->           
+>               
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->           
+>               
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1061,6 +1061,59 @@
 > * 一是使用ContentProvider读取和操作其他程序的数据
 > * 一是自定义此程序的ContentProvider，供其他用户进行访问
 >
+> ### 读其他程序数据示例
+>
+> ```kotlin
+> class  MainActivity : AppCompatActivity() {
+> 
+>     var bookId: String? = null
+> 
+>     override fun onCreate(savedInstanceState: Bundle?) {
+>         super.onCreate(savedInstanceState)
+>         setContentView(R.layout.activity_main)
+>         addData.setOnClickListener {
+>             // 添加数据
+>             val uri = Uri.parse("content://com.example.databasetest.provider/book")
+>             val values = contentValuesOf("name" to "A Clash of Kings", "author" to "George Martin", "pages" to 1040, "price" to 22.85)
+>             val newUri = contentResolver.insert(uri, values)
+>             bookId = newUri?.pathSegments?.get(1)
+>         }
+>         queryData.setOnClickListener {
+>             // 查询数据
+>             val uri = Uri.parse("content://com.example.databasetest.provider/book")
+>             contentResolver.query(uri, null, null, null, null)?.build {
+>                 while (moveToNext()) {
+>                     val name = getString(getColumnIndex("name"))
+>                     val author = getString(getColumnIndex("author"))
+>                     val pages = getInt(getColumnIndex("pages"))
+>                     val price = getDouble(getColumnIndex("price"))
+>                     Log.d("MainActivity", "book name is $name")
+>                     Log.d("MainActivity", "book author is $author")
+>                     Log.d("MainActivity", "book pages is $pages")
+>                     Log.d("MainActivity", "book price is $price")
+>                 }
+>                 close()
+>             }
+>         }
+>         updateData.setOnClickListener {
+>             // 更新数据
+>             bookId?.let {
+>                 val uri = Uri.parse("content://com.example.databasetest.provider/book/$it")
+>                 val values = contentValuesOf("name" to "A Storm of Swords", "pages" to 1216, "price" to 24.05)
+>                 contentResolver.update(uri, values, null, null)
+>             }
+>         }
+>         deleteData.setOnClickListener {
+>             // 删除数据
+>             bookId?.let {
+>                 val uri = Uri.parse("content://com.example.databasetest.provider/book/$it")
+>                 contentResolver.delete(uri, null, null)
+>             }
+>         }
+>     }
+> }
+> ```
+>
 > ### 读其他基本用法
 >
 > * 使用`ContentResolver`类作为接口操作
@@ -1153,7 +1206,35 @@
 > ### 多线程异步更新UI
 >
 > ```kotlin
-> val toChangeText = 1var isChanged = falseval handler = object : Handler(Looper.getMainLooper()){    override fun handleMessage(msg: Message) {        super.handleMessage(msg)        when(msg.what){            toChangeText -> textView.text = if (isChanged){isChanged = false;"true"}else{isChanged = true;"false"}        }    }}override fun onCreate(savedInstanceState: Bundle?) {    super.onCreate(savedInstanceState)    setContentView(R.layout.activity_main)    changeText.setOnClickListener {        thread {            val msg = Message()            msg.what = toChangeText            handler.sendMessage(msg)        }    }}
+> val toChangeText = 1
+> var isChanged = false
+> 
+> val handler = object : Handler(Looper.getMainLooper()){    
+>     override fun handleMessage(msg: Message) {        
+>         super.handleMessage(msg)        
+>         when(msg.what){            
+>             toChangeText -> textView.text = if (isChanged){
+>                 isChanged = false;
+>                 "true"
+>             }else{
+>                 isChanged = true;
+>                 "false"
+>             }        
+>         }    
+>     }
+> }
+> 
+> override fun onCreate(savedInstanceState: Bundle?) {    
+>     super.onCreate(savedInstanceState)    
+>     setContentView(R.layout.activity_main)    
+>     changeText.setOnClickListener {        
+>         thread {            
+>             val msg = Message()            
+>             msg.what = toChangeText            
+>             handler.sendMessage(msg)        
+>         }    
+>     }
+> }
 > ```
 >
 > * Android中更新UI只能在主线程中进行，在子线程中更新被认为是不安全的行为
@@ -1182,7 +1263,9 @@
 > ### 启动停止Service
 >
 > ```kotlin
-> val intent = Intent(this,MainService::class)startService(intent)stopService(intent)
+> val intent = Intent(this,MainService::class)
+> startService(intent)
+> stopService(intent)
 > ```
 >
 > ### 不稳定性
@@ -1195,13 +1278,36 @@
 > * 首先在Service中要重写`onBind()`方法，重写之前还要自定义绑定后可以做的事情的`Binder`对象
 >
 >   ```kotlin
->   class MainService : Service() {    class DownLoadBinder: Binder() {        fun startDownLoad(){            Log.d("MainService","startDownload called")        }        fun getProgress(){            Log.d("MainService","getProgress called")        }    }    override fun onBind(intent: Intent): IBinder {        Log.d("MainService","onBind called")        return DownLoadBinder()    }}
+>   class MainService : Service() {    
+>       class DownLoadBinder: Binder() {        
+>           fun startDownLoad(){            
+>               Log.d("MainService","startDownload called")        
+>           }        
+>           fun getProgress(){            
+>               Log.d("MainService","getProgress called")        
+>           }    
+>       }    
+>       override fun onBind(intent: Intent): IBinder {        
+>           Log.d("MainService","onBind called")        
+>           return DownLoadBinder()    
+>       }
+>   }
 >   ```
 >
 > * 在Activity中创建一个用于实现绑定的连接connection。并在连接里面调用自定义的方法
 >
 >   ```kotlin
->   lateinit var downloadBinder: MainService.DownLoadBinderprivate val connection = object : ServiceConnection{    override fun onServiceDisconnected(name: ComponentName?) {        Log.d("MainService","disconect called")    }    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {        downloadBinder = service as MainService.DownLoadBinder        downloadBinder.startDownLoad()        downloadBinder.getProgress()    }}
+>   lateinit var downloadBinder: MainService.DownLoadBinder
+>   private val connection = object : ServiceConnection{    
+>       override fun onServiceDisconnected(name: ComponentName?) {        
+>           Log.d("MainService","disconect called")    
+>       }    
+>       override fun onServiceConnected(name: ComponentName?, service: IBinder?) {        
+>           downloadBinder = service as MainService.DownLoadBinder        
+>           downloadBinder.startDownLoad()        
+>           downloadBinder.getProgress()    
+>       }
+>   }
 >   ```
 >
 > * 最后绑定和解绑
@@ -1211,7 +1317,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->               
+>     
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
@@ -1290,3 +1396,70 @@
 > ### 导入依赖
 >
 > * `implementation 'com.squareup.okhttp3:okhttp:4.9.1'`
+>
+> ***
+
+## 第十二章 - Jetpack
+
+> ### ViewModel创建
+>
+> ```kotlin
+> class MainViewModel(countReserved: Int) : ViewModel() {
+> 
+>     val counter: LiveData<Int>
+>         get() = _counter
+> 
+>     private val _counter = MutableLiveData<Int>()
+> 
+>     init {
+>         _counter.value = countReserved
+>     }
+> 
+>     fun plusOne() {
+>         val count = _counter.value ?: 0
+>         _counter.value = count + 1
+>     }
+> 
+>     fun clear() {
+>         _counter.value = 0
+>     }
+> }
+> ```
+>
+> ### 构造工厂创建
+>
+> ```kotlin
+> class MainViewModelFactory(private val countReserved: Int) : ViewModelProvider.Factory {
+> 
+>     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+>         return MainViewModel(countReserved) as T
+>     }
+> 
+> }
+> ```
+>
+> ### 使用
+>
+> ```kotlin
+> lateinit var viewModel: MainViewModel
+> lateinit var sp: SharedPreferences
+> 
+> override fun onCreate(savedInstanceState: Bundle?) {
+>         super.onCreate(savedInstanceState)
+>         setContentView(R.layout.activity_main)
+>         sp = getPreferences(Context.MODE_PRIVATE)
+>         val countReserved = sp.getInt("count_reserved", 0)
+>         viewModel = ViewModelProviders.of(this, MainViewModelFactory(countReserved)).get(MainViewModel::class.java)
+>         plusOneBtn.setOnClickListener {
+>             viewModel.plusOne()
+>         }
+>         clearBtn.setOnClickListener {
+>             viewModel.clear()
+>         }
+>         viewModel.counter.observe(this, Observer{ count ->
+>             infoText.text = count.toString()
+>         })
+> }
+> ```
+>
+> 
