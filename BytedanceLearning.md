@@ -325,7 +325,7 @@
 >
 > ***
 
-### AB实验之道
+## AB实验之道
 
 > ### 模糊定义
 >
@@ -349,5 +349,3 @@
 > * 一般是按照用户进行分组
 >
 > ***
-> izumisakai-zy insert one
-> izumisakai-zy insert two
