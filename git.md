@@ -27,3 +27,14 @@
 * `orgigin` 是一个url地址，可以通过`git remote -v`进行查看
 * `master ：master`左边的master是本地分支名，右边的master是远程分支名，两者一样可以只写一个
 
+### 删除远程分支
+
+* `git push origin --delete branchname`
+
+### 切换一台电脑上不同的git账号
+
+* 假设现在的全局配置账号名密码是`zhengyi.izumi`，且密码也是`zhengyi.izumi`的账号密码
+* 现在去克隆`https://github.com/IzumiSakai-zy/VariousKindsLearning.git`，然后尝试进行一次push会报错，因此此时系统默认的账户还是`zhengyi.izumi`
+* 此时需要去Mac的密码链下删除记住的`zhengyi.izumi`的密码
+* 然后在进行push就可以了
+
