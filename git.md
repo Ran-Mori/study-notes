@@ -26,3 +26,4 @@
 
 * `orgigin` 是一个url地址，可以通过`git remote -v`进行查看
 * `master ：master`左边的master是本地分支名，右边的master是远程分支名，两者一样可以只写一个
+
