@@ -44,3 +44,11 @@
 * 在commit的过程中因为只涉及到本地库的修改，因此与账号无关
 * 在push的时候可以进行账号原则，进行账号选择就可以进行push
 
+### git未提交前的各种撤销
+
+* 在修改了文件内容但还没有`git add`时，执行`git checkout -- filename`来进行撤销
+* 在`git add`过后但还没有`git commit`时，执行`git reset HEAD filename`来进行撤销
+* 在`git commit`过后但还没有`git push`时，执行`git reset HEAD^`来进行撤销
+* 核心就是只有在`git commit`过后才会增加一个新的版本，`git add`是不会增加新的版本的
+* 但是要注意`git reset HEAD^`会使自己修改的内容全部消失，如果只是`git commit`的信息填写错误就要谨慎执行该操作，它会使修改全部丢失，超级危险。
+* 而`git reset HEAD filename`并不会清除修改的内容，非常的方便
