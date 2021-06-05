@@ -21,3 +21,8 @@
 * 首先在项目处点击fork
 * 然后clone项目`https://github.com/zhengyi-izumi/VariousKindsLearning.git`到本地，然后修改提交到上面这个地址
 * 然后点击原主人地址`https://github.com/IzumiSakai-zy/VariousKindsLearning`，就有pull request提示了
+
+### git push origin master : master解析
+
+* `orgigin` 是一个url地址，可以通过`git remote -v`进行查看
+* `master ：master`左边的master是本地分支名，右边的master是远程分支名，两者一样可以只写一个
