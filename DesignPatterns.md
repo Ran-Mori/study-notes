@@ -356,6 +356,77 @@
 >
 > * 满足以上原则就能很好地使用里氏替换原则
 > * 就能增强程序的健壮性
+> * 里氏替换原则要达到即使增加在多的子类，原始的子类和新的子类之间依然满足里氏替换原则
+>
+> ***
+
+## 依赖倒置原则
+
+> ### 定义
+>
+> * `High level moudules should not depend upon low level modules. Both should depend upon abstractions. Abstractions should not depend upon details. Details should depend upon abstractions`
+> * low level就是不可分割的底层原子操作。high level 就是原子操作组装而成的复杂操作
+>
+> ### Java中表示
+>
+> * 模块间依赖通过 **抽象** 发生，实现类之间不发生直接依赖关系。
+> * 接口或抽象类不依赖于实现类
+> * 实现类依赖于接口或抽象类
+>
+> ### 一个好的设计范例
+>
+> ```bash
+>    IDriver      ----->   ICar
+>       |                    |
+>     Driver              BMW   Benz
+> ```
+>
+> * `IDriver`和`ICar`之间有依赖
+> * 但具体的实现类`Driver`,`BMW`,`Benz`之间是没有依赖关系的
+>
+> ### 依赖的两种写法
+>
+> * 构造方法注入
+>
+> ```kotlin
+> private ICar iCar
+> public Driver (ICar _icar){
+>   this.icar = _icar
+> }
+> ```
+>
+> * setter注入
+>
+> ```kotlin
+> private ICar icar
+> public void setICar(Icar _icar){
+>   this.icar = _icar
+> }
+> ```
+>
+> ### 遵循规则
+>
+> * 每个类尽量都有接口和抽象类
+> * 变量的静态类型尽量是接口或抽象类
+> * 任何类不从具体类派生
+> * 尽量不overwrite抽象类已经实现的方法
+> * 结合里氏替换原则使用
+>
+> ### 三者功能划分
+>
+> * `接口`: 声明属性和方法，定义和其他接口之间的依赖关系
+> * `抽象类`：公共构造部分的实现
+> * `实现类`：精确实现业务逻辑
+>
+> ### 为什么叫倒置
+>
+> * 正置思想：我要用电脑就依赖电脑，我要用手机就依赖手机。这是正常人的思维
+> * 倒置思想：依赖不具体，反而在抽象进行依赖
+>
+> ### 最后
+>
+> * 不要为了用依赖倒置而用依赖倒置
+> * 还是要以业务为重
 >
 > ***
 
