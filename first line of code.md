@@ -726,13 +726,23 @@
 > * 创建一个接收器
 >
 >   ```kotlin
->   class MyReceiver: BroadcastReceiver() {    override fun onReceive(context: Context?, intent: Intent?) {        Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    }}
+>   class MyReceiver: BroadcastReceiver() {    
+>     override fun onReceive(context: Context?, intent: Intent?) {        
+>       Toast.makeText(context,"静态注册消息",Toast.LENGTH_SHORT).show()    
+>     }
+>   }
 >   ```
 >
 > * 静态注册都是在`AndroidManifest.xml`中进行注册的
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"            android:enabled="true"            android:exported="true" >    <intent-filter>        <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    </intent-filter></receiver>
+>   <receiver android:name=".MyReceiver"            
+>             android:enabled="true"            
+>             android:exported="true" >    
+>     <intent-filter>        
+>       <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    
+>     </intent-filter>
+>   </receiver>
 >   ```
 >
 >   * `android:exported`表示是否允许它接收本程序以外的广播。此处肯定要设置为true，因此系统开机广播不是本程序的广播
@@ -792,7 +802,9 @@
 > * 发送处
 >
 >   ```kotlin
->   val intent = Intent("com.whu.MY_BROADCAST")intent.setPackage(packageName)sendOrderedBroadcast(intent,null)
+>   val intent = Intent("com.whu.MY_BROADCAST")
+>   intent.setPackage(packageName)
+>   sendOrderedBroadcast(intent,null)
 >   ```
 >
 >   * 仅仅变了一处即`sendOrderedBroadcast(intent,null)`
@@ -800,7 +812,12 @@
 > * 优先级声明
 >
 >   ```xml
->   <receiver android:name=".MyReceiver"          android:enabled="true"          android:exported="true">    <intent-filter android:priority="100">        <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    </intent-filter></receiver>
+>   <receiver android:name=".MyReceiver"          
+>             android:enabled="true"          
+>             android:exported="true">    
+>     <intent-filter android:priority="100">        
+>       <action android:name="android.intent.action.BOOT_COMPLETED" ></action>    </intent-filter>
+>   </receiver>
 >   ```
 >
 >   * 仅仅加了一个`android:priority="100"`
@@ -889,7 +906,8 @@
 >     setContentView(R.layout.activity_main)    
 >     val sharedPreference = getSharedPreferences("song", Context.MODE_PRIVATE)    
 >     val value = sharedPreference.getString("key", "默认值")    
->     editText.setText(value)}
+>     editText.setText(value)
+> }
 > 
 > override fun onDestroy() {    
 >     super.onDestroy()    
@@ -923,7 +941,8 @@
 > ### entity
 >
 > ```kotlin
-> @Entitydata class Song(var songName:String,var songSinger:String) {    
+> @Entity
+> data class Song(var songName:String,var songSinger:String) {    
 >     @PrimaryKey(autoGenerate = true)    
 >     var id: Long = 0
 > }
@@ -1073,7 +1092,8 @@
 >                 1)        
 >         }else{            
 >             call()        
->         }    }
+>         }    
+>     }
 > }
 > 
 > override fun onRequestPermissionsResult(    
@@ -1247,7 +1267,9 @@
 > ### kotlin中的线程写法
 >
 > ```kotlin
-> thread{    //代码逻辑}
+> thread{    
+>   //代码逻辑
+> }
 > ```
 >
 > ### 多线程异步更新UI
@@ -1364,7 +1386,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->           
+>   
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
@@ -1509,4 +1531,5 @@
 > }
 > ```
 >
-> 
+> ***
+
