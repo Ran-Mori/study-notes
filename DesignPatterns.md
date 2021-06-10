@@ -223,3 +223,139 @@
 >
 > ***
 
+## 里氏替换原则
+
+> ### 名字
+>
+> * 简称`LSP`原则
+>
+> ### 定义
+>
+> * `functions that use pointers to references to base classes must be able to use objects of derivved classes without knowning it`
+> * 所有引用基类的地方必须能够透明的使用子类对象
+>
+> ### 实际感觉
+>
+> * 只要父类出现的地方，子类就能出现，替换成子类不会出现任何问题
+> * 最后的结果就是调用者根本不知道是在调用父类还是子类
+>
+> ### 子类必须完全实现父类的方法
+>
+> * 如果在实际的业务逻辑中，如果替换成子类会错误，则说明已经违背了`LSP原则`
+> * 在实际的业务逻辑中，声明引用处尽量使用顶层接口和父类而不要使用子类
+> * 如果子类不能完全实现父类的方法，则建议断开继承关系。采用 **依赖、组合、委托** 的关系代替继承
+>
+> ### 玩具枪失败例子
+>
+> * 一个`AbstractGun`接口有击杀的`shoot`方法
+> * 而玩具枪有枪的特征，但是无法 **全部实现父类方法**，这里就已经违背了里氏替换原则
+> * 最好的做法是重新创建一个类。通过 **委托** 的方式，将枪中除了`shoot`的逻辑交给`AbtractGun`处理
+>
+> ### 子类可以具有自己的个性
+>
+> * 向子类转型是安全的
+> * 但向父类转型是不完全且禁止的
+>
+> ### 覆盖或实现父类的方法时输入参数可以被放大
+>
+> * 父类
+>
+>   ```kotlin
+>   open class Father {
+>       open fun doSomething(set:HashSet<String>):HashMap<String, Any>{
+>           println("father")
+>           return HashMap()
+>       }
+>   }
+>   ```
+>
+> * 子类
+>
+>   ```kotlin
+>   class Son:Father() {
+>       fun doSomething(set: Set<String>): HashMap<String, Any> {
+>           println("son")
+>           return HashMap()
+>       }
+>   }
+>   ```
+>
+> * main函数
+>
+>   ```kotlin
+>   fun main(args: Array<String>) {
+>       val son:Father = Son()
+>       son.doSomething(HashSet())
+>   }
+>   ```
+>
+> * 执行结果`father`
+>
+> * 父类的参数类型是`HashSet`，子类参数类型是`Set`，范围更大
+>
+> * 实际参数类型是`HashSet`，范围更大。输出结果是`father`
+>
+> * 很自然这种哦调用方法是正确的，符合 **里氏原则**
+>
+> * 实际上这里是方法的 **重载** 而不是重写
+>
+> * 对比
+>
+>   ```kotlin
+>   class Test {
+>       fun doSomething(list: MutableList<String>):HashMap<String, Any>{
+>           println("MutableList")
+>           return HashMap()
+>       }
+>       fun doSomething(list: ArrayList<String>):HashMap<String, Any>{
+>           println("ArrayList")
+>           return HashMap()
+>       }
+>   }
+>   //执行
+>   Test().doSomething(ArrayList())
+>   //输出结果
+>   ArrayList
+>   ```
+>
+> * 同一个类的两个重载，结果就是输出`ArrayList`，这符合重载调用最小粒度
+>
+> ### 第三点总结
+>
+> * 子类可以**重载**继承自父类的方法，即使重载时参数粒度变小，实际传入参数也是小粒度，这也会调用父类方法符合里氏替换原则（经实际代码测试是这样的，这也符合动态绑定规矩）
+> * 因此上面这种情况是极其反人类的，不符合里氏替换原则。我们要求子类重载父类方法时参数范围必须扩大
+>
+> ### 覆盖或实现父类方法时输出结果可以缩小
+>
+> * 重载是函数名相同，函数的参数类型或者顺序不同。与返回值没有关系，返回值不作为重载区分
+>
+> * 重写是函数名相同，参数类型相同(不允许继承)。返回值可以是父类返回值的子类
+>
+> * 以下声明是合法的
+>
+>   ```kotlin
+>   open class Father {
+>       open fun doSomething(set:HashSet<String>):Map<String, Any>?{
+>           println("father")
+>           return HashMap()
+>       }
+>   }
+>   
+>   
+>   class Son:Father() {
+>       override fun doSomething(set: HashSet<String>): HashMap<String, Any>? {
+>           println("son")
+>           return HashMap()
+>       }
+>   }
+>   ```
+>
+> * 父类的返回值是`Map`，子类重写返回值是`HashMap`。这是符合里氏替换原则的
+>
+> ### 总结
+>
+> * 满足以上原则就能很好地使用里氏替换原则
+> * 就能增强程序的健壮性
+>
+> ***
+
