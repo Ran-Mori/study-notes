@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                   
+>                     
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                   
+>                     
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -479,6 +479,38 @@
 > * RecycleView实现其他的布局主要是通过`LayoutManager`来进行实现，如果要实现垂直的瀑布流布局。可以对`Manager`进行响应的一些设置
 > * 即`StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)`即是实现3列垂直瀑布布局
 >
+> ### 当有多种View，但还是使用ViewHodler情况
+>
+> * 思路：定义一个基类`ViewHodler`，不同的View就继承实现不同的`ViewHolder`
+>
+> * 此处还可以使用密封类的概念，在进行判断时就不用写`else`，且会做是否覆盖覆盖所有case的检查
+>
+> * `ViewHolder定义`
+>
+>   ```kotlin
+>   sealed class MsgViewHolder(view: View) : RecyclerView.ViewHolder(view)
+>   
+>   class LeftViewHolder(view: View) : MsgViewHolder(view) {
+>       val leftMsg: TextView = view.findViewById(R.id.leftMsg)
+>   }
+>   
+>   class RightViewHolder(view: View) : MsgViewHolder(view) {
+>       val rightMsg: TextView = view.findViewById(R.id.rightMsg)
+>   }
+>   ```
+>
+> * `onCreateViewHolder使用`
+>
+>   ```kotlin
+>   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = if (viewType == Msg.TYPE_RECEIVED) {
+>           val view = LayoutInflater.from(parent.context).inflate(R.layout.msg_left_item, parent, false)
+>           LeftViewHolder(view)
+>       } else {
+>           val view = LayoutInflater.from(parent.context).inflate(R.layout.msg_right_item, parent, false)
+>           RightViewHolder(view)
+>       }
+>   ```
+>
 > ***
 
 ## 第四章 - Fragment
@@ -491,7 +523,7 @@
 > ### 创建一个Fragment
 >
 > * 首先先自定义一个`xml`的布局
-> * 最简单的一行代码就可以构建一个Fragment如`class ExampleFragment : Fragment(R.layout.example_fragment`
+> * 最简单的一行代码就可以构建一个Fragment如`class ExampleFragment : Fragment()`
 >
 > ### 将Fragment添加到Activity中显示
 >
@@ -520,6 +552,21 @@
 >   ```
 >
 >   * 其中`commit`和`add`方法都是kotlin的拓展函数，方便了程序员进行api的调用
+>   
+> * 动态加载的一般写法
+>
+>   ```kotlin
+>   Log.d("MainActivity","开始事物")
+>   val transaction = supportFragmentManager.beginTransaction()
+>   transaction.replace(R.id.linearLayout,RightFragment())
+>   transaction.commit()
+>   Log.d("MainActivity","事物结束")
+>   ```
+>
+>   * 动态加载`Fragment`的基本操作是事物
+>   * `R.id.linearLayout`是`MainActivity`中的一个容器，这个容器随便是啥
+>   * 但`RightFragment()`必须是一个`Fragment`
+>   * 增加和替换的操作一般使用`relace()`函数完成
 >
 > ### 在Fragment创建时从Activity传入数据
 >
@@ -566,7 +613,7 @@
 > * 使用`FragmentManager`开始事务后的整个操作被算作是一次原子操作。
 > * 如果最后提交前调用了`addToBackStack("name")`，其中name可以为空
 > * 就可以点击`back`键或者调用`popBackStack()`方法就可以进行回退操作
-> * 不添加进栈就直接`destroy`，添加了就是`stop`
+> * 不添加进栈就直接`onDestroy()`，添加了就是`onStop()`
 >
 > ### 找到一个Fragment
 >
@@ -1317,7 +1364,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->         
+>           
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
