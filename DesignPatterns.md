@@ -430,3 +430,79 @@
 >
 > ***
 
+## 接口隔离原则
+
+> ### 定义
+>
+> * `Clients should not be fored to depend upon interfaces that they dont use`
+> * `The dependency of one class to annother class should depend on the smallest possible interface`
+> * 客户端需要什么接口就依赖什么接口，把不需要的接口剔除掉
+> * 要求接口细化，接口纯洁
+> * 尽量建立单一的接口，不要建立庞大臃肿的接口
+> * 接口尽量细化，同时接口中的方法尽量少
+>
+> ### 与单一职责原则
+>
+> * 单一职责原则要求的是类接口职责单一，注重的是职责
+> * 而接口隔离原则要求的是接口方法尽量少
+>
+> ### Good Looking Girl举例
+>
+> * 之前接口
+>
+>   ```kotlin
+>   interface IPrettyGirl{
+>     fun goodLooking();
+>     fun niceFigure();
+>     fun greatTemperament()
+>   }
+>   ```
+>
+> * 现在接口
+>
+>   ```kotlin
+>   interface IGreatTemperamentGirl{
+>     fun greatTemperament()
+>   }
+>   ```
+>
+>   ```kotlin
+>   interface IGoodBodyGirl{
+>     fun goodLooking();
+>     fun niceFigure();
+>   }
+>   ```
+>
+> ### 之前接口弊端
+>
+> * 如果是杨贵妃，就完全不适用。不能实现一个接口但没有全部实现它的方法，这样是不符合里氏替换原则的。
+> * 这样就是电典型的封装过度
+>
+> ### 总结上面
+>
+> * 把一个臃肿的接口变成两个独立的接口所依赖的原则就是接口隔离原则
+>
+> ### 接口要尽量小
+>
+> * 接口小但是不能违背单一职责原则
+>
+> ### 接口要高内聚
+>
+> * 接口中尽量少对外暴露public方法
+> * 暴露的public方法越多，变更的风险也就越大
+>
+> ### 定制服务
+>
+> * 有耦合就要有相互访问的接口，对于某个特定的访问者(客户端)，我们要为其量身定制一个优良的服务
+> * 服务原则：只提供访问者需要的方法
+> * 比如提供给权限更低的客户端，单独为其设置一个接口。这样权限更大的客户端完全不用改变，且满足接口隔离原则
+>
+> ### 最佳实践
+>
+> * 一个接口只服务于一个字模块或者业务逻辑
+> * 通过业务逻辑压缩接口中的public方法
+> * 已被污染接口，尽量去变更，如果变更风险大，则采用适配器模式进行转换处理
+> * 了解环境，拒绝盲从
+>
+> ***
+
