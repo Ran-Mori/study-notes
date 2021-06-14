@@ -726,3 +726,75 @@
 >
 > ***
 
+## 模版方法模式
+
+> ### 定义
+>
+> * `Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Mothod lets subclasses redefine certain step of an algothm without changing the algorithm's strcture.`
+>
+> ### 代码示例
+>
+> ```kotlin
+> abstract class AbstractClass{
+>     protected abstract fun doSomething();
+>     protected abstract fun doAnything();
+>     
+>     fun templateMethod(){
+>         this.doSomething()
+>         this.doAnything()
+>     }
+> }
+> ```
+>
+> * `templateMethod()`就是模版方法
+>
+> ### 抽象模版的方法
+>
+> * 基本方法：在子类中被实现，但在抽象类中被调用的方法
+> * 模版方法：在抽象类实现其逻辑，实现对基本方法的调用。所有的子类都能进行调用
+>
+> ### 注意
+>
+> * 为了防止恶意操作。模版方法都应该加上`final`关键字，防止被恶意篡写
+> * 但kotlin中不用添加，因为kotlin中本来就默认是final方法，如果不final要加上`open`关键字
+>
+> ### 优点
+>
+> * 封装不变部分，拓展可变部分。模仿方法的定义实现一般认为是不变不用拓展的
+> * 提取公共部分，便于维护。如果出了问题，则只用改模版方法就可以了
+> * 行为由父类控制，实现由子类实现。
+>
+> ### 缺点
+>
+> * 正向思维是抽象类负责定义抽象，而实现类负责实际的实现。
+> * 然而模版方法的逻辑实现是由抽象类实现的，不太符合一般正常的逻辑
+>
+> ### 使用场景
+>
+> * 多个子类拥有公有的方法，并且逻辑基本相同。
+> * 重要、复杂的算法。
+> * 重构时。模版方法经常使用。把相同的代码抽到父类中，通过 **钩子函数** 约束其行为。
+>
+> ### 钩子(hook)函数
+>
+> ```kotlin
+> abstract class AbstractCar{
+>     protected abstract fun alarm();
+>     protected open fun isAlarm():Boolean{
+>         return false
+>     }
+> 
+>     fun templateMethod(){
+>         if (this.isAlarm()){
+>             this.alarm()
+>         }
+>     }
+> }
+> ```
+>
+> * 默认所有的车子都是不鸣笛的
+> * 但是有一个`protected open fun isAlarm():Boolean`方法。子类可以重写这个函数来控制模版类方法的执行逻辑
+> * 即子类的一个返回值决定公共部分模版方法的执行结果
+>
+> ***
+
