@@ -52,3 +52,36 @@
 * 核心就是只有在`git commit`过后才会增加一个新的版本，`git add`是不会增加新的版本的
 * 但是要注意`git reset HEAD^`会使自己修改的内容全部消失，如果只是`git commit`的信息填写错误就要谨慎执行该操作，它会使修改全部丢失，超级危险。
 * 而`git reset HEAD filename`并不会清除修改的内容，非常的方便
+
+### git合并提交
+
+* 现在已经有了3条commit记录。分别是`commit 1`、`commit 2`、`commit 3`
+
+* `git rebase -i HEAD~3`。执行此条指令，代表处理最近的3条commit记录。会弹出一个vim编辑界面，内容如下
+
+  ```bash
+  p cacc52da commit 1
+  s f072ef48 commit 2
+  s 4e84901a commit 3
+  ```
+
+  * `p`: 代表使用这条commit，原封不动
+  * `s`：代表使用这条commit，但是commit的信息以及记录和上一次进行合并(即commit 1不能使用s，只能使用p)
+
+* `git rebase --continue`。如果上面的修改没有问题，那么这一步应该是成功的
+
+* `git log`。就可以查看刚才的合并，3条记录已经变成一条了
+
+### git 修改commit信息
+
+* 以最新的一条commit信息为例
+
+* `git rebase -i HEAD~1`。执行此条指令，会进入一个vim界面，内容大概如下
+
+  ```bash
+  r cacc52da 待修改的commit信息
+  ```
+
+  * 保存后会又弹出一个`git commit filename`但未填写commit信息的vim界面
+  * 填写完commit信息后，保存，即完成修改
+
