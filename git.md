@@ -85,3 +85,17 @@
   * 保存后会又弹出一个`git commit filename`但未填写commit信息的vim界面
   * 填写完commit信息后，保存，即完成修改
 
+### git rebase
+
+* 现在`master`云端上有3条commit。分别是`init commit`、`commit 3`、`超前一个版本zhengyi.izumi commit 4`
+* dev分支来自master，云端有2条commit。分别是`init commit`、`commit 3`。本地有3条commit，相比云端多了一条`izumisakai-zy提交`
+* 现在在dev分支下执行`git rebase master`命令。实际上处理类似于`git merge master`。执行完后会告诉你`README.md`文件有冲突
+* 这时`vim README.md`，处理冲突，然后保存退出
+* 在使用`git add README.md`，提交修改
+* 在觉得处理完冲突后，使用`git rebase --continue`，如果没有任何冲突了。按道理此时会弹出一个填写commit信息的界面。
+* 这时只用填写一下最终的commit信息，然后就完成了一次`git rebase`
+* 然后`git push origin dev`。这样dev最新版本就是merge了master的最最新版本了
+* 这时在发起一次`merge request`master，就是正常的开发流程了。
+* 总结
+  * `git rebase`和`git merge`代码最后的结果是相同的，只是提交记录有所不同
+  * 此次`git rebase`结果。dev分支本地多的`izumisakai-zy提交`根本就没有了，这样在主分支上就能减少commit数量
