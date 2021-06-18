@@ -99,3 +99,9 @@
 * 总结
   * `git rebase`和`git merge`代码最后的结果是相同的，只是提交记录有所不同
   * 此次`git rebase`结果。dev分支本地多的`izumisakai-zy提交`根本就没有了，这样在主分支上就能减少commit数量
+
+### git rebase修改已经提交远程的commit
+
+* 原理和上面的git rebase修改提交的comit信息一样
+* 本质上git rebase只能修改本地库的提交信息。按照上面流程修改好本地库的提交信息后
+* 直接`git push -f`就可以强制更新远端的commit
