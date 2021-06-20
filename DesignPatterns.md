@@ -618,7 +618,7 @@
 >
 >   ```java
 >   private SingleTon(){
->     
+>             
 >   }
 >   ```
 >
@@ -795,6 +795,262 @@
 > * 默认所有的车子都是不鸣笛的
 > * 但是有一个`protected open fun isAlarm():Boolean`方法。子类可以重写这个函数来控制模版类方法的执行逻辑
 > * 即子类的一个返回值决定公共部分模版方法的执行结果
+>
+> ***
+
+## 建造者模式
+
+> ### 定义
+>
+> * `Separate the construction of a complex object from its representation so that the same construction process can create diffirent representations`
+>
+> ### 例子
+>
+> * 抽象构建者
+>
+> ```java
+> public abstract class ComputerBuilder {
+>     public abstract void setUsbCount();
+>     public abstract void setKeyboard();
+>     public abstract void setDisplay();
+> 
+>     public abstract IComputer build();
+> }
+> ```
+>
+> * 真实构建者
+>
+> ```java
+> public class MacComputerBuilder extends ComputerBuilder {
+>     private IComputer computer;
+>     public MacComputerBuilder(String cpu, String ram) {
+>         computer = new MacComputer(cpu, ram);
+>     }
+>     @Override
+>     public void setUsbCount() {
+>         computer.setUsbCount(2);
+>     }
+>     @Override
+>     public void setKeyboard() {
+>         computer.setKeyboard("苹果键盘");
+>     }
+>     @Override
+>     public void setDisplay() {
+>         computer.setDisplay("苹果显示器");
+>     }
+>     @Override
+>     public IComputer build() {
+>         return computer;
+>     }
+> }
+> ```
+>
+> ### 优点
+>
+> * 封装性：不用知道内部的细节，直接一直set、set最后build就可以了。
+> * 扩展性好：builder是继承自抽象builder或接口builder，互不影响，拓展性好
+>
+> ### 适合场景
+>
+> * **相同方法，不同执行顺序，产生不同的结果**。这种情况适合建造者，这也是此书给的例子
+> * 产品零件多，且都可供选择，甚至选择顺序最后的结果不同。
+>
+> ### 与工厂方法比较
+>
+> * 工厂方法侧重于创建，是从无到有
+> * 构建者模式侧重于零件的装配，产品大体的框架已经是好的。只是零件可选配，或者顺序不同导致结果不同
+>
+> ### 与模版方法结合
+>
+> * 如果选择顺序导致结果不同。那么实际执行的动作的总函数可以是模版函数，定义在抽象类中
+>
+> ***
+
+## 代理模式
+
+> ### 定义
+>
+> * `provide a surrogate or placeholder for another object to control access to it`
+>
+> ### 别名
+>
+> * 委托模式
+>
+> ### 优点
+>
+> * 职责清晰：被代理者不用关心非自身职责的事，这些事都由代理者来完成
+>
+> ### 普通代理
+>
+> * 就是最普通的代理
+> * 在这种代理下用户是知道代理类的存在的，类似于必须知道`GamePlayerProxy`这个类
+> * 客户只能访问代理角色，而不能访问真实角色
+>
+> ### 强制代理
+>
+> * 强制代理要求通过 **真实角色来找到代理角色**，思维有那么一点点不一样
+>
+> ### 举例
+> * 接口
+> ```java
+> public interface IGamePlayer{
+>   public void play();
+>   public IGamePlayer getProxy();
+> }
+> ```
+> * 被代理实现类
+> ```java
+> public class GamePlayer implenments IGamePlayer{
+>   //此类的代理，初始为空
+>   private IGamePlayer proxy = null;
+>   //获取代理，被代理的就是自己
+>   public IGamePlayer getProxy(){
+>     this.proxy = new GamePlayerProxy(this);
+>     return this.proxy;
+>   }
+>   public void play(){
+>     if(this.isProxy()){
+>       System.out.println("play");
+>     }else{
+>       System.out.println("请使用代理访问");
+>     }
+>   }
+>   private boolean isProxy(){
+>     return this.proxy != null;
+>   }
+> }
+> ```
+> * 代理者
+> ```java
+> public class GamePlayerProxy implements IGamePlayer{
+>   private IGamePlayer gamePlayer= null;
+>   public GamePlayerProxy(IGamePlaer _gamePlayer){
+>     this.gamePlayer = _gamePlayer;
+>   }
+>   public void play(){
+>     this.gamePlayer.play();
+>   }
+>   //循环代理，其实可以不要这一个
+>   public IGamePlayer getProxy(){
+>     return this;
+>   }
+> }
+> ```
+> * 场景
+> ```java
+> IGamePlayer player = new GamePlayer();
+> IGamePlayer proxy = player.getProxy();
+> ```
+>
+> ### 最终调用
+>
+> * `Player().getPaoxy().play();`
+>
+> ### 代理增强
+>
+> * 代理的过程中还可以增加其他的逻辑，最原有逻辑进行增强
+>
+> ### 动态代理
+>
+> * client不用关心代理类，代理类是自动生成的
+> * 需要自己写代理类的代理是静态代理
+> * 动态代理通过传入一个接口，自动生成的类实现了这个接口的所有方法
+>
+> ### 获取代理核心函数
+>
+> * ```java
+>   IVehical car = new Car();
+>   IVehical vehical = (IVehical)Proxy.newProxyInstance(car.getClass().getClassLoader(), Car.class.getInterfaces(), new VehicalInvacationHandler(car));
+>   vehical.run();
+>   ```
+>
+> * 类加载器、接口所有方法、InvocationHandler
+>
+> * 所有的方法都被handler所管理
+>
+> ### 要求
+>
+> * 被代理类必须实现一个接口，因为最后是通过接口获取被代理的方法
+>
+> ### 最后
+>
+> * 看到`$Proxy0`就是动态代理
+>
+> ***
+
+## 原型模式
+
+> ### 定义
+>
+> * `Specify the kinds of objects to create using a prototypical instance, and create new objects by copying this prototype.`
+>
+> ### Clone接口
+>
+> * 没有方法
+> * 只是JVM的一个标记
+> * 实现了此接口才能`clone()`方法
+> * @Override clone()方法。一般不是重写父类的，因为父类一般没有，一般都是重写Object类
+>
+> ### 示例
+>
+> ```java
+> public class PrototypeClass implements Clonable{
+>   @Override
+>   public PrototypeClass clone{
+>     ProtypeClass cloneObject = null;
+>     try{
+>       cloneObject = (PrototypeClass)super.clone()
+>     }catch(Exception e){
+>       
+>     }
+>     return cloneObject;
+>   }
+> }
+> ```
+>
+> ### 优点
+>
+> * 性能好。它是二进制流的拷贝，性能十分好。
+> * 逃避构造函数：因为是二进制(堆内存)拷贝，因此不用执行构造函数
+>
+> ### 使用场景
+>
+> * 对象创建消耗极大
+> * 一般和工厂模式配套使用
+>
+> ### 使用流程
+>
+> * 一般都死有一个原型对象。然后无限clone，小修小补就又是一个新的对象
+>
+> ### 浅拷贝
+>
+> * 对于非基本变量类型的成员变量。拷贝出的对象和原对象指向堆内存中的成员变量地址是一模一样的
+> * 因此浅拷贝一处修改全部乱套。
+>
+> ### 深拷贝
+>
+> ```java
+> public class Thing implements Clonable{
+>   private List<String> list = new ArrayList();
+>   @Override
+>   public Thing clone{
+>     Thing cloneObject = null;
+>     try{
+>       cloneObject = (Thing)super.clone()
+>         this.list = (ArrayList<String>)this.list.clone();
+>     }catch(Exception e){
+>       
+>     }
+>     return cloneObject;
+>   }
+> }
+> ```
+>
+> ### 注意
+>
+> * 继承关系中深拷贝和浅拷贝不能混着乱用，不然半深不浅。
+> * 浅拷贝用得很少，但并非不用。用得好甚至能救命
+> * 不可变成员变量不能克隆，即加上final关键字的
 >
 > ***
 
