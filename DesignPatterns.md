@@ -227,6 +227,7 @@
 
 > ### 名字
 >
+> * `Liskov Substitution principle`
 > * 简称`LSP`原则
 >
 > ### 定义
@@ -340,8 +341,8 @@
 >           return HashMap()
 >       }
 >   }
->   
->   
+>
+>
 >   class Son:Father() {
 >       override fun doSomething(set: HashSet<String>): HashMap<String, Any>? {
 >           println("son")
@@ -349,21 +350,22 @@
 >       }
 >   }
 >   ```
->
+> 
 > * 父类的返回值是`Map`，子类重写返回值是`HashMap`。这是符合里氏替换原则的
->
+> 
 > ### 总结
->
+> 
 > * 满足以上原则就能很好地使用里氏替换原则
 > * 就能增强程序的健壮性
 > * 里氏替换原则要达到即使增加在多的子类，原始的子类和新的子类之间依然满足里氏替换原则
->
+> 
 > ***
 
 ## 依赖倒置原则
 
 > ### 定义
 >
+> * `Dependence Inversion Principle`
 > * `High level moudules should not depend upon low level modules. Both should depend upon abstractions. Abstractions should not depend upon details. Details should depend upon abstractions`
 > * low level就是不可分割的底层原子操作。high level 就是原子操作组装而成的复杂操作
 >
@@ -434,6 +436,7 @@
 
 > ### 定义
 >
+> * `Interface Segregation Principles`
 > * `Clients should not be fored to depend upon interfaces that they dont use`
 > * `The dependency of one class to annother class should depend on the smallest possible interface`
 > * 客户端需要什么接口就依赖什么接口，把不需要的接口剔除掉
@@ -510,6 +513,7 @@
 
 > ### 定义
 >
+> * `Least Knowledge Principle`
 > * 也称为 **最少知识原则** LKP
 > * 规则：一个对象应该对其他对象有最少的了解
 > * 通俗解释：一个类应该对自己需要耦合或调用的类知道得最少
@@ -538,6 +542,7 @@
 
 > ### 定义
 >
+> * `Open Close Priciple`
 > * `Software entities like classes, moudules and functions should be open for extensions but closed for modifications`
 > * 软件实体应该对拓展开放，对修改关闭
 > * 软件实体应该通过拓展来实现变化，而不是通过修改已有的代码来实现变化
@@ -618,7 +623,7 @@
 >
 >   ```java
 >   private SingleTon(){
->             
+>               
 >   }
 >   ```
 >
@@ -730,6 +735,7 @@
 
 > ### 定义
 >
+> * `Template Method`
 > * `Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Mothod lets subclasses redefine certain step of an algothm without changing the algorithm's strcture.`
 >
 > ### 代码示例
@@ -738,7 +744,7 @@
 > abstract class AbstractClass{
 >     protected abstract fun doSomething();
 >     protected abstract fun doAnything();
->     
+> 
 >     fun templateMethod(){
 >         this.doSomething()
 >         this.doAnything()
@@ -802,6 +808,7 @@
 
 > ### 定义
 >
+> * `Builder`
 > * `Separate the construction of a complex object from its representation so that the same construction process can create diffirent representations`
 >
 > ### 例子
@@ -982,6 +989,7 @@
 
 > ### 定义
 >
+> * `Prototype`
 > * `Specify the kinds of objects to create using a prototypical instance, and create new objects by copying this prototype.`
 >
 > ### Clone接口
@@ -1001,7 +1009,7 @@
 >     try{
 >       cloneObject = (PrototypeClass)super.clone()
 >     }catch(Exception e){
->       
+> 
 >     }
 >     return cloneObject;
 >   }
@@ -1039,7 +1047,7 @@
 >       cloneObject = (Thing)super.clone()
 >         this.list = (ArrayList<String>)this.list.clone();
 >     }catch(Exception e){
->       
+> 
 >     }
 >     return cloneObject;
 >   }
@@ -1051,6 +1059,197 @@
 > * 继承关系中深拷贝和浅拷贝不能混着乱用，不然半深不浅。
 > * 浅拷贝用得很少，但并非不用。用得好甚至能救命
 > * 不可变成员变量不能克隆，即加上final关键字的
+>
+> ***
+
+## 中介者模式
+
+> ### 定义
+>
+> * `Mediator Pattern`
+> * `Define an objecet that encapsulates how a set of objects interact. Mediator promotes loose coupling by keeping objects from refrering to each other explicitly. and it lets you vary their interaction independenty.`
+>
+> ### 角色
+>
+> * Mediator
+> * Colleague
+>   * 自身行为：不依赖中介者和其他同事类的行为
+>   * 依赖行为：要依赖中介者，间接依赖其他同事类的行为
+>
+> ### 优点
+>
+> * 减少了同事类之间的依赖
+> * 避免了蜘蛛网结构
+>
+> ### 缺点
+>
+> * 中介者会膨胀得十分巨大
+>
+> ### 使用场景
+>
+> * 不能为了使用而去使用
+> * 有时简单的依赖关系，使用了中介者模式反而变得越来越复杂，越来越难以理解。
+> * 使用的判断依据可以根据：**是否在类图中出现了网状结构**，使用中介者模式能把网状改为星状
+>
+> ### 中介者模式举例
+>
+> * 飞机场调度系统
+> * 消息服务的中间服务器(媒介网关)
+> * MVC框架的Controller
+>
+> ### 最佳实践
+>
+> * 同事类各有各的不同，很难定义出一个统一的接口。因此可以直接使用实现类，不能为了抽象而抽象
+>
+> ***
+
+## 命令模式
+
+> ### 定义
+>
+> * `Encapsulate a request as an object, thereby letting you parameterize clients with diffiernt requests,queue or log requests, and support undoalbe oprations.`
+> * 是一个高内聚的模式
+>
+> ### 示例
+>
+> * 真实接收者
+>
+> ```java
+> public class Reciver extends IReciver{
+>   public void doSomething(){
+>     System.out.println("do something");
+>   }
+> }
+> ```
+>
+> * 抽象命令
+>
+> ```java
+> public abstract class ICommand{
+>   protected RequireGroup rg = new RequireGroup();
+>   protected CodeGourp cg = new CodeGroup();
+>   protected UIGroup ug = new UIGroup();
+>   public abstract excute();
+> }
+> ```
+>
+> * 真实命令
+>
+> ```java
+> public class Command extends ICommand{
+>   private IRecevier recevier;
+>   public Command(IRecevier recevier){
+>     this.recevier = recevier;
+>   }
+>   public void excute(){
+>     this.revevier.doSomething();
+>   }
+> }
+> ```
+>
+> * 真实发令者
+>
+> ```java
+> public class Invoker{
+>   private ICommand commond;
+>   public void setCommond(ICommand commond){
+>     this.commond = commond;
+>   }
+>   public void excute(){
+>     this.commond.excute();
+>   }
+> }
+> ```
+>
+> * 场景类
+>
+> ```java
+> Invocker zhangsan = new Invoker();
+> IRecevier recevier = new Recevier();
+> ICommand commond = new Commond(recevier);
+> zhangsan.setCommond(commond);
+> zhangsan.excute();
+> ```
+>
+> ### 优点
+>
+> * 解耦：调用者和接收者(实际处理者)无任何依赖关系
+> * 拓展：Command子类非常容易拓展
+>
+> ### 缺点
+>
+> * 一个命令对应一个`Command`子类，可能会导致子类数量膨胀
+>
+> ### 适用场景
+>
+> * 只要认为是命令的地方都可以使用命令模式
+> * 如按钮点击、DOS命令行
+>
+> ***
+
+## 责任链模式
+
+> ### 定义
+>
+> * `Chain of Responsibility Pattern`
+> * `Avoid coupling the sender of a request to its recevier by giving more than one object a chance to handle the request. Chain the receving objects and pass the request along the chain until one object handles it.`
+>
+> ### 示例
+>
+> * 抽象Handler
+>
+> ```java
+> public abstract class AbstractHandler{
+>   private AbstractHandler next;
+>   public void setHandler(AbstractHandler handler){
+>     this.next = handler;
+>   }
+>   protected abstract Level getLevel();
+>   protected abstract Response echo(Request request);
+>   public final Response handlMessage(Request request){
+>     Response response = null;
+>     if(this.getLevel().equals(request.getLevel())){
+>       response = this.echo(request);
+>     }else{
+>       if(this.next != null){
+>         response = this.next.handleMessage(requeset);
+>       }else{
+>         throw Exception();
+>       }
+>     }
+>   }
+> }
+> ```
+>
+> * `public final Response handlMessage(Request request)`是个模版方法
+>
+> ### 三个职责
+>
+> * 定义对外暴露的处理逻辑方法，在这是一个每个实现类都有的模版方法
+> * 设置链条下一个处理者
+> * 定义自己的处理级别，和当自己真正处理时的真实行为。
+>
+> ### 最后结果
+>
+> * 可能有处理也可能没有处理，这就是纯责任链和非纯责任链的区别
+>
+> ### 优点
+>
+> * 分离：请求者不用知道是谁处理的。处理者不用知道请求者的全貌
+>
+> ### 缺点
+>
+> * 性能问题，请求又可能从头遍历到尾。因此通常设置最大链条
+> * 调试困难。想想链表的调试就知道了，调用关系就很离谱
+>
+> ### 最佳实践
+>
+> * 责任链模式可以作为补救措施。如最开始只支持处理人民币，结果后来币种越来越多，就使用责任链模式拓展
+> * 普通用户和VIP用户不同的处理逻辑，可以使用责任链。先统抛给一个，然后在按照链条处理。
+>
+> ### 注意
+>
+> * 责任链的顺序可以有优先级之分。如果没有优先级，也可以使用责任链，那就是完全遍历了。
 >
 > ***
 
