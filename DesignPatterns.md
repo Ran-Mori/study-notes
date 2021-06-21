@@ -623,7 +623,7 @@
 >
 >   ```java
 >   private SingleTon(){
->               
+>                 
 >   }
 >   ```
 >
@@ -1250,6 +1250,382 @@
 > ### 注意
 >
 > * 责任链的顺序可以有优先级之分。如果没有优先级，也可以使用责任链，那就是完全遍历了。
+>
+> ***
+
+## 装饰者模式
+
+> ### 定义
+>
+> * `Decorator Pattern`
+> * `Attach additional responsibilities to an object dynamically keeping the same interface. Decorates provide a flexiable alternative to subclassing for extending functionality.`
+>
+> ### 角色说明
+>
+> * Component：一个接口或实现类。定义最核心最原始的对象
+> * ConcrateComponent：接口的实现
+> * Decorator：抽象类。有一个指向Component的指针
+> * ConcretDecorator:实现具体的装饰逻辑
+>
+> ### 示例
+> * Component
+> ```java
+> public abstract class Component {
+> 	//抽象的方法
+> 	public abstract void operate();
+> }
+> ```
+>
+> * ConcreteComponent
+>
+> ```java
+> public class ConcreteComponent extends Component {
+> 	//具体实现
+> 	@Override
+> 	public void operate() {
+> 		System.out.println("do Something");
+> 	}
+> }
+> ```
+>
+> * Decretor
+>
+> ```java
+> public abstract class Decorator extends Component {
+> 	private Component component = null;
+> 	
+> 	//通过构造函数传递被修饰者
+> 	public Decorator(Component _component){
+> 		this.component = _component;
+> 	}
+> 	
+> 	//委托给被修饰者执行
+> 	@Override
+> 	public void operate() {
+> 		this.component.operate();
+> 	}
+> 
+> }
+> ```
+>
+> * ConcreteDecretor
+>
+> ```java
+> public class ConcreteDecorator extends Decorator {
+> 	
+> 	//定义被修饰者
+> 	public ConcreteDecorator(Component _component){
+> 		super(_component);
+> 	}
+> 	
+> 	//定义自己的修饰方法
+> 	private void method1(){
+> 		System.out.println("method1 修饰");
+> 	}
+> 	
+> 	//重写父类的Operation方法
+> 	public void operate(){
+> 		this.method1();
+> 		super.operate();
+> 	}
+> }
+> ```
+>
+> * client
+>
+> ```java
+> public class Client {
+> 	
+> 	public static void main(String[] args) {
+> 		Component component = new ConcreteComponent();
+> 		
+> 		//第一次修饰
+> 		component = new ConcreteDecorator1(component);
+> 		
+> 		//第二次修饰
+> 		component = new ConcreteDecorator2(component);
+> 		
+> 		//修饰后运行
+> 		component.operate();
+> 	}
+> }
+> ```
+>
+> ### 理解
+>
+> * 和代理模式很像
+> * 装饰者模式的装饰对象和被装饰对象都有共同的父类，他们可以彼此声明类型
+> * **可以进行多次修饰**，一直嵌套
+>
+> ### 优点
+>
+> * 装饰类和被装饰类可以独立发展，互不耦合
+> * 不管装饰多少层，最后返回的都是Component
+> * 可以 **动态拓展** 一个类的功能
+>
+> ### 缺点
+>
+> * 可以套很多层就是一个缺点
+>
+> ### 使用场景
+>
+> *  给一个类新增功能
+> * 动态给一个类新增功能，然后在撤销
+>
+> ***
+
+## 策略模式
+
+> ### 定义
+>
+> * `Strategy Pattern`
+> * `Define a family of algorithms, encapsulate each other, and make them interchangeable.`
+>
+> ### 示例
+>
+> * Strategy
+>
+> ```java
+> public interface Strategy {
+> 	//策略模式的运算法则
+> 	public void doSomething();
+> }
+> ```
+>
+> * ConcreteStategy1
+>
+> ```java
+> public class ConcreteStrategy1 implements Strategy {
+> 	public void doSomething() {
+> 		System.out.println("具体策略1的运算法则");
+> 	}
+> }
+> ```
+>
+> * Context
+>
+> ```java
+> public class Context {
+> 	//抽象策略
+> 	private Strategy strategy = null;
+> 	//构造函数设置具体策略
+> 	public Context(Strategy _strategy){
+> 		this.strategy = _strategy;
+> 	}
+> 	//封装后的策略方法
+> 	public void doAnythinig(){
+> 		this.strategy.doSomething();
+> 	}
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		//声明出一个具体的策略
+> 		Strategy strategy = new ConcreteStrategy1(); 
+> 		//声明出上下文对象
+> 		Context context = new Context(strategy);
+> 		//执行封装后的方法
+> 		context.doAnythinig();
+> 	}
+> }
+> ```
+>
+> ### 缺点
+>
+> * 不符合迪米特法则，client需要知道所有的策略，不管它是否使用。有一定风险
+>
+> ### 使用场景
+>
+> * 多个类只在算法或者行为上稍微有区别
+> * 需要屏蔽策略细节的情况
+>
+> ### 枚举策略模式
+>
+> * Calculate
+>
+> ```java
+> public enum Calculator {
+> 	//加法运算
+> 	ADD("+"){
+> 		public int exec(int a,int b){
+> 			return a+b;
+> 		}
+> 	},
+> 	//减法运算
+> 	SUB("-"){
+> 		public int exec(int a,int b){
+> 			return a - b;
+> 		}
+> 	};
+> 	
+> 	String value = "";
+> 	//定义成员值类型
+> 	private Calculator(String _value){
+> 		this.value = _value;
+> 	}
+> 	//获得枚举成员的值
+> 	public String getValue(){
+> 		return this.value;
+> 	}
+> 	
+> 	//声明一个抽象函数
+> 	public abstract int exec(int a,int b);
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	
+> 	public static void main(String[] args) {
+> 		//输入的两个参数是数字
+> 		int a = Integer.parseInt(args[0]);
+> 		String symbol = args[1];  //符号
+> 		int b = Integer.parseInt(args[2]);
+> 		System.out.println("输入的参数为："+Arrays.toString(args));
+> 	
+> 		System.out.println("运行结果为："+a + symbol + b + "=" + Calculator.ADD.exec(a, b));
+> 		
+> 	}
+> }
+> ```
+>
+> ***
+
+## 适配器模式
+
+> ### 定义
+>
+> *  `Adapter Pattern`
+> * `Convert the interface of a calss into annother interface clients expected. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces.`
+> * 把一个不能使用的接口或类转换成能使用的接口
+> * 即静态类型是接口不变，但动态类型可以变化。可以是原本的实现类，也可以是其他被封装过的不能使用的类
+>
+> ### RMI
+>
+> * `Remote Method Invocation`-远程对象调用
+> * 只要有接口，可以把远程的对象当作本地对象用
+>
+> ### 示例
+>
+> * Target - 原接口
+>
+> ```java
+> public interface Target {
+> 	//目标角色有自己的方法
+> 	void request();
+> }
+> ```
+>
+> * ConcreteTarget - 原能使用的实现类
+>
+> ```java
+> public class ConcreteTarget implements Target {
+> 	public void request() {
+> 		System.out.println("I have nothing to do. if you need any help,pls call me!");
+> 	}
+> }
+> ```
+>
+> * Adptee - 不能使用的其他的类或接口
+>
+> ```java
+> public class Adaptee {
+> 	//原有的业务逻辑
+> 	public void doSomething(){
+> 		System.out.println("I'm kind of busy,leave me alone,pls!");
+> 	}
+> }
+> ```
+>
+> * Adapter - 适配器
+>
+> ```java
+> public class Adapter extends Adaptee implements Target {
+> 	public void request() {
+> 		super.doSomething();
+> 	}
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		//原有的业务逻辑
+> 		Target target = new ConcreteTarget();
+> 		target.request();
+> 		//现在增加了适配器角色后的业务逻辑
+> 		Target target2 = new Adapter();
+> 		target2.request();
+> 	}
+> }
+> ```
+>
+> * 核心是`public class Adapter extends Adaptee implements Target`
+>
+> ### 优点
+>
+> * 让没有关系的两个类或者接口协同合作
+> * 适配器不想用就删除
+>
+> ### 使用场景
+>
+> * 当你想要已经投产的接口时，可以考虑使用适配器模式
+> * 但在架构设计时是万万不能使用适配器模式的。适配器模式只是一个补救措施，不是设计思路。
+>
+> ### 对象适配器模式
+>
+> * 类适配器模式就是上面的
+> * 类适配器实现原接口，继承不能使用的类或接口
+> * 对象适配器实现原接口，聚合(组合)不能使用的类或接口
+>
+> ### 对象适配器模式源代码
+>
+> ```java
+> public class OuterUserInfo implements IUserInfo {
+> 	//源目标对象
+> 	private IOuterUserBaseInfo baseInfo = null;  //员工的基本信息
+> 	private IOuterUserHomeInfo homeInfo = null; //员工的家庭 信息
+> 	private IOuterUserOfficeInfo officeInfo = null; //工作信息
+> 	
+> 	//数据处理
+> 	private Map baseMap = null;
+> 	private Map homeMap = null;
+> 	private Map officeMap = null;
+> 	
+> 	//构造函数传递对象
+> 	public OuterUserInfo(IOuterUserBaseInfo _baseInfo,IOuterUserHomeInfo _homeInfo,IOuterUserOfficeInfo _officeInfo){
+> 		this.baseInfo = _baseInfo;
+> 		this.homeInfo = _homeInfo;
+> 		this.officeInfo = _officeInfo;
+> 		
+> 		//数据处理
+> 		this.baseMap = this.baseInfo.getUserBaseInfo();
+> 		this.homeMap = this.homeInfo.getUserHomeInfo();
+> 		this.officeMap = this.officeInfo.getUserOfficeInfo();
+> 	}
+> }
+> ```
+>
+> ### 单一职责
+>
+> * 类的职责可以不单一
+> * 但接口的职责一定要单一
+>
+> ### 最佳实践
+>
+> * 适配器模式分为两种——类适配器和对象适配器
+> * 一个是用继承复用，一个是用聚合复用
+> * 适配器模式是一个补救措施，而不是一个设计思路
+> * 对象适配器模式一般使用得比类适配器模式多
+> * 对象适配器就是把现接口方法的逻辑委托给传入的对象
 >
 > ***
 
