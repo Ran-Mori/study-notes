@@ -623,7 +623,7 @@
 >
 >   ```java
 >   private SingleTon(){
->                 
+>                   
 >   }
 >   ```
 >
@@ -1626,6 +1626,244 @@
 > * 适配器模式是一个补救措施，而不是一个设计思路
 > * 对象适配器模式一般使用得比类适配器模式多
 > * 对象适配器就是把现接口方法的逻辑委托给传入的对象
+>
+> ***
+
+## 迭代器模式
+
+> ### 定义
+>
+> * `Iterator Pattern`
+> * `Providing a way to access the elements of an aggregate object sequentially without exposing its underlying representation.`
+>
+> ### 特点
+>
+> * 是一个已经没落的接口，因为几乎已经不用自己去写，全部都实现好了
+> * 一个重点是它隐藏了对象内部的细节
+> * 它让容器只用管理增减元素，而不用管理遍历
+> * 迭代器模式用得过于频繁，以至于被忽略
+>
+> ### 示例
+>
+> * ProjectIterator
+>
+> ```java
+> public class ProjectIterator implements Iterator {
+> 	//所有的项目都放在这里ArrayList中
+> 	private ArrayList<IProject> projectList = new ArrayList<IProject>();
+> 	private int currentItem = 0; 
+> 	//构造函数出入projectList
+> 	public ProjectIterator(ArrayList<IProject> projectList){
+> 		this.projectList = projectList;
+> 	}
+> 	//判断是否还有元素，必须实现
+> 	public boolean hasNext() {
+> 		//定义一个返回值
+> 		boolean b = true;
+> 		if(this.currentItem>=projectList.size() || this.projectList.get(this.currentItem) == null){
+> 			b =false;
+> 		}
+> 		return b;
+> 	}
+> 	//取得下一个值
+> 	public IProject next() {
+> 		return (IProject)this.projectList.get(this.currentItem++);
+> 	}
+> 	//删除一个对象
+> 	public void remove() {
+> 		//暂时没有使用到
+> 	}
+> }
+> ```
+>
+> * java.util.terator<E> 核心就三个方法
+>
+> ```java
+> public interface Iterator<E> {
+>     boolean hasNext();
+>     E next();
+>     default void remove() {
+>         throw new UnsupportedOperationException("remove");
+>     }
+>     default void forEachRemaining(Consumer<? super E> action) {
+>         Objects.requireNonNull(action);
+>         while(this.hasNext()) {
+>             action.accept(this.next());
+>         }
+>     }
+> }
+> ```
+>
+> * Project - 实现Iterable
+>
+> ```java
+> public class Project implements Iterable {
+> 	//产生一个遍历对象
+> 	public IProjectIterator iterator(){
+> 		return new ProjectIterator(this.projectList);
+> 	}
+> }
+> ```
+>
+> ### 注意
+>
+> * 迭代器其实就相当于一个游标，不断地往下遍历下一个元素
+> * 迭代器的删除有两个逻辑：删除当前元素和指向下一个元素
+>
+> ### 应用
+>
+> * Java中所有的容器去都已经实现了此接口，不用自己去写
+> * foreach()能用就是用的迭代器模式。
+>
+> ***
+
+## 组合模式
+
+> ### 定义
+>
+> * `Composite Pattern`
+> * `Compose objects into tree structures to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions of objects uniformly.`
+>
+> ### 特点
+>
+> * 就是二叉树的模式
+> * 文件管理，涉及树形结构都能使用
+>
+> ### 优点
+>
+> * 对高层模块来说，整体和局部是一样的
+>
+> ### 向上遍历
+>
+> * 如果想支持向上遍历，需要增加`setparent()`、`getParent()`方法
+>
+> ***
+
+## 观察者模式
+
+> ### 定义
+>
+> * `Observer Pattern`、`Publish/Subscrib Pattern`
+> * `Define a one-to-many dependency between objects so that when one object changes state. all its dependents are notified and updated automatically.`
+>
+> ### 示例
+>
+> * java.util.Observable - 被观察者
+>
+> ```java
+> public class Observable {
+>     private boolean changed = false;
+>     private Vector<Observer> obs;
+> 
+>     public synchronized void addObserver(Observer o) {
+>         if (o == null)
+>             throw new NullPointerException();
+>         if (!obs.contains(o)) {
+>             obs.addElement(o);
+>         }
+>     }
+> 
+>     public synchronized void deleteObserver(Observer o) {
+>         obs.removeElement(o);
+>     }
+> 
+>     public void notifyObservers(Object arg) {
+> 				//...
+>         for (int i = arrLocal.length-1; i>=0; i--)
+>             ((Observer)arrLocal[i]).update(this, arg);
+>     }
+> 
+>     public synchronized void deleteObservers() {
+>         obs.removeAllElements();
+>     }
+> 
+>     protected synchronized void setChanged() {
+>         changed = true;
+>     }
+> 
+>     protected synchronized void clearChanged() {
+>         changed = false;
+>     }
+> 
+>     public synchronized boolean hasChanged() {
+>         return changed;
+>     }
+> 
+>     public synchronized int countObservers() {
+>         return obs.size();
+>     }
+> }
+> ```
+>
+> * 最核心方法的还是`addObserver、deleteObserver、notifyObserver`
+> * 被观察者实际类
+>
+> ```java
+> public class HanFeiZi extends Observable{
+> 	//韩非子要吃饭了
+> 	public void haveBreakfast(){
+> 		System.out.println("韩非子:开始吃饭了...");
+> 		//通知所有的观察者
+> 		super.setChanged();
+> 		super.notifyObservers("韩非子在吃饭");
+> 		
+> 	}
+> 	//韩非子开始娱乐了,古代人没啥娱乐，你能想到的就那么多
+> 	public void haveFun(){
+> 		System.out.println("韩非子:开始娱乐了...");
+> 		super.setChanged();
+> 		this.notifyObservers("韩非子在娱乐");
+> 	}
+> }
+> ```
+>
+> * 主要是调用`setChanged()、notifiObservers()`方法
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		//三个观察者产生出来
+> 		Observer liSi = new LiSi();
+> 		Observer wangSi = new WangSi();
+> 		Observer liuSi = new LiuSi();
+> 		
+> 		//定义出韩非子
+> 		HanFeiZi hanFeiZi = new HanFeiZi();
+> 		
+> 		//我们后人根据历史，描述这个场景，有三个人在观察韩非子
+> 		hanFeiZi.addObserver(wangSi);
+> 		hanFeiZi.addObserver(liuSi);
+> 		hanFeiZi.addObserver(liSi);
+> 		
+> 		//然后这里我们看看韩非子在干什么
+> 		hanFeiZi.haveBreakfast();		
+> 	}
+> }
+> ```
+>
+> * 主要是添加观察者`addObserver()`
+>
+> ### 优点
+>
+> * 观察者与被观察者之间是不耦合的
+> * 可以形成一条出发链，可以链式
+>
+> ### 缺点
+>
+> * Java消息是顺序的，一个观察者卡壳，后面全挂。因此建议使用 **异步** 方式
+>
+> ### 注意事项
+>
+> * 观察者与被观察者多了可以成链，维护和调试复杂
+> * 责任链模式传递过程中消息是保持不变的，而观察者模式消息链条每个环节都可能变化
+> * 异步处理问题，消息队列
+>
+> ### 真实的观察者模式
+>
+> * 观察者和被观察者之间要传递数据。一般观察者的update()方法还要接收`DTO`(Data Transfer Object)对象参数
+> * 观察者响应方式。一般使用异步方式
+> * 被观察者自己做主。不是所有消息都一定要通知，可以设置`boolean isNotified`变量控制
 >
 > ***
 
