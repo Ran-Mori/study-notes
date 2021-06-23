@@ -2087,3 +2087,357 @@
 >
 > ***
 
+## 状态模式
+
+> ### 定义
+>
+> * `State Pattern`
+> * `Allow an object to alter its behavior when its internal state changes. The object will appear to change its class.`
+>
+> ### 示例
+>
+> * 抽象State
+>
+> ```java
+> public abstract class State {
+> 	//定义一个环境角色，提供子类访问
+> 	protected Context context;
+>   
+> 	//设置环境角色
+> 	public void setContext(Context _context){
+> 		this.context = _context;
+> 	}
+> 	
+> 	//行为1
+> 	public abstract void handle1();
+> 	
+> 	//行为2
+> 	public abstract void handle2();
+> }
+> ```
+>
+> * ConcreteState1
+>
+> ```java
+> public class ConcreteState1 extends State {
+> 	@Override
+> 	public void handle1() {
+> 		//本状态下必须处理的逻辑
+> 	}
+> 
+> 	@Override
+> 	public void handle2() {
+> 		//设置当前状态为stat2
+> 		super.context.setCurrentState(Context.STATE2);
+> 		//过渡到state2状态，由Context实现
+> 		super.context.handle2();
+> 	}
+> }
+> ```
+>
+> * ConcreteState2
+>
+> ```java
+> public class ConcreteState2 extends State {
+> 	@Override
+> 	public void handle1() {		
+> 		//设置当前状态为stat1
+> 		super.context.setCurrentState(Context.STATE1);
+> 		//过渡到state1状态，由Context实现
+> 		super.context.handle1();
+> 	}
+> 	
+> 	@Override
+> 	public void handle2() {
+> 		//本状态下必须处理的逻辑
+> 	}
+> }
+> ```
+>
+> * Context
+>
+> ```java
+> public class Context {
+> 	//定义状态
+> 	public final static State STATE1 = new ConcreteState1();
+> 	public final static State STATE2 = new ConcreteState2();
+> 	
+> 	//当前状态
+> 	private State CurrentState;
+> 	
+> 	//获得当前状态
+> 	public State getCurrentState() {
+> 		return CurrentState;
+> 	}
+> 	
+> 	//设置当前状态
+> 	public void setCurrentState(State currentState) {
+> 		this.CurrentState = currentState;
+> 		//切换状态
+> 		this.CurrentState.setContext(this);
+> 	}
+> 	
+> 	//行为委托
+> 	public void handle1(){
+> 		this.CurrentState.handle1();
+> 	}
+> 	
+> 	public void handle2(){
+> 		this.CurrentState.handle2();
+> 	}
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		//定义环境角色
+> 		Context context = new Context();
+> 		//初始化状态
+> 		context.setCurrentState(new ConcreteState1());
+> 		//行为执行
+> 		context.handle1();
+> 		context.handle2();
+> 	}
+> }
+> ```
+>
+> ### 约定
+>
+> * 把状态对象声明成为静态常量，有几个状态就声明成几个静态常量
+> * 环境角色具有状态抽象角色定义的所有行为，具体执行使用委托方式
+>
+> ### 缺点
+>
+> * 状态子类数量会迅速膨胀
+> * if- else的替代者
+>
+> ***
+
+## 享元模式
+
+> ### 定义
+>
+> * `FlyWeight`
+> * `Use sharing to support large numbers of fine-grained objects efficiently.`
+> * 细粒度对象、共享对象
+>
+> ### 内外部状态
+>
+> * 内部状态：对象可以共享出来的信息，存储在内部且不会随着环境改变而改变
+> * 外部状态：一个标记tag
+>
+> ### 示例
+>
+> * 抽象Flyweight
+>
+> ```java
+> public abstract class Flyweight {
+> 	//内部状态
+> 	private String intrinsic;
+> 	//外部状态
+> 	protected final String Extrinsic;
+> 	//要求享元角色必须接受外部状态
+> 	public Flyweight(String _Extrinsic){
+> 		this.Extrinsic = _Extrinsic;
+> 	}
+> 	
+> 	//定义业务操作
+> 	public abstract void operate();
+> 	
+> 	//内部状态的getter/setter
+> 	public String getIntrinsic() {
+> 		return intrinsic;
+> 	}
+> 	public void setIntrinsic(String intrinsic) {
+> 		this.intrinsic = intrinsic;
+> 	}
+> }
+> ```
+>
+> * ConcreteFlyweight1
+>
+> ```java
+> public class ConcreteFlyweight1 extends Flyweight{
+> 	//接受外部状态
+> 	public ConcreteFlyweight1(String _Extrinsic){
+> 		super(_Extrinsic);
+> 	}
+> 	
+> 	//根据外部状态进行逻辑处理
+> 	public void operate(){
+> 		//业务逻辑
+> 	}
+> }
+> ```
+>
+> * ConcreteFlyweight2
+>
+> ```java
+> public class ConcreteFlyweight2 extends Flyweight{
+> 	//接受外部状态
+> 	public ConcreteFlyweight2(String _Extrinsic){
+> 		super(_Extrinsic);
+> 	}
+> 	
+> 	//根据外部状态进行逻辑处理
+> 	public void operate(){
+> 		//业务逻辑
+> 	}
+> }
+> ```
+>
+> * FlyweightFactory
+>
+> ```java
+> public class ConcreteFlyweight2 extends Flyweight{
+> 	//接受外部状态
+> 	public ConcreteFlyweight2(String _Extrinsic){
+> 		super(_Extrinsic);
+> 	}
+> 	
+> 	//根据外部状态进行逻辑处理
+> 	public void operate(){
+> 		//业务逻辑
+> 	}
+> }
+> ```
+>
+> ### 注意
+>
+> * 外部状态要设置成final，因为这时HashMap的key值
+> * 如果一个对象作为Map的key值，一定要重写`equals()、hasHashCode()`方法
+>
+> ### 优点及适用场景
+>
+> * 系统中需要大量的相似对象
+> * 细粒度对象具有比较接近的外部状态，而内部状态与环境无关。即对象不具有特定身份
+>
+> ***
+
+## 桥梁模式
+
+> ### 定义
+>
+> * `Bridge Pattern`
+> * `Decouple an abstraction from its implementation so that the two can vary independently.`
+>
+> ### 示例
+>
+> * Implementor
+>
+> ```java
+> public interface Implementor {
+> 	//基本方法
+> 	public void doSomething();
+> 	
+> 	public void doAnything();
+> }
+> ```
+>
+> * ConcreteImplementor1
+>
+> ```java
+> public class ConcreteImplementor1 implements Implementor{
+> 	public void doSomething(){
+> 		//业务逻辑处理
+> 	}
+> 	public void doAnything(){
+> 		//业务逻辑处理
+> 	}
+> }
+> ```
+>
+> * ConcreteImplementor2
+>
+> ```java
+> public class ConcreteImplementor2 implements Implementor{
+> 	public void doSomething(){
+> 		//业务逻辑处理
+> 	}
+> 	
+> 	public void doAnything(){
+> 		//业务逻辑处理
+> 	}
+> }
+> ```
+>
+> * Abstraction
+>
+> ```java
+> public abstract class Abstraction {
+> 	//定义对实现化角色的引用
+> 	private Implementor imp;
+> 	
+> 	//约束子类必须实现该构造函数
+> 	public Abstraction(Implementor _imp){
+> 		this.imp = _imp;
+> 	}
+> 	
+> 	//自身的行为和属性
+> 	public void request(){
+> 		this.imp.doSomething();
+> 	}
+> 	
+> 	//获得实现化角色
+> 	public Implementor getImp(){
+> 		return imp;
+> 	}
+> }
+> ```
+>
+> * RefinedAbstraction
+>
+> ```java
+> public class RefinedAbstraction extends Abstraction {
+> 	//覆写构造函数
+> 	public RefinedAbstraction(Implementor _imp){
+> 		super(_imp);
+> 	}
+> 	
+> 	//修正父类的行文
+> 	@Override
+> 	public void request(){
+> 		/*
+> 		 * 业务处理....
+> 		 */
+> 		super.request();
+> 		
+> 		super.getImp().doAnything();
+> 	}
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		//定义一个实现化角色
+> 		Implementor imp = new ConcreteImplementor1();
+> 		//定义一个抽象化角色
+> 		Abstraction abs = new RefinedAbstraction(imp);
+> 		//执行行文
+> 		abs.request();
+> 	}
+> }
+> ```
+>
+> ### 优点
+>
+> * 解决继承模式的缺点，实现了不受抽象的约束，不用再绑定在一个固定的抽象层次上
+>
+> ### 适用场景
+>
+> * 不希望使用继承或者继承不太适合
+> * 接口或抽象类不稳定
+> * 继承的层数太多
+>
+> ### 最佳实践
+>
+> * 子类继承父类，孙子类继承子类。现在想改子类的一个方法但是不敢改，因为改了会影响孙子类。这种时候就适合用桥梁模式
+>
+> ***
+
