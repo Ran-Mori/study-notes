@@ -623,7 +623,7 @@
 >
 >   ```java
 >   private SingleTon(){
->                   
+>                       
 >   }
 >   ```
 >
@@ -1864,6 +1864,226 @@
 > * 观察者和被观察者之间要传递数据。一般观察者的update()方法还要接收`DTO`(Data Transfer Object)对象参数
 > * 观察者响应方式。一般使用异步方式
 > * 被观察者自己做主。不是所有消息都一定要通知，可以设置`boolean isNotified`变量控制
+>
+> ***
+
+## 门面模式
+
+> ### 定义
+>
+> * `Facade Pattern` - 外观模式
+> * `Provide a unified interface to a set of interfaces in a subsystem. Facade defines a higher-level interfaces that makes the subsystem ersier to use.`
+>
+> ### 特点
+>
+> * 门面接口提供了一个高层次的接口
+> * 高层次模块只能通过外观接口访问到subsytem，不允许直接访问subsystem。即门面对象是外界访问子系统的唯一接口
+> * 对于子系统而言，门面接口仅仅只是一个客户端
+> * 对于门面对象而言，高层调用者仅仅是一个客户端
+>
+> ### 优点
+>
+> * 高层次调用模块和子系统不依赖，只有门面对象依赖子系统
+>
+> ### 缺点
+>
+> * 不符合开闭原则，一旦修改，是直接修改门面对象的内部代码。
+> * 因此门面对象一定要保持稳定，它是对外的接口，尽量不能修改
+>
+> ### 使用场景
+>
+> * 为一个复杂模块对外提供简单统一的访问接口
+> * 子系统如果逻辑混乱，代码质量低下，也可以使用门面模式进行封装屏蔽
+>
+> ### 注意事项
+>
+> * 一个子系统可以有多个门面
+> * 门面不参与子系统的业务逻辑
+>
+> ### 总结
+>
+> * 门面模式就是多加了一层，提供优良的访问接口
+>
+> ***
+
+## 备忘录模式
+
+> ### 定义
+>
+> * `Memento Pattern`
+> * `Without vlolating encapsulation. capture and externalize an object's internal state so that the object can be restored to this state later.`
+> * 就是提供了一种程序数据的备份
+> * 备忘录基本模式几乎不用，且备忘录模式的变形很多。每种变形又有每种变形的特点。
+>
+> ### 应用场景
+>
+> * 需要保存和恢复数据的相关状态场景
+> * 可回滚的操作。如ctrl - z，浏览器后退、文件管理后退
+> * 数据库连接的事务管理
+>
+> ### 注意事项
+>
+> * 备忘录要主动管理它的生命周期，建立就用，不用就消除引用等待回收
+> * 备忘录创建数量，创建备忘录对象的消耗。这些都是要考虑的
+>
+> ### clone备忘录模式
+>
+> * 和原型模式进行结合，减少创建对象的消耗
+>
+> ### 多状态备忘录
+>
+> * 不只是保存一个状态，而是保存多个状态
+> * 设计运行时决定备份状态的框架，建议采用AOP
+>
+> ### 多备份备忘录
+>
+> * 需要使用检查点
+>
+> ### 双接口设计
+>
+> * 考虑到安全问题，可以设置两个接口
+> * 一个是正常业务接口，叫作宽接口；一种是方法少甚至什么方法也没有，叫做窄接口
+>
+> ***
+
+## 访问者模式
+
+> ### 定义
+>
+> * `Vistor Pattern`
+> * `Represent an operation to be performed on the elements of an object structure. Vistors lets you define a new operation without changing the classes of the elements on which it operates.`
+>
+> ### 示例
+>
+> * IVistor
+>
+> ```java
+> public interface IVisitor {
+> 	//可以访问哪些对象
+> 	public void visit(ConcreteElement1 el1);
+> 	public void visit(ConcreteElement2 el2);
+> }
+> ```
+>
+> * Vistor
+>
+> ```java
+> public class Visitor implements IVisitor {
+> 	//访问el1元素
+> 	public void visit(ConcreteElement1 el1) {
+> 		el1.doSomething();
+> 	}
+> 	//访问el2元素
+> 	public void visit(ConcreteElement2 el2) {
+> 		el2.doSomething();
+> 	}
+> }
+> ```
+>
+> * Element
+>
+> ```java
+> public abstract class Element {
+> 	//定义业务逻辑
+> 	public abstract void doSomething();
+> 	//允许谁来访问
+> 	public abstract void accept(IVisitor visitor);
+> }
+> ```
+>
+> * ConcreteElement1
+>
+> ```java
+> public class ConcreteElement1 extends Element{
+> 	//完善业务逻辑
+> 	public void doSomething(){
+> 		//业务处理
+> 	}
+> 	//允许那个访问者访问
+> 	public void accept(IVisitor visitor){
+> 		visitor.visit(this);
+> 	}
+> }
+> ```
+>
+> * ConcreteElement2
+>
+> ```java
+> public class ConcreteElement2 extends Element{
+> 	//完善业务逻辑
+> 	public void doSomething(){
+> 		//业务处理
+> 	}
+> 	//允许那个访问者访问
+> 	public void accept(IVisitor visitor){
+> 		visitor.visit(this);
+> 	}
+> }
+> ```
+>
+> * Client
+>
+> ```java
+> public class Client {
+> 	public static void main(String[] args) {
+> 		for(int i=0;i<10;i++){
+> 			//获得元素对象
+> 			Element el = ObjectStruture.createElement();
+> 			//接受访问者访问
+> 			el.accept(new Visitor());
+> 		}		
+> 	}
+> }
+> ```
+>
+> ### 优点
+>
+> * 单一职责原则。业务处理业务，访问处理访问
+> * 拓展性。重新加一个访问者是很容易的，直接`Vistor`中新增一个方法。(感觉没有必要定义一个IVistor)
+> * 灵活性很高。对于数据汇总这种例子访问者模式必用
+>
+> ### 使用场景
+>
+> * 需要对一个对象结构中的对象进行很多不同且不相关的操作，又不想把这些操作写在类中
+> * 业务规则要求遍历多个不同的对象。不同的对象的逻辑还有可能不同
+>
+> ### 统计功能
+>
+> ```java
+> public class TotalVisitor implements ITotalVisitor {
+> 	//部门经理的工资系数是5
+> 	private final static int MANAGER_COEFFICIENT = 5;
+> 
+> 	//员工的工资系数是2
+> 	private final static int COMMONEMPLOYEE_COEFFICIENT = 2;
+> 
+> 	//普通员工的工资总和
+> 	private int commonTotalSalary = 0;
+> 
+> 	//部门经理的工资总和
+> 	private int managerTotalSalary =0;
+> 
+> 	public void totalSalary() {
+> 		System.out.println("本公司的月工资总额是" + (this.commonTotalSalary + this.managerTotalSalary));
+> 	}
+> 
+> 	//访问普通员工，计算工资总额
+> 	public void visit(CommonEmployee commonEmployee) {
+> 		this.commonTotalSalary = this.commonTotalSalary + commonEmployee.getSalary()*COMMONEMPLOYEE_COEFFICIENT;
+> 	}
+> 
+> 	//访问部门经理，计算工资总额
+> 	public void visit(Manager manager) {
+> 		this.managerTotalSalary = this.managerTotalSalary + manager.getSalary() *MANAGER_COEFFICIENT ;
+> 	}
+> }
+> ```
+>
+> ### 多访问者
+>
+> * 一个对象，多个访问者
+> * 想访问的对象的`Visit`方法保持不变，只是传入不同的`Vistor`导致不同的访问结果
+> * 这种情况下，`IVistor`接口就很有必要
 >
 > ***
 
