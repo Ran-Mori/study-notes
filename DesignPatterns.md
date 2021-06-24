@@ -912,6 +912,7 @@
 >   private IGamePlayer proxy = null;
 >   //获取代理，被代理的就是自己
 >   public IGamePlayer getProxy(){
+>     //因为有这个赋值过程，使用getProxy()方法后就能正常访问了
 >     this.proxy = new GamePlayerProxy(this);
 >     return this.proxy;
 >   }
