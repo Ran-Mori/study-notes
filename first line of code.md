@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                     
+>                       
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                     
+>                       
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1386,7 +1386,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->   
+>     
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
@@ -1533,3 +1533,139 @@
 >
 > ***
 
+## Eventbus
+
+> ### 概述
+>
+> * 就是一个观察者模式的框架
+> * 方便使用观察者模式
+>
+> ### 引入依赖
+>
+> * `implementation 'org.greenrobot:eventbus:3.2.0'`
+>
+> ### 定义一个消息类
+>
+> * 消息类的作用就是一个消息
+>
+> ```kotlin
+> data class MessageEvent(val msg:String)
+> ```
+>
+> ### 定义接收者Obserer的update方法
+>
+> ```kotlin
+> @Subscribe(threadMode = ThreadMode.BACKGROUND)
+> fun subscribe(msg:MessageEvent){
+>   Log.d("MainActivity","receive a message")
+>   binding.buttonFirst.text = msg.msg
+>   Toast.makeText(activity,"click one",Toast.LENGTH_LONG).show()
+> }
+> ```
+>
+> ### 四种threadMode模式
+>
+> * `POSTING`：在被观察者(发送消息那个)的线程执行
+> * `Main`：观察者方法在`Main`(UI线程)执行
+>   * 如果被观察者是在`Main`线程发出post。那么观察者立即执行，导致被观察者被阻塞
+>   * 如果被观察者不在`Main`线程发出post，那么所有post构成一个队列，依次执行，被观察者不会被阻塞
+> * `MAIN_ORDERED`：post总是在一个队列里，被观察者永远不会被阻塞
+> * `BACKGROUND`
+>   * 如果被观察者是在`Main`线程发出post。那么任务被**队列化**安排到一条固定的`Backgroud`线程执行，有可能会阻塞`backgroud`线程
+>   * 如果被观察者不是在`Main`线程发出post。那么任务队列就直接在发出post的那条线程执行
+> * `ASYNC`：既不在`Main`线程执行，也不在被观察者的post线程执行。EventBus有一个线程池
+>
+> ### 注册与解注册
+>
+> ```kotlin
+> override fun onStart() {
+>   super.onStart()
+>   EventBus.getDefault().register(this)
+> }
+> 
+> override fun onStop() {
+>   super.onStop()
+>   EventBus.getDefault().unregister(this)
+> }
+> ```
+>
+> * 使用的是默认的`EventBus`对象
+>
+> ### 被观察者发送信息
+>
+> * `EventBus.getDefault().post(Message("一个发出的消息"))`
+>
+> ***
+
+## LifeCycleOwner
+
+> ### 概述
+>
+> * 本质上还是一个观察者模式
+> * `Observable`是本身拥有生命周期的`Activity、Fragment`
+> * `Observer`是自定义的
+>
+> ### 定义`Observer`
+>
+> ```kotlin
+> class MyLifecycleObserver:LifecycleObserver {
+>     @OnLifecycleEvent(Lifecycle.Event.ON_START)
+>     fun onStart(){
+>         Log.d("LifecycleObserver","onStart")
+>     }
+> 
+>     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+>     fun onStop(){
+>         Log.d("LifecycleObserver","onStop")
+>     }
+>     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+>     fun onDestroy(){
+>         Log.d("LifecycleObserver","onDestroy")
+>     }
+> }
+> ```
+>
+> * 实现`LifecycleObserver`
+> * 使用`@OnLifecycleEvent`注解
+>
+> ### `Obserable`订阅`Observer`
+>
+> ```kotlin
+> class FirstFragment : Fragment() {
+>     private lateinit var myLifecycleObserver: MyLifecycleObserver
+> 
+>     override fun onCreate(savedInstanceState: Bundle?) {
+>         super.onCreate(savedInstanceState)
+>         myLifecycleObserver = MyLifecycleObserver(this)
+>         lifecycle.addObserver(myLifecycleObserver)
+>     }
+> }
+> ```
+>
+> ### 注
+>
+> * Android手动杀死进程。依旧会执行`onStop()、onDestroy()`方法
+>
+> ***
+
+## LiveData
+
+> ### 概述
+>
+> * 也是一种观察者模式
+>
+> ### 特点
+>
+> * `Observer`只能是`LifecycleOwner`，即一般就只能是`Activity、Fragment`。必须有`start、resume、stop`等方法
+> * `Observable`必须对应接口的实现`onChanged()`方法
+> * 不用手动处理生命周期，默认方式封装了只会在活跃生命周期内观察
+> * 如果在不正常生命周期漏观察了变化，则在进入正常生命周期时刻会立即更新
+> * 总是就是很好用很方便
+>
+> ### 观察
+>
+> ```java
+> public void observe(LifecycleOwner owner,Observer<? super T> observer) {}
+> ```
+>
+> 
