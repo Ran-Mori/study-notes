@@ -1668,4 +1668,55 @@
 > public void observe(LifecycleOwner owner,Observer<? super T> observer) {}
 > ```
 >
-> 
+> ***
+
+## Activity
+
+> ### 概述
+>
+> * 代表安卓应用中的 **一个屏幕** ，不同的屏幕对应不同的`Activity`，比如电子邮件列表屏幕、电子邮件编辑屏幕
+> * `Activity`的存在支持了每次调用应用不是一定从一个固定的屏幕开始(也就是通常所说的主函数)。比如浏览器点击发送邮件按钮应该从编辑邮件按钮界面开始，而不是从一般的邮件列表开始
+> * `Activity`提供窗口让应用绘制界面。窗口可能铺满实际物理屏幕，也可能比实际物理屏幕小
+> * `Acitivity`之间的依赖耦合很小
+>
+> ### Intent过滤器
+>
+> * 当系统询问界面询问使用那个应用来执行接下来的操作时，就是 **隐式Intent** 在起作用
+>
+> ### Activity权限
+>
+> * 给`Activity`单独声明权限
+>
+> ```xml
+> <manifest>
+> <activity android:name="...."
+> 	android:permission=”com.google.socialapp.permission.SHARE_POST”
+> />
+> ```
+>
+> * `父Activity`的权限必须是`子Activty`的真子集时，父才能启动子
+>
+> ### OnSaveInstanceState()
+>
+> * 用户自己退出时不会调用
+> * 只有因为系统资源紧张，系统自动把它清除掉或者其他原因才会调用此方法
+> * 此方法的对应回调在`fun onCreate(savedInstanceState: Bundle?)`中
+>
+> ### A切换到B的执行顺序
+>
+> * `A.onPause()`、`B.onCreate()`、`B.onStart()`、`B.onResume()`、`A.onStop()`
+> * 两者生命周期是有重叠的
+>
+> ### 返回键
+>
+> * `onBackPressed()`
+>
+> ### 测试Activity的
+>
+> * 一个合格稳定的Activity，一定要在意外的情况下也能逻辑正确
+> * 其他应用(电话)阻断了此Activity
+> * 系统自动回收销毁又创建此Activity
+> * 将此Activity放在新的窗口环境中，如画中画、多窗口环境等
+>
+> ***
+
