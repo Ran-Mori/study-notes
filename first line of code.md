@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                       
+>                         
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                       
+>                         
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1386,7 +1386,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->     
+>       
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
@@ -1720,3 +1720,62 @@
 >
 > ***
 
+## Handler
+
+> ### 四个组成
+>
+> * Handler
+> * MessageQueue
+> * Looper
+> * Message
+>
+> ### 成员及方法信息
+>
+> * Handler
+>   * 成员变量
+>     * `MessageQueue`
+>     * `Looper`
+>   * 方法
+>     * 发送消息
+>     * 派发消息
+>
+> * MessageQueue
+>   * 方法
+>     * 入队消息
+>     * 出队消息
+>
+> * Message
+>   * 成员变量
+>   * `Handler`：所属的Hanlder
+>   * `Message`：下一条消息
+>
+> * Looper
+>   * 成员变量
+>     * `MessageQueue`
+>
+> ### Looper
+>
+> * `static prepare()`：给当前线程的threadLocal初始化set一个新的Looper
+> * `private Looper()`：给此Looper初始化set一个MessageQueue，因为Looper和线程绑定，传递性可知MessageQueue和线程绑定
+> * `statice loop()`：获取当前线程的looper对象，获取当前线程的MessageQueue对象，开始loop
+>
+> ### Handler
+>
+> * `Handler()`：绑定`mLooper`，绑定`mQueue`
+> * `dispatchMessage(message:Message)`：链式调用，首先自己`message.callback.run()`，接着`Handler.mCallback.handleMessage(msg)`，最后`Handler.handleMessage(msg)`方法
+> * `post(r:Runnalbe)`：把Runnable丢进MessageQueue
+>
+> ### Message
+>
+> * `Handler target`：消息的相应方
+> * `Runnable callback`：消息的回调方
+>
+> ### 消息池
+>
+> * 消息`Message`是可以进行复用的
+>
+> ### 总结
+>
+> * Handler最对外
+> * Looper、MessageQueue和线程ThreadLocal绑定
+> * Handler发送和分派消息，Looper不断入队消息和出队消息
