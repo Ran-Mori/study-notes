@@ -135,7 +135,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                         
+>                           
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +282,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                         
+>                           
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1386,7 +1386,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->       
+>         
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
@@ -1720,6 +1720,27 @@
 >
 > ***
 
+## Android系统架构开篇
+
+> ### 架构层
+>
+> * app
+> * java api
+> * native、android runtime
+> * hal 
+> * kernel
+>
+> ### 调用
+>
+> * api 和 native C++通过JNI调用
+> * native 和 kernel之间通过System call 调用
+>
+> ### 通信方式
+>
+> * `Binder`：进程间通信，CS架构
+> * `Socket`：主要用于framework层和native层之间的通信
+> * `Handler`：同进程的线程间的通信
+
 ## Handler
 
 > ### 四个组成
@@ -1779,3 +1800,61 @@
 > * Handler最对外
 > * Looper、MessageQueue和线程ThreadLocal绑定
 > * Handler发送和分派消息，Looper不断入队消息和出队消息
+>
+> ***
+
+## Binder
+
+> ### 重要性
+>
+> * 四大组件底层的通信都依赖 Binder IPC
+>
+> ### 原理
+>
+> * 进程之间的用户空间是不共享的，一般为3G
+> * 但进程之间的内核空间是共享的，一般为1G
+>
+> ### Binder原理
+>
+> * 应用层
+>   * Client，Server之间可以**间接**通信
+> * Native C++层
+>   * Client向ServiceManager申请获取服务
+>   * Server向ServiceManager申请注册服务
+> * 内核空间
+>   * Binder驱动设备(/dev/binder)
+>
+> ### 总结
+>
+> * 应用层的Client和Server之间不能直接交互，必须通过ServiceManager间接交互
+> * Binder驱动位于内核空间，而Client、Server、ServiceManager位于用户空间
+> * Binder和ServiceManager是Android平台的基础架构
+> * 开发人员只用自定义实现Client和Server即可实现通信
+>
+> ### Linux进程通信方式
+>
+> * `管道`：缓冲区大小比较小，且消息需要复制两次
+> * `消息队列`：复制两次
+> * `共享内存`：复制零次，效率高。但要自己处理同步问题
+> * `套接字`：更通用的接口，但效率低。只适用于不同机器不同网络
+> * `信号量`：主要作为一种锁机制，用于进程同步
+> * `信号量`：主要用于杀死进程等操作
+>
+> ### 为什么使用Binder
+>
+> * `性能`：binder只需要复制一次，性能仅次于共享内存
+> * `稳定性`：CS架构比较稳定
+> * `安全性`：Linux通信方式在内核态无任何保护措施，完全只看效率。Binder通信可以获得可靠的uid/pid
+> * `语言角度`：Binder机制是面向对象的。一个Binder对象在各个进程中都可以有引用
+> * `Google战略`：Google让GPL协议止步于Linux内核空间，而binder是实现在用户空间的
+>
+> ### 继承关系
+>
+> * `Java framework`：作为Server端继承(或间接继承)于Binder类，Client端继承(或间接继承)于BinderProxy类
+> * `Native Framework`：这是C++层，作为Server端继承(或间接继承)于BBinder类，Client端继承(或间接继承)于BpBinder
+>
+> ### 总
+>
+> * `无Binder不Android`
+>
+> ***
