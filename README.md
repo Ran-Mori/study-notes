@@ -5,7 +5,9 @@
 
 ## [深入理解Java虚拟机读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JVM.md)
 
-## [第一行代码读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/first%20line%20of%20code.md)
+## [第一行代码读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/FirstLineOfCode.md)
+
+## [Android探索艺术读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/AndroidDevelopExploreArt.md)
 
 ## [设计模式之禅读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
 
