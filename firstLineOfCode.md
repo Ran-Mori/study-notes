@@ -1,3 +1,5 @@
+
+
 # 第一行代码 - android
 
 ## 第一章 - 概述
@@ -135,7 +137,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->                           
+>                             
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -282,7 +284,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->                           
+>                             
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1386,7 +1388,7 @@
 >   startBind.setOnClickListener {
 >       bindService(intent,connection,Context.BIND_AUTO_CREATE)
 >   }
->         
+>           
 >   stopBind.setOnClickListener {
 >       unbindService(connection)
 >   }
