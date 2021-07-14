@@ -192,6 +192,10 @@
 >
 > * 只改变View内的内容位置，而不能改变View本身的布局位置
 >
+> ### 事件分发研究对象
+>
+> * `MotionEvent`事件的分发过程，即当一个`MotionEvent`产生以后，系统需要把这个事件传递给一个具体的View，而这个传递就是分发过程
+>
 > ### 事件机制三方法
 >
 > * `View.dispatchTouchEvent(MotionEvent event)`：Pass the touch screen motion event down to the target view, or this view if it is the target.
@@ -218,6 +222,43 @@
 >
 > * `true`代表消耗了事件，`false`代表未消耗事件
 >
+> ### 传递优先级
+>
+> * `onTouchListner`最高，`onTouchEvent`次之，`onClickListner`最低
+>
+> ### 暂时结论
+>
+> * 事件序列 - 从`ACTION_DOWN`开始，到`ACTION_UP`结束，中间有很多的`ACTION_MOVE`
+> * 一个事件序列正常情况下只能被一个`View`拦截并消耗
+> * `View`如果要处理事件，就必修消耗`ACTION_DOWN`事件，否则就向上抛；`View`一旦消耗`ACTION_DOWN`事件，即消耗整个事件
+> * `ViewGroup`默认不拦截任何事件，它的`onInterceptTouchEvent`方法默认返回false
+>
 > ### 分发流程
 >
-> * 
+> * 首先传递给`Activity`
+> * `Activity`讲事件传递给根容器`root view`，一般是`View Group`
+> * `View Group`将事件传递给它的`下一层View`
+> * `下一层View`传递给`再下一层View`
+> * 都没处理就让`Activity`处理
+>
+> ### 滑动冲突场景
+>
+> * 场景一 —— 类似于`ViewPager`，一个左右滑，一个上下滑
+> * 场景二 —— 两层`View`，且滑动方向还相同
+> * 场景三 —— 场景一和场景二复合
+>
+> ### 解决方式
+>
+> * 场景一 —— 根据滑动的方向来判断
+> * 场景二 —— 自定义规则来判断
+> * 场景三 —— 拆分成场景一和场景二解决
+>
+> ### 处理规则
+>
+> * 父容器拦截点击事件，如果父容器要处理就处理，不处理就将事件交给子容器
+>
+> ***
+
+## 第四章
+
+> 
