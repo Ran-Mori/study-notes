@@ -261,4 +261,88 @@
 
 ## 第四章
 
+> ### 三大流程
+>
+> * `measure`：决定`View`的测量宽和高
+> * layout：决定`View`四个顶点的位置和实际的宽和高
+> * draw：将`View`显示绘制在屏幕上
+>
+> ### 递归调用
+>
+> * 如果是`ViewGroup`，三大流程就如事件分发机制一样做递归调用
+>
+> ### MeasureSpec
+>
+> * `UNSPECIFIED`：父对子无限制。一般不用
+> * `EXACTLY`：父已经检测出了子的精确大小，就给那么大。对应`dp、match_parent`
+> * `AT_MOST`：父指定了一个最大值，最大不能超过这个值。对应`wrap_content`
+>
+> ### MeasureSpec和LayoutParams对应关系
+>
+> * 系统会将`LayoutParams`在父容器的约束下转换成对应的`MeasureSpec`，然后再根据这个`MeasureSpec`确定`View`的测量宽高 
+>
+> ### 父MeasueSpec和子LayoutParams决定子MeasureSpec
+>
+> |              | EXACTLY | AT_MOST |
+> | ------------ | ------- | ------- |
+> | dp           | EXACTLY | EXACTLY |
+> | match_parent | EXACTLY | AT_MOST |
+> | wrap_content | AT_MOST | AT_MOST |
+>
+> ### Measure
+>
+> * 测量`View`的宽度高度
+> * `ViewGroup`涉及递归调用
+> * `LinearLayout`这种先测出所有子View，最后根据子View最后测量自己
+> * `Measure`和`Activity`的生命周期不匹配，不一定取得到。如果没测完，就宽高都返回零
+>
+> ### 测量宽高和实际宽高
+>
+> * 测量宽高在measure时获得，实际宽高在layout时候获得
+> * 它们俩的值百分之九十九都是一样的
+> * 赋值时机measure偏前一点
+>
+> ### draw过程
+>
+> * 绘制背景
+> * 绘制自己
+> * 绘制children
+> * 绘制装饰(如滚动条)
+>
+> ### 自定义View
+>
+> * 比较难
+> * 是一个综合技术体系，涉及View的层次结构、事件分发机制和View的工作原理细节
+>
+> ### 自定义View分类
+>
+> * 继承`View`：需重写`onDraw()`，重写`onMeasure()`支持`wrap_content`，`padding`也要自己处理
+> * `继承ViewGroup`：自己处理`onMeasure()、onLayout()`，并还要顺带处理子元素的测量和布局
+> * 继承特定的`View`：简单
+> * 继承特定的`Layout`：简单
+>
+> ### 自定义View须知
+>
+> * 继承自View类不支持`wrap_content`
+> * 继承View类不支持`padding`
+> * 继承自ViewGroup类需要考虑padding和子元素margin的影响
+> * 不要在View中使用handler，因为View有post方法
+> * View有线程或者动画要及时停止，一般在`onDetachFromWindow()`中处理，不然内存泄漏
+> * 有嵌套处理要自己解决滑动冲突
+>
+> ***
+
+## 第五章
+
+> ### RemoteView
+>
+> * 在其他进程中显示
+> * 有一套api支持跨进程更新它的页面
+> * 主要用于通知栏和桌面小部件
+> * 其他进程一般就是指系统的SystemServer进程
+>
+> ***
+
+## 第七章
+
 > 
