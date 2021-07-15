@@ -100,9 +100,12 @@
 >
 > ### IPC
 >
-> * Intent
-> * SP
+> * Bundle
+> * 文件共享。总体可行，但要适当同步控制并发
+> * SP。在内存有缓存策略，并发多进程容易拿到脏数据
+> * Messenger。对AIDL的一个封装，方便使用
 > * Binder
+> * ContentProvider
 > * Socket
 >
 > ### Serializable
@@ -136,3 +139,126 @@
 > * 虚拟的物理设备，设备驱动是`/dev/binder`
 > * 是连接`Manager`和`Service`的桥梁
 > * 是客户端、服务端进行通信的媒介
+>
+> ### Binder核心
+>
+> * `boolean onTransact(int code, Parcel data, Parcel reply, int flags)`
+> * `boolean transact(int code, Parcel data, Parcel reply, int flags)`
+>
+> ### binder连接池
+>
+> * `Service`资源宝贵，且会显示在前台，不能随便多创建
+> * 因此服务端只有一个Service，不同的AIDL都要转发到这个Service中去
+> * 服务端有一个`queryBinder()`接口，能将不同的AIDL映射到对应的Binder
+> * 然后不同的binder都绑定相同的Service
+>
+> ***
+
+## 第三章
+
+> ### View类
+>
+> * 三万行，离谱
+> * `ViewGroup`继承自`View`，它即是一个`View`，也是一个`View Container`
+> * `LinearLayout`即是一个`View`，也是一个`View容器`
+> * `View`树和`DOM`树不能说毫无差别，只能说一模一样
+>
+> ### 真实位置和看到位置
+>
+> * View动画不改变View的真实位置，只改变View看到的位置
+> * 即动画过后看到新的位置不能点击，但原来的位置是可以点击的。因为它的真实位置根本就没有变化
+>
+> ### 位置参数
+>
+> * `left`：父容器最左边到此View最左边的宽度 - 真实位置
+> * `right`：父容器最左边到此View最右边的宽度 - 真实位置
+> * `top`：父容器最上面到此View最上面的宽度 - 真实位置
+> * `bottom`：父容器最上面到此View最下面的宽度 - 真实位置
+> * `x`：可视位置的left - 可视位置
+> * `y`：可视位置的top - 可视位置
+> * `translationX`：可视位置相对于真实位置的left - 当两位置相同时为零
+> * `translationY`：可视位置相对于真实位置的top - 当两位置相同时为零
+> * `x、y`变化，`left、top`不变
+>
+> ### Motion相关
+>
+> * `getX()、getY()`：触摸位置相对于当前View的位置
+> * `getRawX()、getRawY()`：触摸位置相对于物理屏幕左上角的位置
+> * `TouchSlop`：被认为是滑动的最小距离。单位是`dp`
+> * `VelocityTracker`：滑动速度相关
+> * `GestureDetector`：手势检测相关
+>
+> ### scrollTo()、scrollBy()
+>
+> * 只改变View内的内容位置，而不能改变View本身的布局位置
+>
+> ### 事件分发研究对象
+>
+> * `MotionEvent`事件的分发过程，即当一个`MotionEvent`产生以后，系统需要把这个事件传递给一个具体的View，而这个传递就是分发过程
+>
+> ### 事件机制三方法
+>
+> * `View.dispatchTouchEvent(MotionEvent event)`：Pass the touch screen motion event down to the target view, or this view if it is the target.
+> * `View.onTouchEvent(MotionEvent event)`：Implement this method to handle touch screen motion events.
+> * `ViewGroup.onInterceptTouchEvent(MotionEvent ev)`：This allows you to watch events as they are dispatched to your children, and take ownership of the current gesture at any point.
+>
+> ### 三方法伪代码
+>
+> ```kotlin
+> fun dispatchTouchEvent(val ev:MotionEvent){
+>   var consume = false
+>   if(onInterceptTouchEvent(ev)){
+>     consume = onTouchEvent(ev)
+>   } else {
+>     comsume = child.dispatchTouchEvent(ev)
+>   }
+>   return consume;
+> }
+> ```
+>
+> * 是一个递归函数
+>
+> ### 返回值true、false
+>
+> * `true`代表消耗了事件，`false`代表未消耗事件
+>
+> ### 传递优先级
+>
+> * `onTouchListner`最高，`onTouchEvent`次之，`onClickListner`最低
+>
+> ### 暂时结论
+>
+> * 事件序列 - 从`ACTION_DOWN`开始，到`ACTION_UP`结束，中间有很多的`ACTION_MOVE`
+> * 一个事件序列正常情况下只能被一个`View`拦截并消耗
+> * `View`如果要处理事件，就必修消耗`ACTION_DOWN`事件，否则就向上抛；`View`一旦消耗`ACTION_DOWN`事件，即消耗整个事件
+> * `ViewGroup`默认不拦截任何事件，它的`onInterceptTouchEvent`方法默认返回false
+>
+> ### 分发流程
+>
+> * 首先传递给`Activity`
+> * `Activity`讲事件传递给根容器`root view`，一般是`View Group`
+> * `View Group`将事件传递给它的`下一层View`
+> * `下一层View`传递给`再下一层View`
+> * 都没处理就让`Activity`处理
+>
+> ### 滑动冲突场景
+>
+> * 场景一 —— 类似于`ViewPager`，一个左右滑，一个上下滑
+> * 场景二 —— 两层`View`，且滑动方向还相同
+> * 场景三 —— 场景一和场景二复合
+>
+> ### 解决方式
+>
+> * 场景一 —— 根据滑动的方向来判断
+> * 场景二 —— 自定义规则来判断
+> * 场景三 —— 拆分成场景一和场景二解决
+>
+> ### 处理规则
+>
+> * 父容器拦截点击事件，如果父容器要处理就处理，不处理就将事件交给子容器
+>
+> ***
+
+## 第四章
+
+> 
