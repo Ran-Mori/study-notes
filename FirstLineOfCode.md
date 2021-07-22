@@ -137,7 +137,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->   
+>     
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -284,7 +284,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->   
+>     
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1144,7 +1144,20 @@
 > ### 定义`Observer`
 >
 > ```kotlin
-> class MyLifecycleObserver:LifecycleObserver {    @OnLifecycleEvent(Lifecycle.Event.ON_START)    fun onStart(){        Log.d("LifecycleObserver","onStart")    }    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)    fun onStop(){        Log.d("LifecycleObserver","onStop")    }    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)    fun onDestroy(){        Log.d("LifecycleObserver","onDestroy")    }}
+> class MyLifecycleObserver:LifecycleObserver {    
+>   @OnLifecycleEvent(Lifecycle.Event.ON_START)    
+>   fun onStart(){        
+>     Log.d("LifecycleObserver","onStart")    
+>   }    
+>   @OnLifecycleEvent(Lifecycle.Event.ON_STOP)    
+>   fun onStop(){        
+>     Log.d("LifecycleObserver","onStop")    
+>   }    
+>   @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)    
+>   fun onDestroy(){        
+>     Log.d("LifecycleObserver","onDestroy")    
+>   }
+> }
 > ```
 >
 > * 实现`LifecycleObserver`
@@ -1153,7 +1166,14 @@
 > ### `Obserable`订阅`Observer`
 >
 > ```kotlin
-> class FirstFragment : Fragment() {    private lateinit var myLifecycleObserver: MyLifecycleObserver    override fun onCreate(savedInstanceState: Bundle?) {        super.onCreate(savedInstanceState)        myLifecycleObserver = MyLifecycleObserver(this)        lifecycle.addObserver(myLifecycleObserver)    }}
+> class FirstFragment : Fragment() {    
+>   private lateinit var myLifecycleObserver: MyLifecycleObserver    
+>   override fun onCreate(savedInstanceState: Bundle?) {        
+>     super.onCreate(savedInstanceState)        
+>     myLifecycleObserver = MyLifecycleObserver(this)        
+>     lifecycle.addObserver(myLifecycleObserver)    
+>   }
+> }
 > ```
 >
 > ### 注
@@ -1311,6 +1331,83 @@
 > * Handler最对外
 > * Looper、MessageQueue和线程ThreadLocal绑定
 > * Handler发送和分派消息，Looper不断入队消息和出队消息
+>
+> ***
+
+## MVP、Handler实例
+
+> ### FatherModel.java
+>
+> ```java
+> class FatherModel<T> implements IHandler{
+>   	protected void handleData(T data) {
+>         //无实现，子类overwrite它
+>     }
+>   
+>   	//重写WeakHandler的handleMsg方法
+>   	@Overrite
+>   	public void handleMsg(Message msg){
+>       	//调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
+>       	handleData(msg.obj);
+>       	//成功了调用listner的onSuccess()方法。此处listner为Presenter
+>         listener.onSuccess();
+>     }
+> }
+> ```
+>
+> ### SonModel.kt
+>
+> ```java
+> class SonModel extend FatherModel{
+>   	private fun fetchData(){
+>       	use a handler to commit a Runnable
+>     }
+>   	override fun handleData(response: Response?){
+>       	//重写父类的handleData
+>     }
+> }
+> ```
+>
+> ### FatherPresenter.java
+>
+> ```java
+> class FatherPresenter{
+>   	//在父类的构造方法处将Presenter作为观察者，Model作为被观察者
+>   	public void bindMyModel(Type myModel) {
+>         this.mModel = myModel;
+>         this.mModel.addNotifyListener(this);
+>     }
+> }
+> ```
+>
+> ### SonPresenter.java
+>
+> ```java
+> class SonPresenter extend FatherPresenter{
+>   	//成功的方法。SonPresenter作为观察者，这是观察者的一个回调方法
+>   	override fun onSuccess(){
+>       	//成功调用View的doSuccess()方法
+>       	mView.doSuccess()
+>     }
+> }
+> ```
+>
+> ### 方法调用顺序
+>
+> * `View.getData()`
+> * `SonPresenter.getData()`
+> * `SonModel.getData()`
+> * `SonModel.commitARunnalbe()`
+> * `成功获取到数据,但过程是使用handler模式获得的，在message里面`
+> * `FatherModel.handleMsg()`
+>   * 这一步是handler机制决定的，且方法名都不能改
+>   * 其中设计dispatch机制
+> * `FantherModel.handleData()`
+>   * 此步不执行，由于动态分派规则让子类执行
+> * `SonModel.handleData()`
+> * `SonPresenter.onSuccess()`
+>   * 这是观察者模式决定的，SonPresenter被添加为了Lisnter
+> * `View.doSuccess`
 >
 > ***
 
