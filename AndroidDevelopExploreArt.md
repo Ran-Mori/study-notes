@@ -345,4 +345,75 @@
 
 ## 第七章
 
-> 
+> ### 三种动画
+>
+> * View动画
+> * 帧动画
+> * 属性动画
+>
+> ### View动画
+>
+> * 写在`res/anime`下
+> * 是一个`xml`文件
+> * 通过`R.anim.xmlname`引入使用
+>
+> ### 帧动画
+>
+> * 原理：连续的放图片，容易OOM
+> * 通过xml定义一个AnimationDrawable
+> * 把这个Drawable作为图像的background即可实现动画
+>
+> ### LayoutAnimation
+>
+> * 是一种特殊的View动画
+> * 作用于`ViewGroup`，这样它的子元素出场就有动画效果
+> * 常用于`RecycleView`
+> * 还是通过xml文件来指定
+>
+> ### Activity的切换效果
+>
+> * 重写`Activity.overridePendingTransition(int enterAnim, int exitAnim)`
+> * 动画id实际上也是一个xml文件
+>
+> ### 属性动画
+>
+> * 动态改变图像的属性，只支持API 11以上。低级的需要用兼容库
+> * 只要图像有这个属性，就能够使用属性动画
+> * 需要图像提供对应属性值的`get`和`set`方法
+>
+> ### ObjectAnimator
+>
+> * 继承自`ValueAniamtor`
+> * `public static ObjectAnimator ofInt(Object target, String propertyName, int... values)`
+> * 比`ValueAnimator`封装度更高一点
+> * 透明度这种可以使用，但无`onEndListener`这种就比较不方便
+>
+> ### Interpolator
+>
+> * 根据时间流逝百分比计算当前属性值改变的百分比
+> * 注意核心是计算出百分比，真正的值为多少与它无关
+> * 线性插值器
+> * 加速插值器
+> * 减速插值器
+>
+> ### Evaluator
+>
+> * 根据当前属性改变的百分比来计算改变后的属性值
+> * `public Integer evaluate(float fraction, Integer startValue, Integer endValue)`
+> * 得到百分比估算出实际的属性值
+>
+> ### Button不能动画改变其width
+>
+> * `Button`继承了`TextView`
+> * `Button.getWidth()`是`View.getWidth()`
+> * `Button.setWidth()`是`TextView.setWidth()`
+> * 因此button的宽度不能使用属性动画
+>
+> ### 使用动画注意事项
+>
+> * 帧动画OOM
+> * 兼容性问题，低版本不支持属性动画
+> * View动画是对View影像做动画，并不能改变View的状态
+>
+> ***
+
