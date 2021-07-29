@@ -137,7 +137,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->     
+>       
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -284,7 +284,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->     
+>       
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -1464,3 +1464,41 @@
 > ### 总
 >
 > * `无Binder不Android`
+>
+> ***
+
+## ConstrainLayout属性
+
+> ### layout_constraintHorizontal_bias
+>
+> * 设左右约束布局分别为`left`和`rigth`
+> * `bias` = `left` / `(left + right)`
+>
+> ### layout_constraintHorizontal_chainStyle
+>
+> * `spread`：左边界、中间、右边界平分所有空间
+> * `spread_inside`: 只有中间的平分
+> * `packed`:左边界、右边界平分。中间全部聚拢
+>
+> ***
+
+## .9.png
+
+> ### left
+>
+> * 决定上下缩放那些区域可以缩放
+>
+> ### top
+>
+> * 决定左右缩放那些区域可以缩放
+>
+> ### right
+>
+> * 决定上下那些区域可以放置实际内容
+>
+> ### bottom
+>
+> * 决定左右那些区域可以放置实际内容
+>
+> ***
+
