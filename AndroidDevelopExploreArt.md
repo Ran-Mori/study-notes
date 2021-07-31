@@ -236,7 +236,7 @@
 > ### 分发流程
 >
 > * 首先传递给`Activity`
-> * `Activity`讲事件传递给根容器`root view`，一般是`View Group`
+> * `Activity`将事件传递给根容器`root view`，一般是`View Group`
 > * `View Group`将事件传递给它的`下一层View`
 > * `下一层View`传递给`再下一层View`
 > * 都没处理就让`Activity`处理
@@ -264,8 +264,8 @@
 > ### 三大流程
 >
 > * `measure`：决定`View`的测量宽和高
-> * layout：决定`View`四个顶点的位置和实际的宽和高
-> * draw：将`View`显示绘制在屏幕上
+> * `layout`：决定`View`四个顶点的位置和实际的宽和高
+> * `draw`：将`View`显示绘制在屏幕上
 >
 > ### 递归调用
 >
@@ -294,7 +294,7 @@
 > * 测量`View`的宽度高度
 > * `ViewGroup`涉及递归调用
 > * `LinearLayout`这种先测出所有子View，最后根据子View最后测量自己
-> * `Measure`和`Activity`的生命周期不匹配，不一定取得到。如果没测完，就宽高都返回零
+> * `Measure`和`Activity`的生命周期不匹配，不一定取得到。如果没测完，则宽高都返回零
 >
 > ### 测量宽高和实际宽高
 >
@@ -317,18 +317,23 @@
 > ### 自定义View分类
 >
 > * 继承`View`：需重写`onDraw()`，重写`onMeasure()`支持`wrap_content`，`padding`也要自己处理
-> * `继承ViewGroup`：自己处理`onMeasure()、onLayout()`，并还要顺带处理子元素的测量和布局
+> * 继承`ViewGroup`：自己处理`onMeasure()、onLayout()`，并还要顺带处理子元素的测量和布局
 > * 继承特定的`View`：简单
 > * 继承特定的`Layout`：简单
 >
 > ### 自定义View须知
 >
 > * 继承自View类不支持`wrap_content`
-> * 继承View类不支持`padding`
+> * 继承自View类不支持`padding`
 > * 继承自ViewGroup类需要考虑padding和子元素margin的影响
 > * 不要在View中使用handler，因为View有post方法
 > * View有线程或者动画要及时停止，一般在`onDetachFromWindow()`中处理，不然内存泄漏
 > * 有嵌套处理要自己解决滑动冲突
+>
+> ### View.post()和Handler.post()
+>
+> * 如果view已经attach到window了，那么View#post和Handler#post作用一样，都是往调用UI主线程的MessageQueue中扔Runnable
+> * 如果view还未attach到window中，则需要通过一个缓存队列将Runnable暂时先缓存起来，等到view attach到window上之后，再将缓存队列中的Runnable取出来，再扔到UI线程的MessageQueue中
 >
 > ***
 
@@ -414,6 +419,59 @@
 > * 帧动画OOM
 > * 兼容性问题，低版本不支持属性动画
 > * View动画是对View影像做动画，并不能改变View的状态
+>
+> ***
+
+## 第八章
+
+> ### Window
+>
+> * `WindowManager`和`WindowManagerService`交互是IPC过程，通过`binder`
+> * Android所有视图，如`Acticity、Dialog、Toast`视图都是通过`Window`来呈现的
+> * `Window`是`View`的直接管理者
+> * 事件由`Window`传给`DecorView`
+>
+> ### Window的三种类型
+>
+> * 应用Window：对应一个Activity
+> * 子Window：必须存在于父Window中
+> * 系统WIndow：比如Toast和系统状态栏。声明系统Window是需要`AndroidManifest.xml`中声明权限
+>
+> ### Window的分层
+>
+> * window显示和图层的覆盖一样
+> * 图层高低用`层级范围`表示
+>
+> ### WindowManager方法
+>
+> * `WindowManager`继承自`ViewManager`
+>
+> ```java
+> public interface ViewManager
+> {
+>     public void addView(View view, ViewGroup.LayoutParams params);
+>     public void updateViewLayout(View view, ViewGroup.LayoutParams params);
+>     public void removeView(View view);
+> }
+> ```
+>
+> * 三个方法 —— 增、删、改
+> * 平时拖动Window的效果：根据手指位置设置`LayoutParams`的值
+>
+> ```java
+> mLayoutParams.x = rawX;
+> mLayoutParams.y = rawY;
+> mWindowManager.updateViewLayout(view, layoutParam);
+> ```
+>
+> ### 理解
+>
+> * `Window`是一个抽象概念，且其自身就是一个抽象类
+> * `WindowManger`是外界访问`Window`的入口
+> * 真正的实现在`WMS`。`WM、WMS`通过`binder`机制IPC通信
+> * 在创建视图并显示出来时，首先是通过创建一个Window对象，然后通过WindowManager对象的 `addView(View view, ViewGroup.LayoutParams params)`; 方法将 contentView 添加到Window中，完成添加和显示视图这两个过程
+> * 在关闭视图时，通过WindowManager来移除DecorView， mWindowManager.removeViewImmediate( view)
+> * Toast比较特殊，具有定时取消功能，所以系统采用了Handler
 >
 > ***
 
