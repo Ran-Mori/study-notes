@@ -29,11 +29,11 @@
 > ### Hello World
 >
 > * go语言在代码格式上采取了很强硬的态度
->
+> 
 > ### 格式化
 >
 > * `fmt.Printf("two = %b,eight = %o,ten = %d,sixteen = %x",100,100,100,100)`
->
+> 
 > ***
 
 ## 第二章 - 程序结构
@@ -47,7 +47,7 @@
 >
 > * 基础格式`var 变量名 变量类型 = 变量值`
 > * 如果没有类型会根据变量值自动推导
-> * 即时没有变量值也会初始化零值
+> * 即使没有变量值也会初始化零值
 > * go语言不存在未初始化的变量
 >
 > ### 简短变量
@@ -118,7 +118,7 @@
 > ### go语言四种类型
 >
 > * 基础类型
-> * 符合类型
+> * 复合类型
 > * 引用类型
 > * 接口类型
 >
@@ -423,6 +423,66 @@
 > ### 作者忠告
 >
 > * 能不用reflect和unsafe包就尽量别用
+>
+> ***
+
+## 建立Go项目
+
+> * 配置环境变量
+>
+> ```bash
+> export PATH=$JAVA_HOME/bin:/Users/bytedance/enviroment/go/bin:$PATH
+> export GO111MODULE=on
+> ```
+>
+> * 使用Golang新建一个项目，路径为`$home/awesomeProject`
+> * 在`$home/awesomeProject`下执行`go mod init awesome/project`命令生成`go.mod`文件
+> * 设置环境变量`GO111MODULE`值为`on`，完全抛弃老旧的`GOPATH`模式包依赖
+> * 此时路径关系如下
+>
+> ```bash
+> - awesomeProject
+> 	- src
+> 		- model
+> 			- song.go
+> 		- main.go
+> 	- go.mod
+> ```
+>
+> * 在`main.go` 可以使用`import "awemesome/project/src/model"`引入自己自定义包
+> * `main.go`
+>
+> ```go
+> package main
+> 
+> import (
+> 	"awemesome/project/src/model"
+> 	"fmt"
+> )
+> 
+> func main() {
+> 	var song = model.Song{10}
+> 	fmt.Print(song)
+> }
+> ```
+>
+> * `song.go`
+>
+> ```go
+> package model
+> 
+> type Song struct {
+> 	Id int
+> }
+> ```
+>
+> * `go.mod`
+>
+> ```bash
+> module awemesome/project
+> 
+> go 1.16
+> ```
 >
 > ***
 
