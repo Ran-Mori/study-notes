@@ -19,6 +19,8 @@
 
 ## [bytedance新人课堂笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
 
+## [Dayily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
+
 ## [数字图像处理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DigitalImageProcessing.md)
 
 ## [狂神JavaScript学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JavaScript.md)
