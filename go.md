@@ -53,6 +53,7 @@
 > ### 简短变量
 >
 > * 基础格式`变量名 := 变量值`
+> * 简短变量只能够在函数中使用，在`.go`文件内声明变量必须严格使用`var`格式
 > * 变量类型根据变量值自动推导
 > * `=`是一个赋值符号，而`:=`是一个声明符号
 > * 多个简短变量联合声明必须保证左边至少有一个变量是声明
@@ -60,6 +61,7 @@
 > ### 指针
 >
 > * go不像c语言，go的函数内的指针在返回后依然有效，而c则是无效
+> * `go`有语法糖。本应该使用`(*p).field`的地方可以使用`p.field`
 >
 > ### new()函数
 >
@@ -111,10 +113,76 @@
 > * 生命周期是存在的时间段，是一个运行时属性
 > * `for`、`if`这种语句在判断时就有一个作用域
 >
+> ### For
+>
+> ```go
+> sum := 0
+> for i := 1; i <= 100; i++ {
+>   sum += i
+> }
+> 
+> //for就是while
+> for x > 0 {
+>   
+> }
+> ```
+>
+> ### If
+>
+> ```go
+> if x < 0 {
+>   x = -x
+> } else if {
+>   x = x	
+> }
+> 
+> //变量v只在if体内生效
+> if v := math.Pow(x, n); v < lim {
+>   v = lim
+> }
+> ```
+>
+> ### Swich
+>
+> ```go
+> switch os := runtime.GOOS; os {
+>   case "darwin":
+>   	fmt.Println("OS x")
+>   case "linux":
+>   	fmt.Println("linux")
+>   default:
+>   	fmt.Println("others")
+> }
+> ```
+>
+> ### defer
+>
+> * 直到方法体结束`defer`才执行
+> * 同一个方法体多个`defer`按照顺序压栈，先进后执行
+>
+> ```go
+> fmt.Println("counting")
+> for i := 0; i < 10; i++ {
+>   defer fmt.Println(i)
+> }
+> fmt.Println("done")
+> ```
+>
 > ***
 
 ## 第三章 - 基础数据类型
 
+> ### go的基础数据类型
+>
+> * `string、int、float、complex`
+> * 其中`int`有`8,16,32,64,u8,u16,u32,u64`。`int、uint`位宽取决于机器大小
+> * `byte`其实是`uint8`
+> * `rune`其实是`int32`
+>
+> ### 强制转换
+>
+> * `Type(value)`
+>
 > ### go语言四种类型
 >
 > * 基础类型
@@ -166,21 +234,76 @@
 
 ## 第四章 - 复合数据类型
 
+> ### Struct
+>
+> ```go
+> type Song struct {
+>   Id int
+>   Name string
+>   Singer string
+> }
+> ```
+>
+> 
+>
 > ### 数组
 >
 > * 大小固定，很少使用，除非能确定大小，否则不使用数组
-> * 数组的长度必须是常量，即必须在编译器确定大小，如果不能确定，就不应该使用数组
+> * 数组的长度必须是常量，即必须在编译期确定大小，如果不能确定，就不应该使用数组
 > * 相同长度的数组可以进行大小比较
 > * go语言也是和Java一样是值传递，因此传入一个数组要进行复制效率肯定比较低，因此大多数是传递数组的指针
+> * 声明
+>
+> ```go
+> var array [2]int //自动初始为零值
+> var array = [2]int{1, 2} //手动初始化
+> ```
 >
 > ### Slice
 >
 > * 可以理解成Java里面的List
 > * Slice有两个重要属性
->   * cap值：代表现在底层数组的实际大小
+>   * cap值：代表现在底层数组的实际大小。实际上底层就是一个数组
 >   * len值：代表现在实际正在使用的有多少
-> * 访问范围大于cap但小于len是允许的，但大于cap是越界不允许的
+> * 即使`cap`够但访问范围超过`len`依然是不允许的
 > * slice是不能进行比较的
+> * slice不存储数据，它只是一段数组的引用
+> * 声明
+>
+> ```go
+> //截取固定长度数组式声明
+> primes := [6]int{2, 3, 5, 7, 11, 13}
+> s := primes[1:4]
+> 
+> //使用make声明
+> a := make([]int,2,3) //len=2,cap=3
+> a[2] = 2//会报错
+> a := a[0,3]//把len从2扩成3
+> a[2] = 2//不会报错
+> ```
+>
+> * append cap不够会重新分配内存
+>
+> ```go
+> old := make([]int,2,2)
+> new := append(old,2)
+> ```
+>
+> * range
+>
+> ```go
+> q := make([]int,2,2)
+> for i,v := range q {
+>   fmt.Println(i,v)
+> }
+> ```
+>
+> ### map
+>
+> * 声明：`m := make(map[string]string)`
+> * 赋值：`m["izumisakai"] = "So together"`
+> * 读值：`elem, ok = m[key]`
+> * 删除：`delete(m, key)`
 >
 > ### json
 >
@@ -194,7 +317,76 @@
 >
 > ### 方法
 >
-> * 方法的接受者可以是对象也可以是指针，当对象能够直接.方法调用接受者是指针的方法时，这是go的语法糖，会隐式地做一个类型转换
+> * 方法的返回值可以是多个
+>
+> ```go
+> func swap(x, y int) (int, int) {
+>   return y, x
+> }
+> ```
+>
+> * 返回值命名和裸返回
+>
+> ```go
+> func split(sum int) (x, y int) {
+> 	x = sum * 4 / 9
+> 	y = sum - x
+> 	return
+> }
+> ```
+>
+> * 指定方法的接收者. `a method is just a function with a receiver argument.`
+>
+> ```go
+> func (s *SongController)QueryAll() {}
+> ```
+>
+> * 方法的接受者可以是对象也可以是指针，当对象能够直接`.`方法调用接受者是指针的方法时，这是go的语法糖，会隐式地做一个类型转换
+> * go推荐函数接收者使用指针而不是对象
+>   * `The first is so that the method can modify the value that its receiver points to.`
+>   * `The second is to avoid copying the value on each method call. This can be more efficient if the receiver is a large struct`
+>
+> ### 高阶函数
+>
+> ```go
+> func main() {
+> 	a := func(x int, y int) int { return x + y }
+> 	fmt.Println(add(a,1,2))
+> }
+> 
+> func add(add func(x int, y int) int, x int, y int) int {
+> 	return add(x, y)
+> }
+> ```
+>
+> ### 闭包
+>
+> ```go
+> func getSequence() func() int {
+>    i:=0
+>    return func() int {
+>       i+=1
+>      return i  
+>    }
+> }
+> 
+> func main(){
+>    /* nextNumber 为一个函数，函数 i 为 0 */
+>    nextNumber := getSequence()  
+> 
+>    /* 调用 nextNumber 函数，i 变量自增 1 并返回 */
+>    fmt.Println(nextNumber()) // 1
+>    fmt.Println(nextNumber()) // 2
+>    fmt.Println(nextNumber()) // 3
+>    
+>    /* 创建新的函数 nextNumber1，并查看结果 */
+>    nextNumber1 := getSequence()  
+>    fmt.Println(nextNumber1()) // 1
+>    fmt.Println(nextNumber1()) // 2
+> }
+> ```
+>
+> 
 >
 > ***
 
@@ -215,14 +407,68 @@
 > ### 空接口
 >
 > * `interface{}`空接口类型对实现它的类型没有任何要求，因此可以把任何一个类型赋值给空接口
+> * 因为每个类都实现了没有任何方法的接口
 > * 有那么一点Java的Object内味了
 >
 > ### 接口的值
 >
 > * 接口的值就是一个具体的类型和那个类型的值
-> * 即如`var w io.Writer = os.Stdout`，此时w的type类型值为`*os.File`，它的类型的值为`os.Stdout`的指针副本
-> * 接口的零值就是具体类型和那个类型的值都为nil
+> * 即如`var w io.Writer = os.Stdout`，此时w的type类型值为`*os.File`，它的type的值为`os.Stdout`的指针副本
 > * `var x interface{} = time.Now()`，不论接口值多大，理论上动态值都能把它容下
+> * 接口类型不为空，但接口类型的实际值为空调用方法时不会空指针
+> * `Note that an interface value that holds a nil concrete value is itself non-nil.`
+>
+> ```go
+> type I interface {
+> 	M()
+> }
+> 
+> type T struct {
+> 	S string
+> }
+> 
+> func (t *T) M() {
+> 	if t == nil {
+> 		fmt.Println("<nil>")
+> 		return
+> 	}
+> 	fmt.Println(t.S)
+> }
+> 
+> func describe(i I) {
+> 	fmt.Printf("(%v, %T)\n", i, i)
+> }
+> 
+> func main() {
+> 	var i I
+> 	var t *T
+> 	i = t
+>   //此处不会报空指针异常
+>   describe(i) // (<nil>, *main.T)
+> }
+> ```
+>
+> * 接口类型推断
+>
+> ```go
+> //i是一个接口。现在在判断i的类型是不是string，如果不是，ok = false，s为string的零值""
+> s, ok := i.(string)
+> ```
+>
+> * type swich
+>
+> ```go
+> func do(i interface{}) {
+> 	switch v := i.(type) {
+> 	case int:
+> 		fmt.Printf("Twice %v is %v\n", v, v*2)
+> 	case string:
+> 		fmt.Printf("%q is %v bytes long\n", v, len(v))
+> 	default:
+> 		fmt.Printf("I don't know about type %T!\n", v)
+> 	}
+> }
+> ```
 >
 > ### Sort接口
 >
@@ -478,9 +724,8 @@
 >
 > * `go.mod`
 >
-> ```bash
+> ```go
 > module awemesome/project
-> 
 > go 1.16
 > ```
 >
