@@ -17,3 +17,41 @@
 >
 > ***
 
+## 210808 - 210815
+
+> ### 多态
+>
+> * Father.kt
+>
+> ```kotlin
+> open class Father() {
+>     var name: String = ""
+>     var age: Int = 0
+> }
+> ```
+>
+> * Son.kt
+>
+> ```kotlin
+> class Son: Father() {
+>     var type: Int = 0
+> }
+> ```
+>
+> * Main.kt
+>
+> ```kotlin
+> fun main(args:Array<String>){
+>     var father: Father? = null
+>     var son: Son = Son()
+>     son.type = 10
+>     father = son
+>   	father.type = 9 //编译错误，father无type字段
+>     val type = (father as? Son)?.type ?: 0
+>     print("type = $type") // type = 10
+> }
+> ```
+>
+> * 静态类型为父类，运行时类型为子类。将运行时子类强转成子类类型就能完全访问使用了
+>
+> 
