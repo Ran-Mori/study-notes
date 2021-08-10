@@ -4,8 +4,7 @@
 
 > ### 概述
 >
-> * 就是一个观察者模式的框架
-> * 方便使用观察者模式
+> * 就是一个耦合度极低的观察者模式的框架
 >
 > ### 引入依赖
 >
@@ -19,10 +18,15 @@
 > data class MessageEvent(val msg:String)
 > ```
 >
-> ### 定义接收者Obserer的update方法
+> ### 定义观察者Observer的处理事件方法
 >
 > ```kotlin
-> @Subscribe(threadMode = ThreadMode.BACKGROUND)fun subscribe(msg:MessageEvent){  Log.d("MainActivity","receive a message")  binding.buttonFirst.text = msg.msg  Toast.makeText(activity,"click one",Toast.LENGTH_LONG).show()}
+> @Subscribe(threadMode = ThreadMode.BACKGROUND)
+> fun subscribe(msg:MessageEvent){  
+>     Log.d("MainActivity","receive a message")  
+>     binding.buttonFirst.text = msg.msg  
+>     Toast.makeText(activity,"click one",Toast.LENGTH_LONG).show()
+> }
 > ```
 >
 > ### 四种threadMode模式
@@ -40,7 +44,14 @@
 > ### 注册与解注册
 >
 > ```kotlin
-> override fun onStart() {  super.onStart()  EventBus.getDefault().register(this)}override fun onStop() {  super.onStop()  EventBus.getDefault().unregister(this)}
+> override fun onStart() {  
+>   super.onStart()  
+>   EventBus.getDefault().register(this)
+> }
+> override fun onStop() {  
+>   super.onStop()  
+>   EventBus.getDefault().unregister(this)
+> }
 > ```
 >
 > * 使用的是默认的`EventBus`对象
@@ -117,7 +128,7 @@
 > ### 观察
 >
 > ```java
-> public void observe(LifecycleOwner owner,Observer<? super T> observer) {}
+> public void observe(LifecycleOwner owner, Observer<? super T> observer) {}
 > ```
 >
 > ***
@@ -417,6 +428,33 @@
 > ### bottom
 >
 > * 决定左右那些区域可以放置实际内容
+>
+> ***
+
+## RxJava
+
+> ### 四个角色
+>
+> * `Observable`：`produce event`
+> * `Observer`：`consume event`
+> * `Subscribe`：`a connection between observalbe and observer`
+> * `Event`：`carry message`
+>
+> ### 使用步骤
+>
+> * 创建`Observable`并产生事件
+> * 创建`Observer`定义消费事件行为
+> * 通过`Subscrib`连接`observable`和`Observer`
+>
+> ### 核心方法
+>
+> * `observable.subscribe(observer);`或者`observable.subscribe(subscriber)；`
+> * 即相当于`addObserver(observer)`
+>
+> ### 两个方法
+>
+> * `subscribeOn(final Scheduler scheduler)`：`specify the Scheduler on which an Observable will operate`
+> * `observeOn(final Scheduler scheduler)`：`specify the Scheduler on which an observer will observe this Observable`
 >
 > ***
 
