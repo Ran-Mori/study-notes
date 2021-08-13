@@ -54,4 +54,56 @@
 >
 > * 静态类型为父类，运行时类型为子类。将运行时子类强转成子类类型就能完全访问使用了
 >
-> 
+> ### ViewGroup
+>
+> * `ViewGroup.addView(View child)`：向一个`ViewGroup`中添加`View`
+> * `ViewGroup.removeAllViews()`：删除所有View
+> * `ViewGroup.getChildCount()`：获取child个数
+> * `LinearLayout`
+>   * 是`ViewGroup`
+>   * `xml`里面定义的是编译期`childen`
+>   * 运行时可以调用父类`ViewGroup`的方法进行修改
+>
+> ### 动态修改margin
+>
+> ```kotlin
+> (mApproveBtn.layoutParams as? LinearLayout.LayoutParams)?.apply {
+>     leftMargin = UIUtils.dip2Px(mItemView.context, 8F).toInt()
+>     mApproveBtn.layoutParams = this
+> }
+> ```
+>
+> ### UML图
+>
+> * `实现关系`：接口及实现类的关系。由一个三角形一条直线组成
+> * `泛化关系`：对象与对象之间的继承关系。由一个三角形和一条直线组成
+> * `关联关系`：对象与对象之间的连接关系。通常为一个对象持有另一个对象的引用。往往还有数量关系。由一个带箭头的实现组成
+> * `依赖关系`：对象与对象之间的弱关联关系。通常为构造器、方法局部参数、返回值、静态方法调用
+>
+> ### ViewHolder.Bind()
+>
+> * `ViewHolder.bind()`会在绑定的时候调用，用得好会有很多好处
+> * 比如展示备注按钮
+>
+> ### ViewHolder获取根View
+>
+> ```kotlin
+> class MyFragment() {
+>   private mRootView: ViewGroup? = null
+>   override fun onCreateView() {
+>     val view = nflater.inflate(viewGroup, container, false)
+>     (view as? ViewGroup)?.let{
+>       mRootView = it
+>     }
+>   }
+> }
+> ```
+>
+> ### 传递方式
+>
+> * 通过构造函数传入
+> * 通过私有变量，通过公有`set、get`方法对外暴露
+> * 结合第二点通过高阶函数传递
+>
+> ***
+

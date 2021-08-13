@@ -456,5 +456,9 @@
 > * `subscribeOn(final Scheduler scheduler)`：`specify the Scheduler on which an Observable will operate`
 > * `observeOn(final Scheduler scheduler)`：`specify the Scheduler on which an observer will observe this Observable`
 >
+> ### zip
+>
+> * `public static <T1, T2, R> Observable<R> zip(ObservableSource<? extends T1> source1, ObservableSource<? extends T2> source2,BiFunction<? super T1, ? super T2, ? extends R> zipper){ ... }`
+>
 > ***
 
