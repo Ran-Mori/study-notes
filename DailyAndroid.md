@@ -462,3 +462,47 @@
 >
 > ***
 
+## RecyclerView优化
+
+> ### ItemView生命周期
+>
+> * `create`：主要对应`onCreateViewHolder()`
+> * `bind`：主要对应`onBindViewHolder()`
+> * `addView`
+> * `measure`
+> * `layout`
+> * `draw`
+>
+> ### onCreatViewHolder
+>
+> * 只有在`RecyclerView`的多级缓存被击穿时才会调用，一旦调用，卡帧就特别明显
+> * 可以采取异步线程调用UI线程获取方式，等于在多级缓存后面又加了一个自己的j异步View缓存池
+>
+> ### onBindViewHolder
+>
+> * 精简代码逻辑
+> * 预加载
+> * 异步
+> * 延迟绑定
+> * 复用
+>
+> ### onMeasure耗时优化
+>
+> * 最核心的思路是禁止`measure`两次
+> * `mearsure`两次情形
+>   * `RelativeLayout`
+>   * `LinearLayout`使用了`weight`属性
+>   * `ConstrainttLayout`设置`width = 0`，根据`toLeftOf、toRightOf`确定宽度
+> * 禁止`RTL`布局
+>
+> ### addView、removeView
+>
+> * 没啥优化的点
+> * 注意`View.onAttach()、View.onDetach()`方法调用
+>
+> ### 通用优化
+>
+> * 滑动期间规避全局`requestLayout`
+>
+> ***
+
