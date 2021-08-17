@@ -132,3 +132,10 @@
 >
 > ***
 
+## 210816 - 210822
+
+> ### LayoutParams
+>
+> * `View.getLayoutParams()`：每个View都有这个方法，既每个View都有`mLayoutParams`属性
+> * `ViewGroup.LayoutParams`决定了父容器怎么arrange这个View
+> * `LayoutParams`有很多子类，如`LinearLayout.LayoutParams`、`FrameLayout.LayoutParams`、`RelativeLayout.LayoutParams`。不同的子类对应父容器不同，即如果父容器是`FrameLayout`则子View的`mLayoutParams`应该是`FrameLayout.LayoutParams`
