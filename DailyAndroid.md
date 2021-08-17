@@ -67,7 +67,7 @@
 > ### 概述
 >
 > * 本质上还是一个观察者模式
-> * `Observable`是本身拥有生命周期的`Activity、Fragment`
+> * `Observable`是本身拥有生命周期的`Activity`、`Fragment`
 > * `Observer`是自定义的
 >
 > ### 定义`Observer`
@@ -89,10 +89,10 @@
 > }
 > ```
 >
-> * 实现`LifecycleObserver`
+> * `LifecycleObserver`接口没有任何方法
 > * 使用`@OnLifecycleEvent`注解
 >
-> ### `Obserable`订阅`Observer`
+> ### `Observable`订阅`Observer`
 >
 > ```kotlin
 > class FirstFragment : Fragment() {    
@@ -151,7 +151,10 @@
 > * 给`Activity`单独声明权限
 >
 > ```xml
-> <manifest><activity android:name="...."	android:permission=”com.google.socialapp.permission.SHARE_POST”/>
+> <manifest>
+>   <activity android:name="...."	
+>             android:permission=”com.google.socialapp.permission.SHARE_POST”/>
+> </manifest>
 > ```
 >
 > * `父Activity`的权限必须是`子Activty`的真子集时，父才能启动子
@@ -171,7 +174,7 @@
 >
 > * `onBackPressed()`
 >
-> ### 测试Activity的
+> ### 健壮的Activity
 >
 > * 一个合格稳定的Activity，一定要在意外的情况下也能逻辑正确
 > * 其他应用(电话)阻断了此Activity
@@ -200,6 +203,8 @@
 > * `Binder`：进程间通信，CS架构
 > * `Socket`：主要用于framework层和native层之间的通信
 > * `Handler`：同进程的线程间的通信
+>
+> ***
 
 ## Handler
 
@@ -248,7 +253,7 @@
 >
 > ### Message
 >
-> * `Handler target`：消息的相应方
+> * `Handler target`：消息的响应方
 > * `Runnable callback`：消息的回调方
 >
 > ### 消息池
@@ -269,18 +274,18 @@
 >
 > ```java
 > class FatherModel<T> implements IHandler{
-> 	protected void handleData(T data) {
->      //无实现，子类overwrite它
->  }
+>   protected void handleData(T data) {
+>        //无实现，子类overwrite它
+>    }
 > 
-> 	//重写WeakHandler的handleMsg方法
-> 	@Overrite
-> 	public void handleMsg(Message msg){
->    	//调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
->    	handleData(msg.obj);
->    	//成功了调用listner的onSuccess()方法。此处listner为Presenter
->      listener.onSuccess();
->  }
+>   //重写WeakHandler的handleMsg方法
+>   @Overrite
+>   public void handleMsg(Message msg){
+>        //调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
+>        handleData(msg.obj);
+>        //成功了调用listner的onSuccess()方法。此处listner为Presenter
+>        listener.onSuccess();
+>    }
 > }
 > ```
 >
@@ -289,11 +294,11 @@
 > ```java
 > class SonModel extend FatherModel{
 > 	private fun fetchData(){
->    	use a handler to commit a Runnable
->  }
+>        use a handler to commit a Runnable
+>    }
 > 	override fun handleData(response: Response?){
->    	//重写父类的handleData
->  }
+>        //重写父类的handleData
+>    }
 > }
 > ```
 >
@@ -303,9 +308,9 @@
 > class FatherPresenter{
 > 	//在父类的构造方法处将Presenter作为观察者，Model作为被观察者
 > 	public void bindMyModel(Type myModel) {
->      this.mModel = myModel;
->      this.mModel.addNotifyListener(this);
->  }
+>        this.mModel = myModel;
+>        this.mModel.addNotifyListener(this);
+>    }
 > }
 > ```
 >
@@ -315,9 +320,9 @@
 > class SonPresenter extend FatherPresenter{
 > 	//成功的方法。SonPresenter作为观察者，这是观察者的一个回调方法
 > 	override fun onSuccess(){
->    	//成功调用View的doSuccess()方法
->    	mView.doSuccess()
->  }
+>        //成功调用View的doSuccess()方法
+>        mView.doSuccess()
+>    }
 > }
 > ```
 >
@@ -336,7 +341,7 @@
 > * `SonModel.handleData()`
 > * `SonPresenter.onSuccess()`
 >   * 这是观察者模式决定的，SonPresenter被添加为了Lisnter
-> * `View.doSuccess`
+> * `View.doOnSuccess()`
 >
 > ***
 
@@ -349,7 +354,7 @@
 > ### 原理
 >
 > * 进程之间的用户空间是不共享的，一般为3G
-> * 但进程之间的内核空间是共享的，一般为1G
+> * 进程之间的内核空间是共享的，一般为1G
 >
 > ### Binder原理
 >
@@ -384,6 +389,12 @@
 > * `安全性`：Linux通信方式在内核态无任何保护措施，完全只看效率。Binder通信可以获得可靠的uid/pid
 > * `语言角度`：Binder机制是面向对象的。一个Binder对象在各个进程中都可以有引用
 > * `Google战略`：Google让GPL协议止步于Linux内核空间，而binder是实现在用户空间的
+>
+> ### 复制一次
+>
+> * 发送进程将数据从用户空间拷贝到内核空间。即一次复制
+> * 由于内核缓冲空间和接收进程的用户空间存在内存映射关系，即不用复制就可以直接读取到数据。即零次复制
+> * 总就只复制了一次
 >
 > ### 继承关系
 >
@@ -505,4 +516,3 @@
 > * 滑动期间规避全局`requestLayout`
 >
 > ***
-
