@@ -17,9 +17,11 @@
 
 ## [Kotlin自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/kotlin.md)
 
-## [bytedance新人课堂笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
+## [Daily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
 
-## [Dayily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
+## [Daily安卓学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DailyAndroid.md)
+
+## [bytedance新人课堂笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
 
 ## [数字图像处理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DigitalImageProcessing.md)
 
