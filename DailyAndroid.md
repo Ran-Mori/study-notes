@@ -210,34 +210,65 @@
 
 > ### 四个组成
 >
-> * Handler
-> * MessageQueue
-> * Looper
-> * Message
+> * `Handler`：`post messages and handle messages`
+> * `MessageQueue`：`a container of messages`
+> * `Looper`：`get messages from MessageQueue`
+> * `Message`：`an intermediary and carry real data`
 >
 > ### 成员及方法信息
 >
 > * Handler
->   * 成员变量
->     * `MessageQueue`
->     * `Looper`
->   * 方法
->     * 发送消息
->     * 派发消息
 >
-> * MessageQueue
->   * 方法
->     * 入队消息
->     * 出队消息
+>   * 成员变量
+>
+>     * `MessageQueue mQueue`
+>
+>   * 成员方法
+>     * `public void dispatchMessage(@NonNull Message msg)`
+>
+>       ```java
+>       public void dispatchMessage(@NonNull Message msg) {
+>         if (msg.callback != null) {
+>           handleCallback(msg);//如果message有callback就执行callback
+>         } else {
+>           if (mCallback != null) {
+>             if (mCallback.handleMessage(msg)) { //如果handler自身的mCallback不为空就执行自身的mCallback
+>               return;
+>             }
+>           }
+>           handleMessage(msg); //都为空就兜底执行自己的handleMessage()方法，这个方法一般子类自己实现
+>         }
+>       }
+>       ```
+>
+>     * `public final boolean post(@NonNull Runnable r)`：表面post一个`Runnable`，实际还是会被包装成一个`Message`
+>
+>     * `public final boolean sendMessage(@NonNull Message msg)`：send一个message
+>
+>     * `private boolean enqueueMessage(MessageQueue queue, Message msg,long uptimeMillis)`：上面两个方法都会执行它，向链表里面插入消息
+>
+> * MessageQueue(是一个单链表)
+>   * 成员方法
+>     * `bool enqueueMessage(Message msg, long when)`
+>     * `Message next()`
 >
 > * Message
 >   * 成员变量
->   * `Handler`：所属的Hanlder
->   * `Message`：下一条消息
->
+>     * `Handler target`：所属的Hanlder
+>     * `Object obj`：message携带的数据内容
+>   * 成员方法
+>     * `public void sendToTarget()`：把这个消息让自己的成员`Handler target`给`post`出去
+>   
 > * Looper
->   * 成员变量
->     * `MessageQueue`
+>   
+>   * 静态方法
+>     * `private static void prepare(boolean quitAllowed)`：`new and set`当前线程的`looper`，`new and set`当前线程的`MessageQueue`
+>     * `public static Looper getMainLooper()`：获取`UI线程`的`looper`
+>     * `public static void loop()`：把当前线程的`MessageQueue`跑起来，每个`message`执行`msg.target.dispatchMessage(msg);`
+>   * 变量
+>     * `MessageQueue mQueue`
+>     * `static final ThreadLocal<Looper> sThreadLocal = new ThreadLocal<Looper>();`
+>     * `Thread mThread`
 >
 > ### Looper
 >
@@ -274,18 +305,18 @@
 >
 > ```java
 > class FatherModel<T> implements IHandler{
->   protected void handleData(T data) {
->        //无实现，子类overwrite它
->    }
+> protected void handleData(T data) {
+>     //无实现，子类overwrite它
+> }
 > 
->   //重写WeakHandler的handleMsg方法
->   @Overrite
->   public void handleMsg(Message msg){
->        //调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
->        handleData(msg.obj);
->        //成功了调用listner的onSuccess()方法。此处listner为Presenter
->        listener.onSuccess();
->    }
+> //重写WeakHandler的handleMsg方法
+> @Overrite
+> public void handleMsg(Message msg){
+>     //调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
+>     handleData(msg.obj);
+>     //成功了调用listner的onSuccess()方法。此处listner为Presenter
+>     listener.onSuccess();
+> }
 > }
 > ```
 >
@@ -294,11 +325,11 @@
 > ```java
 > class SonModel extend FatherModel{
 > 	private fun fetchData(){
->        use a handler to commit a Runnable
->    }
+>     use a handler to commit a Runnable
+> }
 > 	override fun handleData(response: Response?){
->        //重写父类的handleData
->    }
+>     //重写父类的handleData
+> }
 > }
 > ```
 >
@@ -308,9 +339,9 @@
 > class FatherPresenter{
 > 	//在父类的构造方法处将Presenter作为观察者，Model作为被观察者
 > 	public void bindMyModel(Type myModel) {
->        this.mModel = myModel;
->        this.mModel.addNotifyListener(this);
->    }
+>     this.mModel = myModel;
+>     this.mModel.addNotifyListener(this);
+> }
 > }
 > ```
 >
@@ -320,9 +351,9 @@
 > class SonPresenter extend FatherPresenter{
 > 	//成功的方法。SonPresenter作为观察者，这是观察者的一个回调方法
 > 	override fun onSuccess(){
->        //成功调用View的doSuccess()方法
->        mView.doSuccess()
->    }
+>     //成功调用View的doSuccess()方法
+>     mView.doSuccess()
+> }
 > }
 > ```
 >
@@ -332,6 +363,8 @@
 > * `SonPresenter.getData()`
 > * `SonModel.getData()`
 > * `SonModel.commitARunnalbe()`
+> * 用其他线程异步执行网络请求
+> * 请求返回后`mMessage.obj = obj; mMessage.sendToTarget();`向UI线程抛一个Message
 > * `成功获取到数据,但过程是使用handler模式获得的，在message里面`
 > * `FatherModel.handleMsg()`
 >   * 这一步是handler机制决定的，且方法名都不能改
