@@ -141,3 +141,70 @@
 > * `View.getLayoutParams()`：每个View都有这个方法，既每个View都有`mLayoutParams`属性
 > * `ViewGroup.LayoutParams`决定了父容器怎么arrange这个View
 > * `LayoutParams`有很多子类，如`LinearLayout.LayoutParams`、`FrameLayout.LayoutParams`、`RelativeLayout.LayoutParams`。不同的子类对应父容器不同，即如果父容器是`FrameLayout`则子View的`mLayoutParams`应该是`FrameLayout.LayoutParams`
+>
+> ### 多仓问题
+>
+> * 未用多仓同步工具时，引入组件一定要记得看看分支对不对，不然编译不过
+>
+> ### MyConfig
+>
+> ```kotlin
+> //difine
+> class MyConfig private constructor(builder: Builder) {
+>     companion object {
+>         fun build(block: Builder.() -> Unit = {}) = Builder().apply { block() }.build()
+>     }
+> 
+>     val owner: LifecycleOwner? = builder.owner
+>   
+>     class Builder {
+>         var owner: LifecycleOwner? = null
+> 
+>         fun build() = MyConfig(this)
+>     }
+> }
+> ```
+>
+> ```kotlin
+> //use
+> private fun getMyConfig() = MyConfig.build{ lifecycleOwner = this.getLifecleOwner }
+> ```
+>
+> * `MyConfig.buid()`：高阶函数声明了函数的接收者，即`Builder.() -> Unit`
+> * 构建时传入高阶函数`lifecycleOwner = this.getLifecleOwner`
+> * 调用`Builder().apply { block() }`时，因为`block()`的接收者是`builder`，实际上是调用`builder.block()`，即完成了`var owner: LifecycleOwner? = null`的初始化
+> * 接着调用`Builder.build() = MyConfig(this)` 方法，传入`this`
+> * 最后执行`MyConfig`的私有构造函数，初始化时执行`val owner: LifecycleOwner? = builder.owner`完成参数传递
+>
+> ### MyListenerWrapper
+>
+> ```kotlin
+> private class MyListenerWrapper<T>(val listener: T, val myConfig: MyConfig, val map: MutableMap<T, MyListenerWrapper<T>>): LifecycleObserver {
+>     init {
+>         myConfig.owner?.lifecycle?.addObserver(this)
+>     }
+> 
+>     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+>     fun onDestroy() {
+>         myConfig.owner?.lifecycle?.removeObserver(this)
+>         map.remove(listener)
+>     }
+> }
+> ```
+>
+> * 本身是一个`LifecycleObserver`
+> * `init`时观察`config`传入的`LifecycleOwner`
+> * `onDestroy`时取消观察，并将`listner`从`map`集合中移除
+>
+> ### 过程使用
+>
+> * 创建`MyConfig`，传入一个`LifecycleOwner`
+> * 定义一个`listener`，并带上`MyConfig`一起传过来
+> * 传入的内容包装成一个`wrapper`，完成生命周期管理，防止内存泄漏。并且有一个`map`，里面都是存的各种`listener`
+> * 发生了一个关注事件
+> * `handler`的`handlerCallback()`调用
+> * 遍历`map`中的`listener`并依次调用`listener.invoke()`方法
+> * 自此就完成了一个
+>
+> ***
+
