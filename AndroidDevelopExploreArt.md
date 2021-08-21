@@ -505,3 +505,70 @@
 >
 > * 内部维持着一份数据集合
 > * 数据集合的实现没有要求，可以使用数据库，也可以使用集合
+>
+> ### 剩余内容
+>
+> * 全是源码分析
+> * 不想看了
+>
+> ***
+
+## 第十章
+
+> ### 概述
+>
+> * `handdler`是android消息机制的上层接口，开发人员只要和它打交道就行了
+> * `handler`经常拿来做异步处理耗时任务，UI线程处理UI。但并不代表handler只用来更新UI
+> * `UI线程` = `主线程` = `ActivityThread`
+>
+> ### 限制UI线程更新UI
+>
+> * 代码逻辑
+>
+> ```java
+> class ViewRootImpl() {
+>   if(mThread != Thread.currentThread) {
+>     throw new CalledFromWrongThreadException("only the original thread can ...")
+>   }
+> }
+> ```
+>
+> * Android的UI控件是线程不安全的，但没有采取`加锁同步机制`而是采取`单线程模型处理机制`
+> * 加锁会使用UI控件的访问更加复杂，且加锁会降低UI控件访问操作的效率
+> * 因此Android最终选择单线程处理模型，配合handler机制
+>
+> ### ThreadLocal
+>
+> * 是一个线程内部的数据存储类
+> * 当某些数据是以线程为作用域且不同线程需要不同的副本时，就可以采取`ThreadLocal`
+> * 虽然在不同线程中访问的是同一个`ThreadLocal`对象，但是获取到的值确实不一样的，这就做到了线程隔离
+>
+> ### 主函数
+>
+> * Android是一个java程序，当然有`public static main(String[] args)`方法
+> * 这个方法在`ActivityThread`里面
+>
+> ```java
+> public static void main(String[] args) {
+>   //初始化主线程的looper
+>   Looper.prepareMainLooper();
+> 
+>   //创建UI线程
+>   ActivityThread thread = new ActivityThread();
+>   thread.attach(false, startSeq);
+> 
+>   //获取主线程的handler
+>   if (sMainThreadHandler == null) {
+>     sMainThreadHandler = thread.getHandler();
+>   }
+> 
+>   //至此整个App永远卡在这一行执行
+>   Looper.loop();
+> 
+>   //能走到这一行说明有问题就抛出异常
+>   throw new RuntimeException("Main thread loop unexpectedly exited");
+> }
+> ```
+>
+> ***
+
