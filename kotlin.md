@@ -6,11 +6,11 @@
 >
 > * Kotlin同Java一样，一切皆对象
 > * kotlin百分之百兼容Java，能使用Java的所有框架
-> * 因此kotlin可以说是继承了Java的所有财富，而自己本省更加的优秀
+> * 因此kotlin可以说是继承了Java的所有财富，而自己本身更加的优秀
 >
 > ### kotlin历史
 >
-> * kotlin是由jetbrains公司设计开发的语言‘
+> * kotlin是由jetbrains公司设计开发的语言
 > * 在发布第一个版本后就被谷歌推荐为Android开发的首选语言
 > * 之所以jetbrains能够以一个第三方的身份设计出Android的开发语言，是因为JVM只认class文件，而对于class文件从何而来根本不care，因此kotlin可以认为是Java的语法糖
 >
@@ -37,7 +37,7 @@
 >
 > * 直接初始化值`arrayOf()`
 > * 创建一个指定大小的数组`Array<String>(5){it.toString()}`，必须显示地赋初始值
-> * 原生不装包数组类型`IntArray(5),ByteArray(3)`
+> * 原生不装包数组类型`IntArray(5)、ByteArray(3)`
 >
 > ### 字符串
 >
@@ -148,7 +148,7 @@
 >   }
 >   ```
 >
-> * 执行顺序：首先`init块`，其次`次构委托给主构部分`,最后`次构造`
+> * 执行顺序：首先`init块`，其次`次构委托给主构部分`,最后`次构造本身`
 >
 > * 以上面举例，此Student对象有两种初始化方式，分别是传入(name, age)，另一种是只传入age
 >
@@ -243,9 +243,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->                               
+>                                 
 >   val isEven = IntPredicate { it % 2 == 0 }
->                               
+>                                 
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -412,12 +412,12 @@
 >           //代码逻辑
 >       }
 >   })
->                         
+>                           
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->                         
+>                           
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -641,83 +641,82 @@
 > ### 函数参数声明带调用者
 >
 > * 有时候某个高阶函数不是直接调用的(像上面一样)，而是有一个调用的接收者
->
-> * 这种情况下应该在传入函型参数的时候就声明好函数的调用者
->
->   ```kotlin
->   //此处声明了高阶函数的调用者是intent
->   inline fun <reified T> startActivity(context: Context,block:Intent.() -> Unit){
->       val intent = Intent(context,T::class.java)
->       intent.block()
->       context.startActivity(intent)
->   }
->             
->   //调用
->   startActivity<MainActivity>(this){
->       putExtra("key","value")
->   }
->   ```
->
-> ### 函数参数传入
->
-> ```kotlin
+>* 这种情况下应该在传入函型参数的时候就声明好函数的调用者
+> 
+>```kotlin
+> //此处声明了高阶函数的调用者是intent
+> inline fun <reified T> startActivity(context: Context,block:Intent.() -> Unit){
+>     val intent = Intent(context,T::class.java)
+>     intent.block()
+>     context.startActivity(intent)
+> }
+> 
+>             //调用
+> startActivity<MainActivity>(this){
+>     putExtra("key","value")
+> }
+> ```
+> 
+>### 函数参数传入
+> 
+>```kotlin
 > fun add(num1: Int,num2: Int):Int = num1 + num2
 > 
 > val i = myTest(1,2,::add)				
 > ```
->
-> * 即`::add`
->
-> ### 底层实现原理
->
-> * 实际上的lamba表达式或者高阶函数中的函数就是一个接口
+> 
+>* 即`::add`
+> 
+>### 底层实现原理
+> 
+>* 实际上的lamba表达式或者高阶函数中的函数就是一个接口
 > * 这个接口有一个invoke方法，应该是通过反射来执行这个方法
 > * 但接口肯定不行，实际上调用的过程中是使用匿名类
 > * 但这问题就大了，每次使用高阶函数都要动态创建类和对象，性能开销过于巨大
 > * 为了解决这个问题，可以使用函数内联来实现
->
-> ### 函数内联
->
-> * 作用之一是为了解决高阶函数在JVM层实现的匿名类性能损失
+> 
+>### 函数内联
+> 
+>* 作用之一是为了解决高阶函数在JVM层实现的匿名类性能损失
 > * 解决逻辑：在高阶函数实际调用过程中我把函数体直接传过去，不进行调用过程，那不就把匿名类的性能损失给解决了吗
 > * 基于此原因，kotlin中的大多数高阶函数都声明成内联形式
 > * 内联就可以理解成`降阶`
->
-> ### 声明内联
->
-> ```kotlin
+> 
+>### 声明内联
+> 
+>```kotlin
 > inline fun myTest(num1: Int,num2: Int,operation:(Int,Int) -> Int):Int{
 >     return operation(num1,num2)
 > }
 > ```
->
-> * 直接加一个inline就行了
->
-> ### 内联缺陷
->
-> * 内联在运行时无法获取到函数参数的类型
+> 
+>* 直接加一个inline就行了
+> 
+>### 内联缺陷
+> 
+>* 内联在运行时无法获取到函数参数的类型
 > * 因为都已经内联成代码了，那里还知道本来的参数是什么类型
->
-> ### 内联的返回
->
-> * 使用内联是可以直接一步到位返回到本函数的
+> 
+>### 内联的返回
+> 
+>* 使用内联是可以直接一步到位返回到本函数的
 > * 因为实际内联过后就是降阶，降阶过后就是一阶函数，一阶函数返回肯定是本函数直接返回
 > * 但非内联就不一样了，非内联是二阶甚至更高阶函数，高阶函数内返回肯定只能返回它那一阶，即局部返回
->
-> ### 无法使用内联的情况
->
-> * 当在高阶函数的函数体中使用lambda表达式时，且将此高阶函数的函数参数传入lambda表达式，且此lambda表达式还是被定义成非内联的
+> 
+>### 无法使用内联的情况
+> 
+>* 当在高阶函数的函数体中使用lambda表达式时，且将此高阶函数的函数参数传入lambda表达式，且此lambda表达式还是被定义成非内联的
 > * 因为按照道理来说内联情况下参数函数一返回整个高阶函数就要返回，但在函数体的lambda表达式实际上是一个内部类(因为没有内联)，这时在内部类中返回无法返回到高阶函数本身
 > * 因此这种情况下禁止使用函数内联
->
-> ### 解决方式
->
-> * 使用`crossinline`关键字
+> 
+>### 解决方式
+> 
+>* 使用`crossinline`关键字
 > * 此关键字的作用就是在编译期检查高阶函数的函数体中的lambda表达式中一定没有return语句
 > * 只要没有return语句，那无论怎么嵌套其实都是合乎逻辑无伤大雅的
 > * 一旦有return语句就在编译期进行报错
->
-> ***
+> 
+>***
 
 ## 泛型
 
@@ -784,59 +783,58 @@
 >
 > * 委托者
 >
->   ```kotlin
->   var p by MyDelegate()
->   ```
+> ```kotlin
+> var p by MyDelegate()
+> ```
 >
 > * 被委托者
 >
->   ```kotlin
->   class MyDelegate {
->       private var value: Any? = null
->                   
->       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
->           return this.value
->       }
->                   
->       operator fun setValue(myClass: Any?,prop: KProperty<*>,value: Any?){
->           this.value = value
->       }
->   }
->   ```
+> ```kotlin
+> class MyDelegate {
+>     private var value: Any? = null
+> 
+>     operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
+>         return this.value
+>     }
+> 
+>     operator fun setValue(myClass: Any?,prop: KProperty<*>,value: Any?){
+>         this.value = value
+>     }
+> }
+> ```
 >
->   * 这种实现是一种标准模板
->   * 其中myclass指定了什么类能够委托给此类，此处设置成Any，即都可以
+> * 这种实现是一种标准模板
+> * 其中myclass指定了什么类能够委托给此类，此处设置成Any，即都可以
 >
 > ### 委托属性实现延迟加载
 >
 > * 代码
 >
->   ```kotlin
->   val p by lazy{
->       //...
->       //最后一行是返回值
->   }
->   ```
+> ```kotlin
+> val p by lazy{
+>     //...
+>     //最后一行是返回值
+> }
+> ```
 >
 > * `by`是委托的一个关键字，`lazy`是一个高阶函数
->
 > * lazy函数实际返回的是一个对象，此对象接收一个函数作为参数。即返回的对象是`MyDelegate(code)`
 >
 > ### 延迟加载代码
 >
 > * 被委托者
 >
->   ```kotlin
->   class MyDelegate(val block: () -> Any?) {
->       private var value: Any? = null
->   
->       operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
->           return block
->       }
->   }
->   ```
+> ```kotlin
+> class MyDelegate(val block: () -> Any?) {
+>     private var value: Any? = null
+> 
+>     operator fun getValue(myClass: Any?, prop: KProperty<*>): Any?{
+>         return block
+>     }
+> }
+> ```
 >
->   * 构造函数参数是一个函数
+> * 构造函数参数是一个函数
 >
 > * 顶层方法
 >
@@ -850,7 +848,7 @@
 >
 >   ```kotlin
 >   val p: Any? by laterInit {
->               
+>   
 >   }
 >   ```
 >
