@@ -222,6 +222,7 @@
 >   * 成员变量
 >
 >     * `MessageQueue mQueue`
+>     * `Looper mLooper`
 >
 >   * 成员方法
 >     * `public void dispatchMessage(@NonNull Message msg)`
@@ -279,8 +280,8 @@
 > ### Handler
 >
 > * `Handler()`：绑定`mLooper`，绑定`mQueue`
-> * `dispatchMessage(message:Message)`：链式调用，首先自己`message.callback.run()`，接着`Handler.mCallback.handleMessage(msg)`，最后`Handler.handleMessage(msg)`方法
-> * `post(r:Runnalbe)`：把Runnable丢进MessageQueue
+> * `dispatchMessage(message:Message)`：链式调用，首先`message.callback.run()`，接着`Handler.mCallback.handleMessage(msg)`，最后`Handler.handleMessage(msg)`方法
+> * `post(r:Runnalbe)`：把Runnable封装成`Message`丢进MessageQueue
 >
 > ### Message
 >
@@ -296,6 +297,33 @@
 > * Handler最对外
 > * Looper、MessageQueue和线程ThreadLocal绑定
 > * Handler发送和分派消息，Looper不断入队消息和出队消息
+>
+> ### 数量关系
+>
+> * 一个线程最多一个`Looper`，是由`public static void prepare()`决定的
+> * 一个线程最多一个`MessageQueue`，是由`private Looper(boolean quitAllowed)`决定的
+> * 一个线程可以有很多个`Handler`，但多个`Handler`绑定的是同一个`Looper`和`MessageQueue`
+> * 如何区分不同的消息？
+>
+> ```java
+> //Handler.java
+> private boolean enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis) {
+>   msg.target = this; //每个消息都带上抛自己的handler
+>   return queue.enqueueMessage(msg, uptimeMillis);
+> }
+> ```
+>
+> ```java
+> //Looper.java
+> public static void loop() {
+>   for (;;) {
+>     Message msg = queue.next(); // might block
+>     try {
+>       msg.target.dispatchMessage(msg);//由每个消息自己的handler处理消息
+>     }
+>   }
+> }
+> ```
 >
 > ***
 
@@ -353,7 +381,7 @@
 > 	override fun onSuccess(){
 >     //成功调用View的doSuccess()方法
 >     mView.doSuccess()
-> }
+> 	}
 > }
 > ```
 >
@@ -375,6 +403,40 @@
 > * `SonPresenter.onSuccess()`
 >   * 这是观察者模式决定的，SonPresenter被添加为了Lisnter
 > * `View.doOnSuccess()`
+>
+> ### handler部分详解
+>
+> * 创建一个`Runnable`，里面定义好想执行的操作
+>
+> ```java
+> new Callable() {
+>   @Override
+>   public Object call() throws Exception {
+>     return myApi.getData();//这是一个网络请求
+>   }
+> }
+> ```
+>
+> * 封装另外一个`Runnable`
+>
+> ```java
+> new Callable() {
+>   @Override
+>   public Object call() throws Exception {
+>     Object obj = mCallable.call();//这个mCallable是上面的Runnable，执行会耗时
+>     if (mMessage != null) {
+>       mMessage.obj = obj; //obj是网络返回的数据
+>       mMessage.sendToTarget(); //这一行是调用的handler.sendMessage()
+>     }
+>   }
+> }
+> ```
+>
+> * 异步执行
+>
+> ```java
+> mExecutor.execute(Runnable runnable)//异步执行上面那个Runnable
+> ```
 >
 > ***
 
