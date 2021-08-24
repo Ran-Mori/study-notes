@@ -611,3 +611,162 @@
 > * 滑动期间规避全局`requestLayout`
 >
 > ***
+
+## gradle
+
+> ### 分类
+>
+> * Project的`build.gradle`
+> * Module的`build.gradle`
+>
+> ### Project维度
+>
+> ```groovy
+> // Top-level build file where you can add configuration options common to all sub-projects/modules.
+> 
+> buildscript {//dependencies to run gradle itself
+>     
+>     repositories { //config remote repositories
+>         google()
+>         jcenter()
+>     }
+>     dependencies { //config build tools
+>         classpath 'com.android.tools.build:gradle:3.0.0'//此处是android的插件gradle，gradle是一个强大的项目构建工具
+>       	// buildscript itself to use classpath
+>         // NOTE: Do not place your application dependencies here; they belong
+>         // in the individual module build.gradle files
+>     }
+> }
+> 
+> allprojects { //dependencies to this project
+>     repositories {
+>         google()
+>         jcenter()
+>     }
+> }
+> 
+> // 运行gradle clean时，执行此处定义的task任务。
+> // 该任务继承自Delete，删除根目录中的build目录。
+> // 相当于执行Delete.delete(rootProject.buildDir)。
+> // gradle使用groovy语言，调用method时可以不用加（）。
+> task clean(type: Delete) {
+>     delete rootProject.buildDir
+> }
+> ```
+>
+> ### classpath 和 implementation
+>
+> * `classpath`：`buildscript itself needs something to run, use classpath`
+> * `implementation`：`your project needs something to run, use implementation`
+>
+> ### Moudule维度
+>
+> ```groovy
+> apply plugin: 'com.android.application'
+> apply plugin: 'kotlin-android-extensions'
+> apply from: 'https://xxx.gradle'
+> 
+> android { //配置项目构建的各种属性
+>     compileSdkVersion 27 //设置编译时用的Android版本
+>     defaultConfig {
+>         applicationId "com.whu.myapplication" //项目的包名
+>         minSdkVersion 16 //项目最低兼容的版本,低于此无法安装
+>         targetSdkVersion 27 //项目的目标版本，系统会为该应用启动一些对应该目标系统的最新功能特性。如22运行在Android 6上就不会开运行时权限
+>         versionCode 1 //版本号
+>         versionName "1.0" //版本名称，展示在应用市场上
+>         flavorDimensions "versionCode"
+>     }
+>     buildTypes { // 指定生成安装文件的主要配置
+>         release { // 生产环境
+>             buildConfigField("boolean", "LOG_DEBUG", "false") //配置Log日志
+>             buildConfigField("String", "URL_PERFIX", "\"https://release.cn/\"")// 配置URL前缀
+>             minifyEnabled false //是否对代码进行混淆
+>             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro' //指定混淆的规则文件
+>             signingConfig signingConfigs.release //设置签名信息
+>             pseudoLocalesEnabled false //是否在APK中生成伪语言环境，帮助国际化的东西，一般使用的不多
+>             zipAlignEnabled true //是否对APK包执行ZIP对齐优化，减小zip体积，增加运行效率
+>             applicationIdSuffix 'test' //在applicationId 中添加了一个后缀，一般使用的不多
+>             versionNameSuffix 'test' //在applicationId 中添加了一个后缀，一般使用的不多
+>         }
+>         //比如还可以打'大包'和'小包'
+>     }
+> 
+>     packagingOptions{ //打包时的相关配置
+>         //pickFirsts做用是 当有重复文件时 打包会报错 这样配置会使用第一个匹配的文件打包进入apk
+>         //表示当apk中有重复的META-INF目录下有重复的LICENSE文件时  只用第一个 这样打包就不会报错
+>         pickFirsts = ['META-INF/LICENSE']
+> 
+>         //merges合并 当出现重复文件时 合并重复的文件 然后打包入apk
+>         //这个是有默认值得 merges = [] 这样会把默默认值去掉  所以我们用下面这种方式 在默认值后添加
+>         merge 'META-INF/LICENSE'
+> 
+>         //重复依赖通过exclude去除重复的文件。
+>         exclude 'META-INF/services/javax.annotation.processing.Processor'
+>     }
+> 
+>     productFlavors { //多个渠道配置，为特定的渠道做部分特殊的处理，比如设置不同的包名、应用名等
+>       	// 配置后打包出来默认命名格式如app-wandoujia-release-unsigned.apk
+>         wandoujia {}
+>         xiaomi {}
+>         _360 {}
+>     }
+> 
+>     productFlavors.all {
+>             //批量修改，类似一个循序遍历
+>         flavor -> flavor.manifestPlaceholders = [IFLYTEK_CHANNEL: name]
+>     }
+> 
+>     
+>     lintOptions { //程序在编译的时候会检查lint，有任何错误提示会停止build，我们可以关闭这个开关
+>         abortOnError false //即使报错也不会停止打包
+>         checkReleaseBuilds false //打包release版本的时候进行检测
+>     }
+> 
+> }
+> 
+> dependencies { //定义此moudule的依赖关系
+>     //项目的依赖关系
+>     implementation fileTree(include: ['*.jar'], dir: 'libs')
+>     //本地jar包依赖
+>     implementation 'com.android.support:appcompat-v7:27.1.1'
+>     //远程依赖
+>     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+>     testImplementation 'junit:junit:4.12'
+>     //声明测试用例库
+>     androidTestImplementation 'com.android.support.test:runner:1.0.2'
+>     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+> }
+> ```
+>
+> ### apply
+>
+> * `apply plugin`：表示应用一个插件
+> * `apply from : url` ：从URL引入插件
+> * `apply plugin: 'com.android.application'`：表示打出来一个`apk`应用
+> * `apply plugin: 'com.android.library'`：表示打出来一个`arr`文件，供别人使用
+>
+> ### dependencies{}
+>
+> * `implementation fileTree(include: ['*.jar'], dir: 'libs')`：一个本地依赖声明，表示将libs目录下所有.jar后缀的文件都添加到项目的构建路径当中
+> * `implementation 'com.android.support:appcompat-v7:27.1.1'`：一个远程依赖
+>
+> ### api、implementation、compile
+>
+> * `api`：和`compile`一模一样，只是换了一个名字
+> * `compile`：老的用法，已将废弃。引入的库整个项目都可以使用，容易导致重耦合
+> * `implementation`：引入的库只有对应的Module能使用，其他Module不能使用
+>
+> ***
+
+## 组件化
+
+> ### 模块化
+>
+> * 实现模块化依然耦合严重
+> * 模块化的下一步目标是组件化
+>
+> ### 优势
+>
+> * 每个模块可以作为独立的App存在
+> * 模块间无直接的依赖
+> * 基础组件作为业务组件的更低层
