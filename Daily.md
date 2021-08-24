@@ -75,7 +75,7 @@
 >
 > ### UML图
 >
-> * `实现关系`：接口及实现类的关系。由一个三角形一条直线组成，三角形指向接口
+> * `实现关系`：接口及实现类的关系。由一个空心三角形一条直线组成，三角形指向接口
 > * `泛化关系`：对象与对象之间的继承关系。由一个三角形和一条直线组成，三角形指向父对象
 > * `关联关系`：对象与对象之间的连接关系。通常为一个对象持有另一个对象的引用。往往还有数量关系。线条是一个带箭头的实线，箭头执行被使用者
 > * `依赖关系`：对象与对象之间的弱关联关系。通常为构造器、方法局部参数、返回值、静态方法调用。线条是一个带箭头的虚线，箭头执行被使用者
@@ -156,7 +156,7 @@
 >     }
 > 
 >     val owner: LifecycleOwner? = builder.owner
->   
+> 
 >     class Builder {
 >         var owner: LifecycleOwner? = null
 > 
@@ -206,5 +206,16 @@
 > * 遍历`map`中的`listener`并依次调用`listener.invoke()`方法
 > * 自此就完成了一个
 >
+> ### LayoutInflater.inflate()
+>
+> * 函数签名：`public View inflate(@LayoutRes int resource, @Nullable ViewGroup root, boolean attachToRoot)`
+> * `@LayoutRes int resource`：想要初始化创造的View
+> * `@Nullable ViewGroup root`
+>   * `attachToRoot = true`：调用`root.addView(view)`
+>   * `attachToRoot = false`：调用
+>
 > ***
 
+## 210823-210829
+
+> 
