@@ -105,3 +105,11 @@
 * 原理和上面的git rebase修改提交的comit信息一样
 * 本质上git rebase只能修改本地库的提交信息。按照上面流程修改好本地库的提交信息后
 * 直接`git push -f`就可以强制更新远端的commit
+
+### git cherry-pick
+
+* 用法：`git cherry-pick commitId`
+* case:
+  * 在branchA上做了一个commit，commitId为`1234`。现欲将此commit移动到branchB
+  * 进行切换分支，将分支从branchA 切换到 branchB。`git checkout branchB`
+  * 在branchB上进行commit移动。`git cherry-pick 1234`
