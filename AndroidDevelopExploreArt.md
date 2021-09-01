@@ -572,3 +572,43 @@
 >
 > ***
 
+## 第十一章
+
+> ### 三种另外形式
+>
+> * `AsynsTask`：封装了线程池和`Handler`
+> * `HandlerThread`：内部可以使用`Handler`
+> * `IntentService`：
+> * 上面三者虽然表现形式不同，但本质上依然是传统的线程
+>
+> ### 调度方式
+>
+> * 线程数量不能无限多
+> * 除非线程数量小于CPU核心数，否则采用时间片轮转法进行调度，无法做到真正的并行
+>
+> ### AsyncTask
+>
+> * 使用方式：继承实现几个特定方法
+> * 参数：`AsyncTask<Params, Progress, Result>`，不需要使用可以设置为`void`
+> * 核心：`Handler`、`ThreadPoolExcutor`
+> * `SERIAL_EXECUTOR`：把任务排队
+> * `THREAD_POOL_EXECUTOR`：真正执行并行任务
+> * `InternalHandler`：用于异步线程向主线程抛事件，即线程切换
+>
+> ### HandlerThread
+>
+> * 继承自`Thread`
+> * 里面有一个`Handler`成员变量
+> * 且已经`Looper`做了初始化
+>
+> ### IntentService
+>
+> * `Service`不会没用过，后面再看
+>
+> ### Java线程池
+>
+> * `Excutor`是一个接口，真正的线程池实现在`ThreadPoolExecutor`
+> * `ThreadPoolExecutor`通过一系列参数来配置线程池
+>
+> ***
+
