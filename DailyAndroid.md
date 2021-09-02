@@ -539,6 +539,12 @@
 
 ## RxJava
 
+> ### 响应式函数编程
+>
+> * `命令式编程`：是面向计算机硬件的抽象，有变量、赋值语句、表达式和控制语句
+> * `函数式编程`：是面向数学的抽象，将计算描述为一种表达式求值，函数可以在任何地方定义，并且可以对函数进行组合
+> * `响应式编程`：是一种面向数据流和变化传播的编程范式，数据的更新是关联的
+>
 > ### 四个角色
 >
 > * `Observable`：`produce event`
@@ -546,11 +552,92 @@
 > * `Subscribe`：`a connection between observalbe and observer`
 > * `Event`：`carry message`
 >
-> ### 使用步骤
+> ### 简略过程
 >
 > * 创建`Observable`并产生事件
 > * 创建`Observer`定义消费事件行为
 > * 通过`Subscrib`连接`observable`和`Observer`
+>
+> ### 创建Observable
+>
+> * `Observable`的创建是收敛的
+> * 无论是`create()`、`just()`、`from()`还是其他什么，都会收敛到传入一个`Observable.onSubscrib(){}`接口的实现对象
+> * `Observable.java` - 被观察者
+>
+> ```java
+> public class Observable<T> {
+> 	//成员变量
+>     final OnSubscribe<T> onSubscribe;
+>     
+> 	//唯一的构造函数，需要传入一个接口对象
+>     protected Observable(OnSubscribe<T> f) {
+>         this.onSubscribe = f;
+>     }
+>     
+>     //接口定义，实际就是一个Action1, 参数是Subscriber
+>     public interface OnSubscribe<T> extends Action1<Subscriber<? super T>> {
+>         // cover for generics insanity
+>     }
+> }
+> ```
+>
+> * `Action1.java`
+>
+> ```java
+> public interface Action1<T> extends Action {
+>     void call(T t);
+> }
+> ```
+>
+> * `Subscriber.java` - 观察者
+>
+> ```java
+> public abstract class Subscriber<T> implements Observer<T>, Subscription {
+>     //...
+> }
+> ```
+>
+> * `Observer.java` - 观察者
+>
+> ```java
+> public interface Observer<T> {
+>     void onCompleted();
+>     void onError(Throwable e);
+>     void onNext(T t);
+> }
+> ```
+>
+> * `Observerable.subscribe()`方法
+>
+> ```java
+> static <T> Subscription subscribe(Subscriber<? super T> subscriber, Observable<T> observable) {
+>         // new Subscriber so onStart it
+>         subscriber.onStart();
+>     
+>     	//最后通过Subscriber.java里的接口call()方法开始调用
+>         RxJavaHooks.onObservableStart(observable, observable.onSubscribe).call(subscriber);
+>         return RxJavaHooks.onObservableReturn(subscriber);
+> }
+> 
+> 
+> //OnSubscribeFromArray.java中一个call方法的实现
+> public void call(Subscriber<? super T> child) {
+>     child.setProducer(new FromArrayProducer<T>(child, array));
+> }
+> ```
+>
+> ### 绑定时机性
+>
+> * 真正开始观察与被观察一定是在`observeralbe.subscible()`后才开始
+>
+> ### 队列性
+>
+> * `Observable`发射的是一个一串事件，而不是一个事件。整串事件被抽象成一个队列
+> * 事件流未开始时观察者调用`onStart()`
+> * 事件流中每一个事件观察者调用`onNext()`
+> * 事件流结束时观察者调用`onComplete()`
+>
+> ### 使用步骤
 >
 > ### 核心方法
 >
@@ -770,3 +857,5 @@
 > * 每个模块可以作为独立的App存在
 > * 模块间无直接的依赖
 > * 基础组件作为业务组件的更低层
+>
+> ***
