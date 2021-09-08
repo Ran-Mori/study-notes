@@ -566,14 +566,14 @@
 >
 > ```java
 > public class Observable<T> {
-> 	//成员变量
+> 		//成员变量
 >     final OnSubscribe<T> onSubscribe;
->     
-> 	//唯一的构造函数，需要传入一个接口对象
+> 
+> 		//唯一的构造函数，需要传入一个接口对象
 >     protected Observable(OnSubscribe<T> f) {
 >         this.onSubscribe = f;
 >     }
->     
+> 
 >     //接口定义，实际就是一个Action1, 参数是Subscriber
 >     public interface OnSubscribe<T> extends Action1<Subscriber<? super T>> {
 >         // cover for generics insanity
@@ -613,7 +613,7 @@
 > static <T> Subscription subscribe(Subscriber<? super T> subscriber, Observable<T> observable) {
 >         // new Subscriber so onStart it
 >         subscriber.onStart();
->     
+> 
 >     	//最后通过Subscriber.java里的接口call()方法开始调用
 >         RxJavaHooks.onObservableStart(observable, observable.onSubscribe).call(subscriber);
 >         return RxJavaHooks.onObservableReturn(subscriber);
@@ -633,11 +633,31 @@
 > ### 队列性
 >
 > * `Observable`发射的是一个一串事件，而不是一个事件。整串事件被抽象成一个队列
-> * 事件流未开始时观察者调用`onStart()`
+> * 事件流未开始时观察者调用`onSubscribe()`
 > * 事件流中每一个事件观察者调用`onNext()`
+> * 事件流发生错误时观察者调用`onError()`
 > * 事件流结束时观察者调用`onComplete()`
+> * 互斥性：`onError()`和`onComplete()`是互斥的。两者之一必被调用一次
 >
-> ### 使用步骤
+> ### Action
+>
+> * 定义
+>
+> ```java
+> public interface Action2<T1, T2> extends Action {
+>   void call(T1, T2);
+> }
+> ```
+>
+> * 不同就是泛型的个数不同
+>
+> ### 不完全回调
+>
+> * 定义
+>
+> ```java
+> public Disposable subscribe(Consumer onNext, Consumer onError,Action onComplete, Consumer onSubscribe){};
+> ```
 >
 > ### 核心方法
 >
