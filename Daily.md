@@ -221,3 +221,127 @@
 > ### 进设置页
 >
 > * Activity和Fragment会调用到`onStop()`
+>
+> ***
+
+## 210906 - 210912
+
+> ### by 关键字
+>
+> * 用来实现委托模式
+>
+> ### infix关键字
+>
+> * `to`例子：`public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)`
+>
+> ### lazy 函数
+>
+> * `lazy`不是关键字而是一个函数
+> * 函数签名：`public actual fun <T> lazy(mode: LazyThreadSafetyMode, initializer: () -> T): Lazy<T>`
+>
+> ### 自定义通用View对外暴露通用点击实现
+>
+> * MyView.kotlin
+>
+> ```kotlin
+> class MyView(context: Context, attrs: AttributeSet?, defStyleAttr: Int = 0): FrameLayout, View.OnClickListener{
+>   
+>   private lateinit var mOnBarClickListener: OnBarClickListener
+>   
+>   override fun onClick(v: View?) {
+>     mOnBarClickListener ?: return
+>     when(v.id) {
+>       back_item -> mOnBarClickListener.onBackClick(v)
+>       confirm_item -> mOnBarClickListener.onConfirmClick(v)
+>     }
+>   }
+>   
+>   fun setOnBarClickListener(listener: OnBarClickListener) {
+>     this.mOnBarClickListener = listener
+>   }
+> }
+> ```
+>
+> * OnBarClickListener.kt
+>
+> ```kotlin
+> interface OnBarClickListener {
+>   fun onBackClick(view: View?)
+>   fun onConfirmClick(view: View?)
+> }
+> ```
+>
+> ### LoadingController
+>
+> * 实际就是展示一个`Dialog`
+> * 根据状态来`show`和`dismiss`
+>
+> ### 建造者模式
+>
+> ```kotlin
+> class Example(builder: Builder) {
+>   var text: String? = ""
+>   
+>   init {
+>     this.text = builder.text
+>   }
+>   
+>   open class Buidler {
+>     var text: String? = ""
+>     
+>     fun setText(text: String): Builder {
+>       this.text = text
+>       return this
+>     }
+>     
+>     fun build() = Example(this)
+>   }
+> }
+> ```
+>
+> ### SPI子分层
+>
+> * IService.kt
+>
+> ```kotlin
+> interface IService {
+>   fun getSubService(): ISubService
+> }
+> ```
+>
+> * ServiceImpl.kt
+>
+> ```kotlin
+> class ServiceImpl: IService {
+>   @Overide
+>   fun getSubService(): ISubService = SubServiceImpl
+> }
+> ```
+>
+> * ISubService.kt
+>
+> ```kotlin
+> interface ISubService {
+>   fun getFrequency(): Int
+> }
+> ```
+>
+> * SubServiceImpl.kt
+>
+> ```kotlin
+> object SubServiceImpl:ISubService, PushCallBack {
+>   @Overide
+>   fun onPushSuccess(data: Data) {
+>     keva.storeData(data)
+>   }
+>   
+>   @Overide
+>   fun onPushFail() {
+>     keva.storeData(Data.getDefault())
+>   }
+>   
+>   @Overide
+>   fun getFrequency() = keva.getData()
+> }
+> ```
+
