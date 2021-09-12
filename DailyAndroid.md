@@ -879,3 +879,249 @@
 > * 基础组件作为业务组件的更低层
 >
 > ***
+
+## 事件分发
+
+> ### window链接
+>
+> * [Android全面解析之Window机制](https://juejin.cn/post/6888688477714841608)
+>
+> ### window概述
+>
+> * `window`是一个抽象概念
+> * `window`是`view`的载体
+> * `view`是`window`的表现
+>
+> ### view树
+>
+> * 一个`window`就是一颗`view`树
+> * 一颗`view`树就是一个`window`
+>
+> ### Dialog等
+>
+> * 通过`windowManager`添加的`view`，与当前的`Activity`毫无关系
+> * 它是另一个`window`，另一个`view`树
+>
+> ### type属性
+>
+> * 决定`window`即`view`树的深度信息，越高越靠前
+> * 系统弹窗、Toast的type值就很高
+>
+> ### 添加window
+>
+> * 示例代码
+>
+> ```java
+> //在Activity中执行下列代码
+> Button button = new Button(this);
+> WindowManager.LayoutParams windowParams = new WindowManager.LayoutParams();
+> // 这里对windowParam进行初始化
+> windowParam.addFlags...
+> // 获得应用PhoneWindow的WindowManager对象进行添加window
+> getWindowManager.addView(button,windowParams);
+> ```
+>
+> * `WindowManagerGloabal.addView()`最终执行
+>
+> ```java
+> public void addView(...) {
+>   //在此新建了一个ViewRootImpl
+>   root = new ViewRootImpl(view.getContext(), display);
+>   view.setLayoutParams(wparams);
+>   mViews.add(view);
+>   mRoots.add(root);
+>   mParams.add(wparams);
+>   
+>   ...
+>     
+>   root.setView()
+> }
+> ```
+>
+> * `WindowManagerGloabal`是一个全局单例对象，管理所有`window`
+> * `ViewRootImpl.setView()`会调用`WMS`去创建`window`
+>
+> ### 事件产生及传递
+>
+> * 硬件产生触动
+> * 触动传递给`InputManagerService`
+> * `InputeManagerService`通过`WindowManagerService`将触动传给对应的`window`
+> * `window`将触动传送给对应的`ViewRootImpl`
+> * `ViewRootImpl`将触动封装成`MotionEvent`对象，传递给下层`View`
+>
+> ### 事件传递
+>
+> * `ViewRootImpl`
+>
+> ```java
+> class ViewRootImpl {
+>   View mView;
+>   public void setView(View view, ...) {
+>     if (mView == null) {
+>       mView = view;
+>     }
+>   }
+> }
+> ```
+>
+> * `ViewRootImple`向下传递
+>
+> ```java
+> //ViewRootImpl.ViewPostImeInputStage
+> final class ViewPostImeInputStage extends InputStage {
+>   @Override
+>   protected int onProcess(QueuedInputEvent q) {
+>     //调用processPointerEvent()
+>     return processPointerEvent(q);
+>   }
+> }
+> //ViewRootImpl.processPointerEvent()
+> private int processPointerEvent(QueuedInputEvent q) {
+>   final MotionEvent event = (MotionEvent)q.mEvent;
+>   //调用dispatchPointerEvent()
+>   boolean handled = mView.dispatchPointerEvent(event);
+>   return handled ? FINISH_HANDLED : FORWARD;
+> }
+> 
+> //View.dispatchPointerEvent(),且ViewGroup未重写此方法
+> public final boolean dispatchPointerEvent(MotionEvent event) {
+>   if (event.isTouchEvent()) {
+>     //调用dispatchTouchEvent()
+>     return dispatchTouchEvent(event);
+>   } else {
+>     return dispatchGenericMotionEvent(event);
+>   }
+> }
+> ```
+>
+> * 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`
+> * 如果不为`DecorView`，则直接`顶层ViewGroup.dispatchTouchEvent(ev)`
+> * `DecorView.dispatchTouchEvent()`
+>
+> ```java
+> public class DecorView extends FrameLayout {
+>  	public boolean dispatchTouchEvent(MotionEvent ev) {
+>     final Window.Callback cb = mWindow.getCallback();
+>     return cb != null && !mWindow.isDestroyed() && mFeatureId < 0
+>             ? cb.dispatchTouchEvent(ev) : super.dispatchTouchEvent(ev);
+> 	} 
+> }
+> ```
+>
+> * `Window.Callback`
+>
+> ```java
+> public interface Callback { 
+> 	public boolean dispatchTouchEvent(MotionEvent event);
+> }
+> ```
+>
+> * `Activity`定义
+>
+> ```java
+> public class Activity implements Window.Callback {
+>   ...
+> }
+> ```
+>
+> * `Dialog`定义
+>
+> ```java
+> public class Dialog implements Window.Callback {
+>   ...
+> }
+> ```
+>
+> * 当`Window.Callback cb = mWindow.getCallback(); cb != null`时，事件传递给了`Activity`或者`Dialog`
+> * 当`Window.Callback cb = mWindow.getCallback(); cb == null`时，事件传递给`super.dispatchTouchEvent(ev)`，即`DecorView`的父类`ViewGroup`
+>
+> ### DecorView叛徒
+>
+> * 本来事件从`ViewRootImpl.mView.dispatchPointerEvent()`传递好好的
+> * 但是如果`ViewRootImpe.mView is DecorView`，则事件则交给了`Activity`或者`Dialog`
+>
+> ### Activity、PhoneWindow、DecorView、ViewRootImpl关系
+>
+> * `Activity`持有`PhoneWindow`
+>
+> ```java
+> public class Activity implements Window.Callback {
+>   private Window mWindow
+>     
+>   final void attach(Window window) {
+>     mWindow = new PhoneWindow(this, window, activityConfigCallback);
+>   }
+> }
+> ```
+>
+> * `PhoneWindow`持有`DecorView`
+>
+> ```java
+> public class PhoneWindow extends Window {
+>   private DecorView mDecor;
+> 
+> 	public PhoneWindow(Context context, Window preservedWindow,
+>             ActivityConfigCallback activityConfigCallback) {
+>     mDecor = (DecorView) preservedWindow.getDecorView();
+>   }
+> }
+> ```
+>
+> * `DecorView`持有`PhoneWindow`,且可以通过父类`View.getViewRootImpl()`获取`ViewRootImpl`
+>
+> ```java
+> public class DecorView extends FrameLayout {
+>   DecorView(Context context, PhoneWindow window) {
+>     setWindow(window);
+>   }
+>   void setWindow(PhoneWindow phoneWindow) {
+>     mWindow = phoneWindow;
+>   }
+> }
+> ```
+>
+> ### Activity事件分发
+>
+> ```java
+> public boolean dispatchTouchEvent(MotionEvent ev) {
+>     // 这个方法是个空实现，给开发者去重写
+>     if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+>         onUserInteraction();
+>     }
+>     // getWindow返回的就是PhoneWindow实例
+>     // 直接调用PhoneWindow的方法
+>     if (getWindow().superDispatchTouchEvent(ev)) {
+>         return true;
+>     }
+>     // 如果前面分发过程中事件没有被处理，那么调用Activity自身的方法对事件进行处理
+>     return onTouchEvent(ev);
+> }
+> ```
+>
+> ### PhoneWindow事件分发
+>
+> ```java
+> public boolean superDispatchTouchEvent(MotionEvent event) {
+>   //交给DecorView去分发
+>   return mDecor.superDispatchTouchEvent(event);
+> }
+> ```
+>
+> ### DecorView分发
+>
+> ```java
+> public class DecorView extends FrameLayout {
+> 	public boolean superDispatchTouchEvent(MotionEvent event) {
+>     //即ViewGroup事件分发
+>     return super.dispatchTouchEvent(event);
+>   }
+> }
+> ```
+>
+> ### 结论
+>
+> * 兜兜绕绕一圈，即使`ViewRootImpl.mView is DecorView `事件交给了`Activity`，但最终又绕回了`DecorView的父类ViewGroup.dispatchTouchEvent()`
+>
+> ### 注意
+>
+> * `ViewRootImpl`不是一个`View`，它有一个`View mView`成员变量
