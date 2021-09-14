@@ -931,9 +931,9 @@
 >   mViews.add(view);
 >   mRoots.add(root);
 >   mParams.add(wparams);
->   
+> 
 >   ...
->     
+> 
 >   root.setView()
 > }
 > ```
@@ -1047,7 +1047,7 @@
 > ```java
 > public class Activity implements Window.Callback {
 >   private Window mWindow
->     
+> 
 >   final void attach(Window window) {
 >     mWindow = new PhoneWindow(this, window, activityConfigCallback);
 >   }
@@ -1125,3 +1125,47 @@
 > ### 注意
 >
 > * `ViewRootImpl`不是一个`View`，它有一个`View mView`成员变量
+>
+> ***
+
+## Context
+
+> ### 链接
+>
+> * [context](https://juejin.cn/post/6887499574383116302)
+>
+> ### 定义
+>
+> * 应用程序与系统之间的桥梁
+> * 应用程序访问系统资源的接口
+> * Android系统给应用的一张凭证
+> * 一个Java类有了context才能被称为组件
+>
+> ### 创建
+>
+> * 通过`AMS`创建
+> * `AMS`会把一个`凭证`通过跨进程通信给到应用程序
+> * 应用程序会把这个`凭证`封装成`context`，并提供一系列的接口
+> * 优势：系统可以对程序访问系统做访问权限控制
+>
+> ### 实现类
+>
+> * `ContextWrapper`不是真正的实现类，真正的实现类是`ContextImpl`
+> * 使用`装饰者模式`，`ContextWapper`持有`ContextImpl`对象
+> * 真正的实现类只有三个：`Application`、`Service`、`Activity`
+>
+> ### Application
+>
+> * 全局单例，只有一个
+> * 不能因为是单例而把`Application`当工具类用
+> * 没有界面的context，就不应该拥有操作界面的权利
+>
+> ### Activity
+>
+> * 常用于`UI`的更新，如弹出`Toast`，添加`window`
+> * 一直持有一个`activity`的`context`不释放可能会导致内存泄漏
+>
+> ### 总结
+>
+> * `Application`虽然是全局单例`context`，但是别乱用
+
