@@ -4,14 +4,14 @@
 
 > ### 安卓动画未完成前对View进行操作
 >
-> * 不能对View进行操作，不然最后的动画`onAnimationEnd()`会调用，导致预期和实际差异巨大
+> * 不能对View进行操作，不然当最后的动画`onAnimationEnd()`调用时，导致预期和实际差异巨大
 > * 要对View进行操作一定要停止动画`animator.clear()`或者`animator.end()`
 >
 > ### 长连接使用
 >
 > * 端上和server一直操持长连接
 > * server给端上push一条`/count`请求
-> * 端上根据返回的结果如果`multiNoticeCountList.size() > 0`就调用处理未读消息的方法
+> * 端上根据返回的结果，如果`multiNoticeCountList.size() > 0`就调用处理未读消息的方法
 > * 处理未读消息的方法首先对`muliNoticeCountList`做一些过滤，然后通过`EventBus`抛出聚合事件
 > * 事件处理方法体调用`/notice/multi`，并带上`group`作为参数，刷新对应`group`的摘要
 >
@@ -93,7 +93,7 @@
 > class MyFragment() {
 >   private mRootView: ViewGroup? = null
 >   override fun onCreateView() {
->     val view = nflater.inflate(viewGroup, container, false)
+>     val view = inflater.inflate(viewGroup, container, false)
 >     (view as? ViewGroup)?.let{
 >       mRootView = it
 >     }
@@ -130,7 +130,7 @@
 > * `RawEncoding`：相比标准减少了padding，遇到不是3倍数时采用移位
 > * `UrlEncoding`：`+ -> -`，`/ -> _`
 > * `文本传输`：http以文本传输，要用hex或者base64编码。内容为文本，自带描述信息(参数名)
->   * `二进制传输`：tcp以二进制传输，要用字符编码。内容为二进制，以预先定义好的格式拼接在一起
+> * `二进制传输`：tcp以二进制传输，要用字符编码。内容为二进制，以预先定义好的格式拼接在一起
 >
 > ***
 
@@ -204,7 +204,7 @@
 > * 发生了一个关注事件
 > * `handler`的`handlerCallback()`调用
 > * 遍历`map`中的`listener`并依次调用`listener.invoke()`方法
-> * 自此就完成了一个
+> * 自此就完成了一个观察者模式
 >
 > ### LayoutInflater.inflate()
 >
@@ -212,7 +212,7 @@
 > * `@LayoutRes int resource`：想要初始化创造的View
 > * `@Nullable ViewGroup root`
 >   * `attachToRoot = true`：调用`root.addView(view)`
->   * `attachToRoot = false`：调用
+>   * `@Nullable`注解说明可以为空
 >
 > ***
 
@@ -245,9 +245,9 @@
 >
 > ```kotlin
 > class MyView(context: Context, attrs: AttributeSet?, defStyleAttr: Int = 0): FrameLayout, View.OnClickListener{
->   
+> 
 >   private lateinit var mOnBarClickListener: OnBarClickListener
->   
+> 
 >   override fun onClick(v: View?) {
 >     mOnBarClickListener ?: return
 >     when(v.id) {
@@ -255,7 +255,7 @@
 >       confirm_item -> mOnBarClickListener.onConfirmClick(v)
 >     }
 >   }
->   
+> 
 >   fun setOnBarClickListener(listener: OnBarClickListener) {
 >     this.mOnBarClickListener = listener
 >   }
@@ -281,19 +281,19 @@
 > ```kotlin
 > class Example(builder: Builder) {
 >   var text: String? = ""
->   
+> 
 >   init {
 >     this.text = builder.text
 >   }
->   
+> 
 >   open class Buidler {
 >     var text: String? = ""
->     
+> 
 >     fun setText(text: String): Builder {
 >       this.text = text
 >       return this
 >     }
->     
+> 
 >     fun build() = Example(this)
 >   }
 > }
@@ -334,14 +334,16 @@
 >   fun onPushSuccess(data: Data) {
 >     keva.storeData(data)
 >   }
->   
+> 
 >   @Overide
 >   fun onPushFail() {
 >     keva.storeData(Data.getDefault())
 >   }
->   
+> 
 >   @Overide
 >   fun getFrequency() = keva.getData()
 > }
 > ```
+>
+> ***
 
