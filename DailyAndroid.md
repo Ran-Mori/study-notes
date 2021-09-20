@@ -18,12 +18,12 @@
 > data class MessageEvent(val msg:String)
 > ```
 >
-> ### 定义观察者Observer的处理事件方法
+> ### 定义Observer的处理事件方法
 >
 > ```kotlin
 > @Subscribe(threadMode = ThreadMode.BACKGROUND)
 > fun subscribe(msg:MessageEvent){  
->     Log.d("MainActivity","receive a message")  
+>     Log.d("MainActivity", "receive a message")  
 >     binding.buttonFirst.text = msg.msg  
 >     Toast.makeText(activity,"click one",Toast.LENGTH_LONG).show()
 > }
@@ -31,15 +31,15 @@
 >
 > ### 四种threadMode模式
 >
-> * `POSTING`：在被观察者(发送消息那个)的线程执行
-> * `Main`：观察者方法在`Main`(UI线程)执行
->   * 如果被观察者是在`Main`线程发出post。那么观察者立即执行，导致被观察者被阻塞
->   * 如果被观察者不在`Main`线程发出post，那么所有post构成一个队列，依次执行，被观察者不会被阻塞
-> * `MAIN_ORDERED`：post总是在一个队列里，被观察者永远不会被阻塞
+> * `POSTING`：在`Observable`的线程执行
+> * `Main`：`Observer`方法在`Main`(UI线程)执行
+>   * 如果`Observable`是在`Main`线程发出post。那么`Observer`立即执行，导致`Observerable`被阻塞
+>   * 如果`Observable`不在`Main`线程发出post，那么所有post构成一个队列，依次执行，`Observable`不会被阻塞
+> * `MAIN_ORDERED`：post总是在一个队列里，`Observable`永远不会被阻塞
 > * `BACKGROUND`
->   * 如果被观察者是在`Main`线程发出post。那么任务被**队列化**安排到一条固定的`Backgroud`线程执行，有可能会阻塞`backgroud`线程
->   * 如果被观察者不是在`Main`线程发出post。那么任务队列就直接在发出post的那条线程执行
-> * `ASYNC`：既不在`Main`线程执行，也不在被观察者的post线程执行。EventBus有一个线程池
+>   * 如果`Observable`是在`Main`线程发出post。那么事件被**队列化**安排到一条固定的`Backgroud`线程执行，有可能会阻塞`backgroud`线程
+>   * 如果被`Observable`不是在`Main`线程发出post。那么任务队列就直接在发出post的那条线程执行
+> * `ASYNC`：既不在`Main`线程执行，也不在`Observable`的post线程执行。EventBus有一个线程池
 >
 > ### 注册与解注册
 >
@@ -56,7 +56,7 @@
 >
 > * 使用的是默认的`EventBus`对象
 >
-> ### 被观察者发送信息
+> ### Observables发送信息
 >
 > * `EventBus.getDefault().post(Message("一个发出的消息"))`
 >
@@ -105,6 +105,9 @@
 > }
 > ```
 >
+> * 首先实例化出一个`Observer`对象
+> * 再将`Observer`对象添加进去
+>
 > ### 注
 >
 > * Android手动杀死进程。依旧会执行`onStop()、onDestroy()`方法
@@ -116,11 +119,12 @@
 > ### 概述
 >
 > * 也是一种观察者模式
+> * 除了`观察者、被观察者`外多了一个第三者——`LifeCycleOwner`，用于控制观察者模式的时间域范围
 >
 > ### 特点
 >
-> * `Observer`只能是`LifecycleOwner`，即一般就只能是`Activity、Fragment`。必须有`start、resume、stop`等方法
-> * `Observable`必须对应接口的实现`onChanged()`方法
+> * `LifecycleOwner`，一般就只能是`Activity`、`Fragment`，必须有`start、resume、stop`等方法
+> * `Observer`必须实现`public interfacr Observer<T>`接口的`onChanged(T t)`方法
 > * 不用手动处理生命周期，默认方式封装了只会在活跃生命周期内观察
 > * 如果在不正常生命周期漏观察了变化，则在进入正常生命周期时刻会立即更新
 > * 总是就是很好用很方便
@@ -128,6 +132,7 @@
 > ### 观察
 >
 > ```java
+> //LiveData.observe()
 > public void observe(LifecycleOwner owner, Observer<? super T> observer) {}
 > ```
 >
@@ -137,7 +142,8 @@
 
 > ### 概述
 >
-> * 代表安卓应用中的 **一个屏幕** ，不同的屏幕对应不同的`Activity`，比如电子邮件列表屏幕、电子邮件编辑屏幕
+> * 代表安卓应用中的**一个屏幕** ，不同的屏幕对应不同的`Activity`，比如电子邮件列表屏幕、电子邮件编辑屏幕
+> * 之所以能够理解成代表一个`屏幕`和后续的`window`机制有关，一个`window`因为持有`ViewRootImpl`是一颗`view`树
 > * `Activity`的存在支持了每次调用应用不是一定从一个固定的屏幕开始(也就是通常所说的主函数)。比如浏览器点击发送邮件按钮应该从编辑邮件按钮界面开始，而不是从一般的邮件列表开始
 > * `Activity`提供窗口让应用绘制界面。窗口可能铺满实际物理屏幕，也可能比实际物理屏幕小
 > * `Acitivity`之间的依赖耦合很小
@@ -333,18 +339,18 @@
 >
 > ```java
 > class FatherModel<T> implements IHandler{
-> protected void handleData(T data) {
->     //无实现，子类overwrite它
-> }
+>   protected void handleData(T data) {
+>    	//无实现，子类overwrite它
+>   }
 > 
-> //重写WeakHandler的handleMsg方法
-> @Overrite
-> public void handleMsg(Message msg){
->     //调用自己的handleData方法，处理的数据从Message来。msg.obj就是Resbonse
->     handleData(msg.obj);
->     //成功了调用listner的onSuccess()方法。此处listner为Presenter
->     listener.onSuccess();
-> }
+>   //重写WeakHandler的handleMsg方法
+>   @Overrite
+>   public void handleMsg(Message msg){
+>    //调用自己的handleData方法(实际上子类会复写此方法)，处理的数据从Message来。msg.obj就是Resbonse
+>    handleData(msg.obj);
+>    //成功了调用listner的onSuccess()方法。此处listner为Presenter
+>    listener.onSuccess();
+>   }
 > }
 > ```
 >
@@ -353,11 +359,11 @@
 > ```java
 > class SonModel extend FatherModel{
 > 	private fun fetchData(){
->     use a handler to commit a Runnable
-> }
-> 	override fun handleData(response: Response?){
+>  		use a handler to commit a Runnable
+>   }
+>   override fun handleData(response: Response?){
 >     //重写父类的handleData
-> }
+>   }
 > }
 > ```
 >
@@ -365,11 +371,11 @@
 >
 > ```java
 > class FatherPresenter{
-> 	//在父类的构造方法处将Presenter作为观察者，Model作为被观察者
+> 	//在父类的构造方法处将Presenter作为Observer，Model作为Observable
 > 	public void bindMyModel(Type myModel) {
->     this.mModel = myModel;
->     this.mModel.addNotifyListener(this);
-> }
+>    this.mModel = myModel;
+>    this.mModel.addNotifyListener(this);
+>   }
 > }
 > ```
 >
@@ -381,7 +387,7 @@
 > 	override fun onSuccess(){
 >     //成功调用View的doSuccess()方法
 >     mView.doSuccess()
-> 	}
+>   }
 > }
 > ```
 >
@@ -391,17 +397,18 @@
 > * `SonPresenter.getData()`
 > * `SonModel.getData()`
 > * `SonModel.commitARunnalbe()`
-> * 用其他线程异步执行网络请求
+> * 用线程池异步执行网络请求
 > * 请求返回后`mMessage.obj = obj; mMessage.sendToTarget();`向UI线程抛一个Message
 > * `成功获取到数据,但过程是使用handler模式获得的，在message里面`
-> * `FatherModel.handleMsg()`
+> * `WeakHandler.handleMessage(Message msg)`
 >   * 这一步是handler机制决定的，且方法名都不能改
->   * 其中设计dispatch机制
+>   * 其中涉及dispatch机制
+> * `FatherModel.handleMsg()`
 > * `FantherModel.handleData()`
 >   * 此步不执行，由于动态分派规则让子类执行
 > * `SonModel.handleData()`
 > * `SonPresenter.onSuccess()`
->   * 这是观察者模式决定的，SonPresenter被添加为了Lisnter
+>   * 这是观察者模式决定的，SonPresenter被添加为了Listener
 > * `View.doOnSuccess()`
 >
 > ### handler部分详解
@@ -432,7 +439,7 @@
 > }
 > ```
 >
-> * 异步执行
+> * 线程池异步执行
 >
 > ```java
 > mExecutor.execute(Runnable runnable)//异步执行上面那个Runnable
@@ -556,13 +563,13 @@
 >
 > * 创建`Observable`并产生事件
 > * 创建`Observer`定义消费事件行为
-> * 通过`Subscrib`连接`observable`和`Observer`
+> * 通过`Subscrib`连接`Observable`和`Observer`
 >
 > ### 创建Observable
 >
 > * `Observable`的创建是收敛的
 > * 无论是`create()`、`just()`、`from()`还是其他什么，都会收敛到传入一个`Observable.onSubscrib(){}`接口的实现对象
-> * `Observable.java` - 被观察者
+> * `Observable.java`
 >
 > ```java
 > public class Observable<T> {
@@ -589,7 +596,7 @@
 > }
 > ```
 >
-> * `Subscriber.java` - 观察者
+> * `Subscriber.java`
 >
 > ```java
 > public abstract class Subscriber<T> implements Observer<T>, Subscription {
@@ -632,7 +639,7 @@
 >
 > ### 队列性
 >
-> * `Observable`发射的是一个一串事件，而不是一个事件。整串事件被抽象成一个队列
+> * `Observable`发射的是一串事件，而不是一个事件。整串事件被抽象成一个队列
 > * 事件流未开始时观察者调用`onSubscribe()`
 > * 事件流中每一个事件观察者调用`onNext()`
 > * 事件流发生错误时观察者调用`onError()`
@@ -656,7 +663,7 @@
 > * 定义
 >
 > ```java
-> public Disposable subscribe(Consumer onNext, Consumer onError,Action onComplete, Consumer onSubscribe){};
+> public Disposable subscribe(Consumer onNext, Consumer onError, Action onComplete, Consumer onSubscribe){};
 > ```
 >
 > ### 核心方法
@@ -689,7 +696,7 @@
 > ### onCreatViewHolder
 >
 > * 只有在`RecyclerView`的多级缓存被击穿时才会调用，一旦调用，卡帧就特别明显
-> * 可以采取异步线程调用UI线程获取方式，等于在多级缓存后面又加了一个自己的j异步View缓存池
+> * 可以采取异步线程调用UI线程获取方式，等于在多级缓存后面又加了一个自己的异步View缓存池
 >
 > ### onBindViewHolder
 >
@@ -897,7 +904,7 @@
 > * 一个`window`就是一颗`view`树
 > * 一颗`view`树就是一个`window`
 >
-> ### Dialog等
+> ### Dialog
 >
 > * 通过`windowManager`添加的`view`，与当前的`Activity`毫无关系
 > * 它是另一个`window`，另一个`view`树
@@ -918,7 +925,7 @@
 > // 这里对windowParam进行初始化
 > windowParam.addFlags...
 > // 获得应用PhoneWindow的WindowManager对象进行添加window
-> getWindowManager.addView(button,windowParams);
+> getWindowManager.addView(button, windowParams);
 > ```
 >
 > * `WindowManagerGloabal.addView()`最终执行
@@ -994,7 +1001,7 @@
 > }
 > ```
 >
-> * 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`
+> * 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`，奇怪的是`DecorView`对`dispatchTouchEvent`进行了重写
 > * 如果不为`DecorView`，则直接`顶层ViewGroup.dispatchTouchEvent(ev)`
 > * `DecorView.dispatchTouchEvent()`
 >
@@ -1067,7 +1074,7 @@
 > }
 > ```
 >
-> * `DecorView`持有`PhoneWindow`,且可以通过父类`View.getViewRootImpl()`获取`ViewRootImpl`
+> * `DecorView`持有`PhoneWindow`, 且可以通过父类`View.getViewRootImpl()`获取`ViewRootImpl`
 >
 > ```java
 > public class DecorView extends FrameLayout {
@@ -1168,4 +1175,38 @@
 > ### 总结
 >
 > * `Application`虽然是全局单例`context`，但是别乱用
+>
+> ***
+
+## kotlin协程
+
+> ### 并行与并发
+>
+> * 多任务并发的反义词是多任务`顺序`
+> * 多任务并行的反义词是多任务`串行`
+>
+> ### 广义协程
+>
+> * 优点
+>   * 单线程
+>   * 通过`控制代码执行顺序`实现并行而不是`真正的`并行
+>   * 单线程支持并发但无`并发冲突`
+>   * 比线程性能高，因为不用切换线程
+>   * 全程单线程因此是用户态
+> * 缺点
+>   * 因为单线程，一旦阻塞则整个线程都阻塞
+>   * 因为单线程，不能处理耗时任务
+>
+> ### kotlin协程本质
+>
+> * `.class`JVM语言不支持广义上的协程
+> * kotlin协程只是一种`线程框架`
+> * 它通过切换线程来模拟广义上的协程效果
+> * 底层本质还是使用`线程池+Handler`
+>
+> ### 推导
+>
+> * 通过线程切换来实现协程，则性能肯定不是最优的
+>
+> ***
 
