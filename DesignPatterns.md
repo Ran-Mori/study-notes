@@ -1,16 +1,16 @@
-# 设计模式-可复用的面向对象软件基础
+# 设计模式
 
 ## 前
 
 > ### 面向对象系统质量评估
 >
-> * 设计者是否强调了对象之间的 **公共协调关系**
-> * 强调了公共协调关系会使系统体系结构更 **精巧、简洁、便于理解**
+> * 设计者是否强调了对象之间的**公共协调关系**
+> * 强调了公共协调关系会使系统体系结构更**精巧、简洁、便于理解**
 >
 > ### 本书目的
 >
-> * 描述了在面向对象设计过程中针对 **特定** 问题简洁而优雅的方案
-> * 设计模式 **捕获** 这些方案，并用简洁的语言表达出来
+> * 描述在面向对象设计过程中针对**特定**问题简洁而优雅的方案
+> * 设计模式**捕获**这些方案，并用简洁的语言表达出来
 >
 > ### 设计模式特点
 >
@@ -37,21 +37,21 @@
 >
 > ***
 
-## 第一章 - 引言
+## 引言
 
 > ### 复用性
 >
 > * 设计一个面向对象系统是很难的
-> * 但设计一个 **高复用性** 的面向对象系统更难
+> * 但设计一个**高复用性**的面向对象系统更难
 >
 > ### 歌剧类比
 >
 > * 歌剧会沿袭大团圆式模式，浪漫主义模式，悲剧英雄模式等等
 > * 而这种模式移植到软件系统设计中来就是设计模式
 >
-> #### 本书与设计模式关系
+> ### 本书与设计模式关系
 >
-> * 将面向对象软件设计经验作为 **设计模式** 记录下来
+> * 将面向对象软件设计经验作为**设计模式**记录下来
 > * 以前是有设计模式的，但是并无很好规范统一性的表述。常常是一种难以书面言出的个人式经验，此书就能很好解决这个问题
 >
 > ### 本书未涉及
@@ -82,16 +82,16 @@
 >
 > ### 寻找合适的对象
 >
-> * 面向对象设计最困难的部分就是 **将系统拆分成对象的集合**
+> * 面向对象设计最困难的部分就是**将系统拆分成对象的集合**
 > * 这个拆分的过程会考虑很多很多东西
 >
 > ### 指定对象的接口
 >
-> * **型构**定义：对象操作的 **操作名、参数、返回值**
-> * **接口**定义：对象操作所定义的 **所有型构** 的集合
-> * **类型**定义：用来表示 **特定接口** 的一个名字，有超类型，子类型之分
+> * **型构**定义：对象操作的**操作名、参数、返回值**
+> * **接口**定义：对象操作所定义的**所有型构**的集合
+> * **类型**定义：用来表示**特定接口**的一个名字，有超类型，子类型之分
 > * 接口作用：对象只有通过接口才能与外界进行交流，如果不通过对象的接口就不知道对象的任何事情，也无法请求对象做任何事情
-> * 动态绑定：当对象发出请求时，所引起的具体操作既与 **请求本身** 相关，又与 **接受对象** 相关。发送的请求真正的实现只有到运行时才知道
+> * 动态绑定：当对象发出请求时，所引起的具体操作既与**请求本身**相关，又与**接受对象**相关。发送的请求真正的实现只有到运行时才知道
 >
 > ### 描述对象的实现
 >
@@ -109,12 +109,12 @@
 >
 > ### 继承与组合
 >
-> * 继承又叫 **白箱复用**，因为继承后被复用的父类的细节子类是可以看到的
-> * 组合又叫 **黑想复用**，因为组合之间的内部细节彼此是不知道的
+> * 继承又叫**白箱复用**，因为继承后被复用的父类的细节子类是可以看到的
+> * 组合又叫**黑想复用**，因为组合之间的内部细节彼此是不知道的
 > * 继承的缺点
 >   * 继承关系是在编译期就确定死了的，在运行期无法改变
 >   * 继承时子类是可以了解到父类的细节的，因此常常被认为是破坏了封装性
->   * 当要复用子类时，会产生依赖性问题。如果顺序继承不合适常常还要从父类起fork在写另外一个子类
+>   * 当要复用子类时，会产生依赖性问题。如果顺序继承不合适常常还要从父类起fork再写另外一个子类
 > * 组合的优点
 >   * 组合里面存放的是对象的引用，实际上就是接口。因此它是面向接口的，依赖就会更少
 >   * 使用组合能细粒度化每个类的功能，使每个类更精炼，还能使整个类继承层次保持在较小的规模
@@ -158,7 +158,7 @@
 >
 > ***
 
-## 第三章 - 创建型模式
+## 创建型模式
 
 > ### 前述
 >
@@ -188,7 +188,7 @@
 >
 > ### 用户信息举例
 >
-> * 用户类一般分为用户的 **属性** 和 **行为**
+> * 用户类一般分为用户的**属性**和**行为**
 >
 > * 我们可以把属性单独抽象出一个接口，将行为单独抽象出一个接口
 >
@@ -205,9 +205,9 @@
 > ### 电话举例
 >
 > * 日常的电话类设计其实是不太正确的
-> * 因为电话分为 **行为** 和 **协议**，行为指接听和挂断两种行为，协议则是指数据进行传输的方式
-> * 但一般我的都将它们合并在一起只设计一个 **IPhone**接口，不同的电话实现这个接口并没什么问题
-> * 如果要真正的实现单一职责，就不得不使用 **组合复用** ，因为电话内容的传输即协议通讯是依赖于行为动作的
+> * 因为电话分为**行为**和**协议**，行为指接听和挂断两种行为，协议则是指数据进行传输的方式
+> * 但一般我的都将它们合并在一起只设计一个**IPhone**接口，不同的电话实现这个接口并没什么问题
+> * 如果要真正的实现单一职责，就不得不使用**组合复用** ，因为电话内容的传输即协议通讯是依赖于行为动作的
 >
 > ### 方法也能单一职责
 >
@@ -244,13 +244,13 @@
 >
 > * 如果在实际的业务逻辑中，如果替换成子类会错误，则说明已经违背了`LSP原则`
 > * 在实际的业务逻辑中，声明引用处尽量使用顶层接口和父类而不要使用子类
-> * 如果子类不能完全实现父类的方法，则建议断开继承关系。采用 **依赖、组合、委托** 的关系代替继承
+> * 如果子类不能完全实现父类的方法，则建议断开继承关系。采用**依赖、组合、委托**的关系代替继承
 >
 > ### 玩具枪失败例子
 >
 > * 一个`AbstractGun`接口有击杀的`shoot`方法
-> * 而玩具枪有枪的特征，但是无法 **全部实现父类方法**，这里就已经违背了里氏替换原则
-> * 最好的做法是重新创建一个类。通过 **委托** 的方式，将枪中除了`shoot`的逻辑交给`AbtractGun`处理
+> * 而玩具枪有枪的特征，但是无法**全部实现父类方法**，这里就已经违背了里氏替换原则
+> * 最好的做法是重新创建一个类。通过**委托**的方式，将枪中除了`shoot`的逻辑交给`AbtractGun`处理
 >
 > ### 子类可以具有自己的个性
 >
@@ -296,9 +296,9 @@
 >
 > * 实际参数类型是`HashSet`，范围更大。输出结果是`father`
 >
-> * 很自然这种哦调用方法是正确的，符合 **里氏原则**
+> * 很自然这种调用方法是正确的，符合 **里氏原则**
 >
-> * 实际上这里是方法的 **重载** 而不是重写
+> * 实际上这里是方法的**重载**而不是重写
 >
 > * 对比
 >
@@ -341,8 +341,7 @@
 >           return HashMap()
 >       }
 >   }
->
->
+>   
 >   class Son:Father() {
 >       override fun doSomething(set: HashSet<String>): HashMap<String, Any>? {
 >           println("son")
@@ -350,15 +349,15 @@
 >       }
 >   }
 >   ```
-> 
+>
 > * 父类的返回值是`Map`，子类重写返回值是`HashMap`。这是符合里氏替换原则的
-> 
+>
 > ### 总结
-> 
+>
 > * 满足以上原则就能很好地使用里氏替换原则
 > * 就能增强程序的健壮性
 > * 里氏替换原则要达到即使增加在多的子类，原始的子类和新的子类之间依然满足里氏替换原则
-> 
+>
 > ***
 
 ## 依赖倒置原则
@@ -371,7 +370,7 @@
 >
 > ### Java中表示
 >
-> * 模块间依赖通过 **抽象** 发生，实现类之间不发生直接依赖关系。
+> * 模块间依赖通过**抽象**发生，实现类之间不发生直接依赖关系。
 > * 接口或抽象类不依赖于实现类
 > * 实现类依赖于接口或抽象类
 >
@@ -380,7 +379,7 @@
 > ```bash
 >    IDriver      ----->   ICar
 >       |                    |
->     Driver              BMW   Benz
+>     Driver             BMW   Benz
 > ```
 >
 > * `IDriver`和`ICar`之间有依赖
@@ -411,7 +410,7 @@
 > * 每个类尽量都有接口和抽象类
 > * 变量的静态类型尽量是接口或抽象类
 > * 任何类不从具体类派生
-> * 尽量不overwrite抽象类已经实现的方法
+> * 尽量不`override`抽象类已经实现的方法
 > * 结合里氏替换原则使用
 >
 > ### 三者功能划分
@@ -479,7 +478,7 @@
 > ### 之前接口弊端
 >
 > * 如果是杨贵妃，就完全不适用。不能实现一个接口但没有全部实现它的方法，这样是不符合里氏替换原则的。
-> * 这样就是电典型的封装过度
+> * 这样就是典型的封装过度
 >
 > ### 总结上面
 >
@@ -502,7 +501,7 @@
 >
 > ### 最佳实践
 >
-> * 一个接口只服务于一个字模块或者业务逻辑
+> * 一个接口只服务于一个子模块或者业务逻辑
 > * 通过业务逻辑压缩接口中的public方法
 > * 已被污染接口，尽量去变更，如果变更风险大，则采用适配器模式进行转换处理
 > * 了解环境，拒绝盲从
@@ -514,7 +513,7 @@
 > ### 定义
 >
 > * `Least Knowledge Principle`
-> * 也称为 **最少知识原则** LKP
+> * 也称为**最少知识原则** LKP
 > * 规则：一个对象应该对其他对象有最少的了解
 > * 通俗解释：一个类应该对自己需要耦合或调用的类知道得最少
 > * 更通俗：你内部是如何耦合如何复杂我根本不关心，那是你的事情。我就知道你提供了多少public的方法，我就调用这些就行了。
@@ -522,7 +521,7 @@
 > ### 朋友
 >
 > * 定义：出现在成员变量、方法输入参数和返回值的类型成员称为朋友。而出现在方法体中的类不属于朋友
-> * 两个对象耦合就叫朋友关系，例如组合、聚合、依赖等
+> * 两个对象耦合就叫朋友关系，例如`组合、聚合、依赖`等
 > * 一个在方法体中使用到的外部类，然而这个类居然不知道自己的行为已经与其他类发生了耦合。这是绝对不允许且严重违反迪米特法则的
 >
 > ### 违反举例
@@ -556,7 +555,7 @@
 >
 > * **修改接口**： 所有实现类都要进行修改，方案否定
 > * **修改实现类**： 直接在`getPrice()`方法中修改，然后`.class`文件替换。该方法十分不错，但不是最优
-> * **通过拓展来实现变化**： 增加一个子类，overwrite `getPrice()`方法。这是最推荐的修改方法
+> * **通过拓展来实现变化**： 增加一个子类，`overwrite` `getPrice()`方法。这是最推荐的修改方法
 >
 > ### 对修改的界定
 >
@@ -605,9 +604,9 @@
 > ### 最佳实践
 >
 > * 开闭原则是重中之重，是最基础的原则，是其他五大原则的精神领袖
-> * 开闭原则只是一个原则，替换`.class`文件方法还是能用，但必须做到 **高内聚，低耦合**，否则一旦替换什么事故都会出来
+> * 开闭原则只是一个原则，替换`.class`文件方法还是能用，但必须做到**高内聚，低耦合**，否则一旦替换什么事故都会出来
 > * 预知变化：架构师很重要的，设计一套系统不仅要符合现有的需求，还要适应可能发生的变化
-> * 终极目标：开闭原则是一个终极目标，现实中往往不会百分之百达到，但朝着这个方向进行，可以显著地提高系统架构，真正做到 **拥抱变化**
+> * 终极目标：开闭原则是一个终极目标，现实中往往不会百分之百达到，但朝着这个方向进行，可以显著地提高系统架构，真正做到**拥抱变化**
 >
 > ***
 
@@ -623,7 +622,7 @@
 >
 >   ```java
 >   private SingleTon(){
->                       
+>                             
 >   }
 >   ```
 >
@@ -660,7 +659,7 @@
 >
 > ### 优点
 >
-> * 封装性好，代码结构清晰。调用方只用知道 **产品类名**
+> * 封装性好，代码结构清晰。调用方只用知道**产品类名**
 > * 拓展性好。新增一个产品只需要增加一个实现类，其他啥都不用改(前提是接口稳定不变)
 > * 解耦。高层只需要知道产品的抽象类，其他啥都不需要知道。符合迪米特法则，符合依赖倒置原则，符合里氏替换原则。
 >
@@ -729,6 +728,34 @@
 > * 族数确定，有着相同的约束，就可以使用抽象工厂方法模式
 > * 比如不同平台下的图形编辑器外观样式是相同的，但是实际代码是不同的。他们有共同的约束：操作系统类型
 >
+> ### 核心代码
+>
+> ```kotlin
+> //IFactory.kt
+> interface IFactory {
+>   fun createMusicPlayer(): IMusicPlayer
+>   fun createFileManager(): IFileManager
+> }
+> 
+> //MacOSFactory.kt
+> class MacOSFactory: IFactory {
+>   fun createMusicPlayer(): IMusicPlayer = MacOSMusicPlayer()
+>   fun createFileManager(): IFileManager = MacOSFileManager()
+> }
+> 
+> //WindowsFanctory.kt
+> class WindowsFactory: IFactory {
+>   fun createMusicPlayer(): IMusicPlayer = WindowsMusicPlayer()
+>   fun createFileManager(): IFileManager = WindowsFileManager()
+> }
+> 
+> //main.kt
+> fun main {
+>   IFactory factory = WindowsFactory()
+>   IMusicPlayer player = factory.createMusicPlayer()
+> }
+> ```
+>
 > ***
 
 ## 模版方法模式
@@ -779,7 +806,7 @@
 >
 > * 多个子类拥有公有的方法，并且逻辑基本相同。
 > * 重要、复杂的算法。
-> * 重构时。模版方法经常使用。把相同的代码抽到父类中，通过 **钩子函数** 约束其行为。
+> * 重构时，模版方法经常使用。把相同的代码抽到父类中，通过**钩子函数**约束其行为。
 >
 > ### 钩子(hook)函数
 >
@@ -871,6 +898,29 @@
 >
 > * 如果选择顺序导致结果不同。那么实际执行的动作的总函数可以是模版函数，定义在抽象类中
 >
+> ### 普通构建者模式
+>
+> ```kotlin
+> class Example(builder: Builder) {
+>   var text: String? = ""
+>   
+>   init {
+>     this.text = builder.text
+>   }
+> }
+> 
+> open class Buidler {
+>   var text: String? = ""
+> 
+>   fun setText(text: String): Builder {
+>     this.text = text
+>     return this
+>   }
+> 
+>   fun build() = Example(this)
+> }
+> ```
+>
 > ***
 
 ## 代理模式
@@ -895,7 +945,7 @@
 >
 > ### 强制代理
 >
-> * 强制代理要求通过 **真实角色来找到代理角色**，思维有那么一点点不一样
+> * 强制代理要求通过**真实角色来找到代理角色**，思维有那么一点点不一样
 >
 > ### 举例
 > * 接口
@@ -1116,8 +1166,9 @@
 > * 真实接收者
 >
 > ```java
-> public class Reciver extends IReciver{
->   public void doSomething(){
+> public class Reciver extends IReciver {
+>   @Override
+>   public void doSomething() {
 >     System.out.println("do something");
 >   }
 > }
@@ -1126,7 +1177,7 @@
 > * 抽象命令
 >
 > ```java
-> public abstract class ICommand{
+> public abstract class ICommand {
 >   protected RequireGroup rg = new RequireGroup();
 >   protected CodeGourp cg = new CodeGroup();
 >   protected UIGroup ug = new UIGroup();
@@ -1137,12 +1188,12 @@
 > * 真实命令
 >
 > ```java
-> public class Command extends ICommand{
+> public class Command extends ICommand {
 >   private IRecevier recevier;
->   public Command(IRecevier recevier){
+>   public Command(IRecevier recevier) {
 >     this.recevier = recevier;
 >   }
->   public void excute(){
+>   public void excute() {
 >     this.revevier.doSomething();
 >   }
 > }
@@ -1151,12 +1202,12 @@
 > * 真实发令者
 >
 > ```java
-> public class Invoker{
+> public class Invoker {
 >   private ICommand commond;
->   public void setCommond(ICommand commond){
+>   public void setCommond(ICommand commond) {
 >     this.commond = commond;
 >   }
->   public void excute(){
+>   public void excute() {
 >     this.commond.excute();
 >   }
 > }
@@ -1266,7 +1317,7 @@
 > * Component：一个接口或实现类。定义最核心最原始的对象
 > * ConcrateComponent：接口的实现
 > * Decorator：抽象类。有一个指向Component的指针
-> * ConcretDecorator:实现具体的装饰逻辑
+> * ConcretDecorator: 实现具体的装饰逻辑
 >
 > ### 示例
 > * Component
@@ -1294,12 +1345,12 @@
 > ```java
 > public abstract class Decorator extends Component {
 > 	private Component component = null;
-> 	
+> 
 > 	//通过构造函数传递被修饰者
 > 	public Decorator(Component _component){
 > 		this.component = _component;
 > 	}
-> 	
+> 
 > 	//委托给被修饰者执行
 > 	@Override
 > 	public void operate() {
@@ -1313,18 +1364,19 @@
 >
 > ```java
 > public class ConcreteDecorator extends Decorator {
-> 	
+> 
 > 	//定义被修饰者
 > 	public ConcreteDecorator(Component _component){
 > 		super(_component);
 > 	}
-> 	
+> 
 > 	//定义自己的修饰方法
 > 	private void method1(){
 > 		System.out.println("method1 修饰");
 > 	}
-> 	
+> 
 > 	//重写父类的Operation方法
+>   @Overide
 > 	public void operate(){
 > 		this.method1();
 > 		super.operate();
@@ -1336,16 +1388,16 @@
 >
 > ```java
 > public class Client {
-> 	
+> 
 > 	public static void main(String[] args) {
 > 		Component component = new ConcreteComponent();
-> 		
+> 
 > 		//第一次修饰
 > 		component = new ConcreteDecorator1(component);
-> 		
+> 
 > 		//第二次修饰
 > 		component = new ConcreteDecorator2(component);
-> 		
+> 
 > 		//修饰后运行
 > 		component.operate();
 > 	}
@@ -1362,7 +1414,7 @@
 >
 > * 装饰类和被装饰类可以独立发展，互不耦合
 > * 不管装饰多少层，最后返回的都是Component
-> * 可以 **动态拓展** 一个类的功能
+> * 可以**动态拓展** 一个类的功能
 >
 > ### 缺点
 >
@@ -1482,20 +1534,17 @@
 >
 > ```java
 > public class Client {
-> 	
-> 	public static void main(String[] args) {
+> 		public static void main(String[] args) {
 > 		//输入的两个参数是数字
 > 		int a = Integer.parseInt(args[0]);
 > 		String symbol = args[1];  //符号
 > 		int b = Integer.parseInt(args[2]);
 > 		System.out.println("输入的参数为："+Arrays.toString(args));
-> 	
 > 		System.out.println("运行结果为："+a + symbol + b + "=" + Calculator.ADD.exec(a, b));
-> 		
-> 	}
+> 		}
 > }
-> ```
->
+> 		```
+> 
 > ***
 
 ## 适配器模式
@@ -1523,12 +1572,12 @@
 > }
 > ```
 >
-> * ConcreteTarget - 原能使用的实现类
+> * ConcreteTarget - 原来使用的实现类
 >
 > ```java
 > public class ConcreteTarget implements Target {
 > 	public void request() {
-> 		System.out.println("I have nothing to do. if you need any help,pls call me!");
+> 		System.out.println("I have nothing to do. if you need any help, please call me!");
 > 	}
 > }
 > ```
@@ -1539,7 +1588,7 @@
 > public class Adaptee {
 > 	//原有的业务逻辑
 > 	public void doSomething(){
-> 		System.out.println("I'm kind of busy,leave me alone,pls!");
+> 		System.out.println("I'm kind of busy,leave me alone,please!");
 > 	}
 > }
 > ```
@@ -1548,6 +1597,7 @@
 >
 > ```java
 > public class Adapter extends Adaptee implements Target {
+>   @Override
 > 	public void request() {
 > 		super.doSomething();
 > 	}
@@ -1595,18 +1645,18 @@
 > 	private IOuterUserBaseInfo baseInfo = null;  //员工的基本信息
 > 	private IOuterUserHomeInfo homeInfo = null; //员工的家庭 信息
 > 	private IOuterUserOfficeInfo officeInfo = null; //工作信息
-> 	
+> 
 > 	//数据处理
 > 	private Map baseMap = null;
 > 	private Map homeMap = null;
 > 	private Map officeMap = null;
-> 	
+> 
 > 	//构造函数传递对象
 > 	public OuterUserInfo(IOuterUserBaseInfo _baseInfo,IOuterUserHomeInfo _homeInfo,IOuterUserOfficeInfo _officeInfo){
 > 		this.baseInfo = _baseInfo;
 > 		this.homeInfo = _homeInfo;
 > 		this.officeInfo = _officeInfo;
-> 		
+> 
 > 		//数据处理
 > 		this.baseMap = this.baseInfo.getUserBaseInfo();
 > 		this.homeMap = this.homeInfo.getUserHomeInfo();
