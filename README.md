@@ -31,6 +31,8 @@
 
 ## [编译原理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/PriciplesOfCompilers.md)
 
+## [人机交互笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Human%20Computer%20Interaction.md)
+
 ## [Redis基础学习](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Redis.md)
 
 ## [Android基础网课学习笔记 java版本](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/android.md)
