@@ -137,7 +137,7 @@
 >   val intent = Intent(this, SecondActivity::class)
 >   intent.putExtra("name","IzumiSakai")
 >   startActivity(intent)
->         
+>           
 >   //接收，才onCreate(b:Bundle?) 或者onStart()中
 >   val name = intent.getStringExtra("name")
 >   ```
@@ -284,7 +284,7 @@
 >       super.onSaveInstanceState(outState)
 >       outState.putString("name","Izumi Sakai")
 >   }
->         
+>           
 >   //接收数据
 >   override fun onCreate(savedInstanceState: Bundle?) {
 >       super.onCreate(savedInstanceState)
@@ -419,7 +419,28 @@
 > ### SongAdapter
 >
 > ```kotlin
-> class SongAdapter(val songList: List<Song>): RecyclerView.Adapter<SongAdapter.ViewHolder>() {    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){        val songIdTextView: TextView = view.findViewById(R.id.songId)        val songNameTextView: TextView = view.findViewById(R.id.songName)        val songSingerTextView: TextView = view.findViewById(R.id.songSinger)    }    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {        val view: View = LayoutInflater.from(parent.context).inflate(R.layout.song_item,parent,false)        val viewHolder = ViewHolder(view)        viewHolder.songNameTextView.setOnClickListener {            Toast.makeText(parent.context,"songname = ${viewHolder.songNameTextView.text}",Toast.LENGTH_SHORT).show()        }        return viewHolder    }    override fun onBindViewHolder(holder: ViewHolder, position: Int) {        val song: Song = songList[position]        holder.songIdTextView.text = song.id.toString()        holder.songNameTextView.text = song.songName        holder.songSingerTextView.text = song.songSinger    }    override fun getItemCount() = songList.size}
+> class SongAdapter(val songList: List<Song>): RecyclerView.Adapter<SongAdapter.ViewHolder>() {    
+>   inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){        
+>     val songIdTextView: TextView = view.findViewById(R.id.songId)        
+>     val songNameTextView: TextView = view.findViewById(R.id.songName)        
+>     val songSingerTextView: TextView = view.findViewById(R.id.songSinger)    
+>   }    
+>   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {        
+>     val view: View = LayoutInflater.from(parent.context).inflate(R.layout.song_item,parent,false)        
+>     val viewHolder = ViewHolder(view)        
+>     viewHolder.songNameTextView.setOnClickListener {            
+>       Toast.makeText(parent.context,"songname = ${viewHolder.songNameTextView.text}",Toast.LENGTH_SHORT).show()        
+>     }        
+>     return viewHolder   
+>   }    
+>   override fun onBindViewHolder(holder: ViewHolder, position: Int) {        
+>     val song: Song = songList[position]        
+>     holder.songIdTextView.text = song.id.toString()        
+>     holder.songNameTextView.text = song.songName        
+>     holder.songSingerTextView.text = song.songSinger    
+>   }    
+>   override fun getItemCount() = songList.size
+> }
 > ```
 >
 > ### Main
