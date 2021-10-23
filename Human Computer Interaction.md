@@ -1,6 +1,6 @@
 # 人机交互
 
-## info
+## Info
 
 > ### What is this course about?
 >
@@ -22,7 +22,7 @@
 >
 > ***
 
-## design principles
+## Design Principles
 
 > ### discoverability
 >
@@ -157,3 +157,58 @@
 >
 > ***
 
+## Design Cycle
+
+> ### Interface design cycle
+>
+> * design
+> * prototype
+> * evaluate
+>
+> ### the design process
+>
+> * acceptance
+> * analysis
+> * definition
+> * ideation
+> * idea selection
+> * implementation
+> * evaluation
+>
+> ### acceptance
+>
+> * set motivation
+> * set deadline
+> * set responsibility
+>
+> ### analysis
+>
+> * understand users and tasks
+>
+> ### difinition
+>
+> * focus on problem
+>
+> ### ideation
+>
+> * brainstorming
+>
+> ### idea selection
+>
+> * define importance of each idea
+> * rank ideas according to your criteria
+> * pick top N
+>
+> ### implementation
+>
+> * scale up low --> high fidelity
+>
+> ### evaluation
+>
+> *  type of evaluation chosen depends on the level of implementation
+>
+> ***
+
+## Design Research
+
+> 
