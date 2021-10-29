@@ -9,6 +9,8 @@
 
 ## [Android探索艺术读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/AndroidDevelopExploreArt.md)
 
+## [C++ Primer读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CppPrimer.md)
+
 ## [设计模式之禅读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
 
 ## [厦门大学算法设计与分析网课笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
