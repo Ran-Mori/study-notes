@@ -71,7 +71,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->   
+>     
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,7 +80,7 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->   
+>     
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -344,7 +344,7 @@
 > >   {
 > >           return 100;
 > >   }
-> >   
+> >
 > >   int main()
 > >   {       
 > >           constexpr const int i = get_size(); // 声明了一个constexpr变量
@@ -354,4 +354,30 @@
 > >   ```
 > >
 > > * 一般来说，只要认为想把某个表达式定义为常量表达式，就应该加上`constexpr`
+> >
+> > * `constexpr`与指针：指针必须是`nullptr, 0, 某个固定对象的固定地址`。比如定义在函数体之外的对象的地址是不变的
+> >
+> > ***
+>
+> ### 2.5 处理类型
+>
+> * 类型别名
+>
+> > * `typedef`
+> >   * `typedef double d`，`d`是`double`的同义词
+> >   * `typedef char *c`, `c`是 `char*`的同义词
+> > * 意义理解不能错
+> >
+> > ```c++
+> > typedef char *cp;
+> > const cp ptr; // ptr是一个常量指针，指向 char。即 const (char *) ptr;
+> > ```
+> >
+> > ***
+>
+> * auto
+>
+> > * 由编译器去分析表达式所属的类型
+> > * `auto`定义的变量必须有初始值
+> > * 顶层const常被忽略，因此要手动加顶层const。`const auto i = j;`
 
