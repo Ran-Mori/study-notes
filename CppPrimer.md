@@ -71,7 +71,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->     
+>       
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,7 +80,7 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->     
+>       
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -242,6 +242,11 @@
 >
 > ### 2.3指针
 >
+> * 引用
+>
+> > * 引用是对象的一个别名
+> > * 引用一旦创建就和它的初始值牢牢绑定在一起了，因此引用必须有初始值，引用无法重新绑定到另一个对象
+>
 > * 指针字面值：空指针最好都赋值为`nullptr`，`int* p{nullptr};`
 > * 指针判断：任何为0指针都是false，任何非0指针都是true。`int* p = nullptr; if(p) {}`
 > * 指针比较：两个类型相同的指针可以做`==, !=`运算，指向的地址完全相同就返回true
@@ -380,4 +385,119 @@
 > > * 由编译器去分析表达式所属的类型
 > > * `auto`定义的变量必须有初始值
 > > * 顶层const常被忽略，因此要手动加顶层const。`const auto i = j;`
+> >
+> > ***
+>
+> * decltype
+>
+> > * 作用：选择并返回操作数的数据类型
+> > * 返回类型包含顶层const
+> > * `decltype(s.size()) count = 0;`。此时`count`的类型是`std::size_type`
+>
+> ### 2.6 自定义数据结构
+>
+> * 定义struct
+>
+>   ```c++
+>   struct Book_info {
+>     std::string name = "";
+>     int publish_year{0};
+>   };
+>   ```
+>
+> * 头文件
+>
+> > * 头文件一般包含那些只能被定义一次的实体，如类，const和constexpr变量
+> > * 头文件一旦改变，相关的源文件必须重新编译以获得更新后的声明
+> >
+> > ***
+>
+> * 预处理器
+>
+> > * 是程序在编译前执行的一段程序
+> >
+> > ```c++
+> > #ifndef SALES_DATA_H  //一旦未真，则一直执行到#endif为止。一旦为假，立即跳过
+> > #define SALES_DATA_H
+> > #include<string>
+> > struct Sales_data {
+> > 	//...  
+> > };
+> > #endif
+> > ```
+> >
+> > * 预处理变量如`SALES_DATA_H`无视C++语言中关于作用域的规则
+> >
+> > ***
+>
+> ### 小结
+>
+> * C++的基础内置类型是与实现它的硬件密切相关的
+>
+> ***
+
+## 第三章
+
+> ### 前言
+>
+> * 内置数组是一种更基础的类型，string和vector都是对它的某种抽象
+>
+> ### 3.1 using
+>
+> > * `using namespace std;`或者`using std::cout`
+> > * 头文件不应该包含using声明，因为头文件会被复制拷贝到include它的文件中去。
+> >
+> > ***
+>
+> ### 3.2 string
+>
+> * 使用string
+>
+>   ```c++
+>   #include<string>
+>   using std::string;
+>   ```
+>
+> * 拷贝初始化与直接初始化
+>   * 拷贝：`std::string a = "Hello";`
+>   * 直接：`std::string a("Hello");`
+> * string操作
+>
+> > * `getline`: `while(getline(std::cin, a)){ std::count << a << std::endl;}`
+> >
+> > ***
+>
+> * std::size_type
+>
+> > * 是`a.size()`的返回值类型
+> > * 是`string`库的配套类型。体现了标准库类型与机器无关的特性
+> > * 实际上是`long unsinged int`
+> > * 因此不要和`int`混着用， 不然有风险
+> >
+> > ***
+>
+> * 字面值和string相加
+>
+> > * 标准库允许把字符字面值和字符串字面值转化为string对象
+> > * 为了兼容C，C++中的字符字面值并不是标准库类型string的对象
+> >
+> > ***
+>
+> * 使用C++版本的C标准头文件
+>
+> > * C++标准库除了定义C++语言自身的特有功能外，还兼容C语言的标准库
+> > * C语言中`name.h`的头文件，在C++中是`cname`。因此`cctype`和`ctype.h`的内容是一样的
+> > * C++语言应该使用`cctype`而不是`ctype.h`
+> >
+> > ***
+>
+> * 处理每个字符
+>
+> > * `for (const char s : "hello world") { std::cout << s << std::endl; }`
+> > * 使用引用处理每个字符：`for (char &s : str) { s = '1'; };std::cout << str << std::endl;`。想要改变遍历的值必须设置为引用类型
+> > * 下标运算符`[]`：接受的输入类型是`std::size_type`
+> >
+> > ***
+>
+> ### 3.3 vector
 
