@@ -71,7 +71,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->       
+>         
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,7 +80,7 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->       
+>         
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -779,5 +779,16 @@
 > >
 > > ***
 
+## 第五章
 
-
+> ### 5.1 简单语句
+>
+> * 单独一个分号也是一句语句，如`;`, 因此我们不能随意添加引号
+>
+> ### 5.4for语句
+>
+> * 范围for: 实际上是使用了迭代器`begin, end`
+>
+> ### 5.6 try-catch语句
+>
+> * 
