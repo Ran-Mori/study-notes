@@ -71,7 +71,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->         
+>           
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,7 +80,7 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->         
+>           
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -791,4 +791,45 @@
 >
 > ### 5.6 try-catch语句
 >
-> * 
+> * 抛出异常：`throw std::runtime_error("error exception");`
+> * 如果抛到最顶层都没有异常处理，就会执行`std::terminate()`来终止程序
+> * `stdexception.h`定义的异常类：`exception, runtime_error, range_error, overflow_error, underflow_error, logic_error, domain_error, invalid_error, length_error, out_of_range`
+> * `exception`类定义
+>
+> ```c++
+> class exception
+> {
+>   public:
+>   exception() _GLIBCXX_NOTHROW { }
+>   virtual ~exception() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
+> 
+>   /** Returns a C-style character string describing the general cause
+>      *  of the current error.  */
+>   virtual const char*
+>     what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
+> };
+> ```
+>
+> ***
+
+## 第六章
+
+> ### 6.1函数基础
+>
+> * 调用运算符：用于调用函数，即一对括号`()`
+> * 函数调用的两项工作
+>
+> > * 用实参初始化形参
+> > * 将控制权由主调函数切换到被调函数
+> >
+> > ***
+>
+> * 函数return返回两项工作
+>
+> > * 返回return语句中的值(如果有的话)
+> > * 将控制权由被调函数切换到主调函数
+> >
+> > ***
+>
+> * 返回类型：返回类型不能是数组，但可以是指向数组的指针
+
