@@ -71,7 +71,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->           
+>             
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,7 +80,7 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->           
+>             
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -367,7 +367,18 @@
 > ### 2.4 顶底const
 >
 > * 顶层const：表示这个变量本身是否是个常量
-> * 底层const：表示这个变量(一般是指针)指向的内容是否是一个常量
+>
+> ```c++
+> const int i = 0;//这是一个顶层const
+> int * const p = &j;//这是一个顶层const
+> ```
+>
+> * 底层const：表示这个变量(一般是指针和引用)指向的内容是否是一个常量
+>
+> ```c++
+> const int *p = &j;//这是一个底层const
+> const int &i = k;
+> ```
 >
 > ### 2.5 处理类型
 >
@@ -832,4 +843,296 @@
 > > ***
 >
 > * 返回类型：返回类型不能是数组，但可以是指向数组的指针
+> * 局部变量：局部变量会隐藏外层作用域中其他所有同名声明
+> * 自动对象：只存在于块执行期间的对象。如形式参数就是自动对象
+> * 局部静态对象
+>
+> > * 程序第一次执行到它时初始化，直到程序结束才销毁
+> > * 定义：`static int i = 0;`
+> >
+> > ```c++
+> > std::size_t count_calls()
+> > {
+> >   	//第一次执行到这里时会初始化为0， 后面就不会每次赋为零而是取已有的值
+> >     static std::size_t i = 0;
+> >     return ++i;
+> > }
+> > ```
+> >
+> > ***
+>
+> * 函数声明
+>
+> > * 举例: `void print(vector<int>::const_iterator beg, vector<int>::const_iterator end);`
+> > * 定义必须在声明前，不然找不到声明
+> > * 可以多次声明但只能一次定义
+> > * 定义最好放在头文件中
+> >
+> > ***
+>
+> * 分离式编译
+>
+> > * main.cpp
+> >
+> > ```c++
+> > #ifndef MAIN_CPP
+> > #define MAIN_CPP 1
+> > #include<iostream>
+> > #include "countCall.h"
+> > #endif
+> > 
+> > int main()
+> > {
+> >     for (size_t i = 0; i < 10; i++)
+> >     {
+> >         std::cout << count_calls() << std::endl;
+> >     }
+> >     return 0;
+> > }
+> > ```
+> >
+> > * countCall.h
+> >
+> > ```c++
+> > #include<bits/c++config.h>
+> > 
+> > std::size_t count_calls();
+> > ```
+> >
+> > * countCall.cpp
+> >
+> > ```c++
+> > #ifndef COUNT_CALL_CPP
+> > #define COUNT_CALL_CPP
+> > #include "countCall.h"
+> > #include<bits/c++config.h>
+> > #endif
+> > 
+> > std::size_t count_calls()
+> > {
+> >     static int i = 0;
+> >     return ++i;
+> > }
+> > ```
+> >
+> > * 编译命令
+> >
+> > ```bash
+> > g++ main.cpp countCall.cpp -o main.out
+> > ```
+> >
+> > ***
+>
+> ### 6.2 参数传递
+>
+> * 值传递：将实参拷贝一份，赋值给形参
+> * 引用传递：形参是实参的一个别名
+> * 指针形参：实际上是值传递，只不过指向的对象相同
+> * 与C的习惯差别：C程序员常常通过指针类型的形参来访问外部的对象，而C++语言建议使用引用来代替指针传递
+> * 使用引用避免拷贝
+>
+> > * 有些对象不能拷贝，如`io`对象。这种时候就只能传递引用
+> > * 有些对象拷贝十分费时，比如很长的字符串，这是也可以传递引用
+> >
+> > ```c++
+> > bool isShorter(const string &str1, const string &str2);
+> > ```
+> >
+> > * 如果函数无须修改引用形参的值，最好将其设置为常量引用
+> >
+> > ***
+>
+> * 返回多个值：通过引用形参可以让一个函数实际上可以返回多个值
+> * const形参与实参
+>
+> > * 和其他初始化过程一样，用实参初始化形参时会忽略掉形式参数的const。即`int fun(const int);`函数既可以穿入`int i = 0`做参数，也可以传入`const int j = 0`做参数
+> > * 重复定义错误
+> >
+> > ```c++
+> > int fun(const int);
+> > int fun(int);//重复定义
+> > ```
+> >
+> > * 形参尽量使用常量引用
+> >   * 当形参为常量引用时，既可以接受常量实参也可以接受普通实参；而如果形参为普通引用时，则函数不能接受常量实参
+> >   * 不遵循此规则还可能连环出错
+> >
+> > ***
+>
+> * 数组形参
+>
+> > * 数组不允许拷贝，但允许传数组指针
+> > * 等价性
+> >   * 下面三种形式的函数是一模一样的
+> >   * 编译器只会检查穿入的实参类型是否为`int *`，其他的它不管
+> >   * 即数组的大小对数组的调用没有影响
+> >
+> > ```c++
+> > void print(const int*);
+> > void print(const int[]);
+> > void print(const int[10]);
+> > ```
+> >
+> > * 明确数组长度的方式
+> >   * 类似于C风格字符串，末尾有一个特殊的结束符`\0`
+> >   * 传递首元素指针和尾后指针，类似于迭代器
+> >   * 显示地传入一个形参用于表示数组的大小
+> >
+> > * 数组引用形参
+> >   * `print(int (&arr)[10])`
+> >   * 但此时只能传入大小为10的数组，其实参类型严格限制成`int [10]`，不是10就不行
+> > * `main`处理命令行选项
+> >   * `int main(int argc, char *argv[])`
+> >   * `int main(int argc, char **argv)`
+> >   * 参数从`argv[1]`开始，因为`argv[0]`一般都是`a.out`
+> >
+> > ***
+>
+> * 可变形参的函数
+>
+> > * `initializer_list`
+> >   * 定义在`initializer_list`文件中
+> >   * 定义：`void error_msg(initializer_list<string> args)`
+> >   * 调用：`error_msg({"str1", "str2", "str3"})`
+> >
+> > * 省略符形参`...`
+> >   * 一般用于访问C代码，因为这种C代码使用了C标准库的`varargs`功能
+> >   * 出上一种情况外不建议使用
+> >   * 省略形参只能存在于最后一个参数
+> >
+> > ***
+>
+> ### 6.3 返回类型和return语句
+>
+> * 无返回值函数：不用`return`，但编译器会隐式地加上`return`语句
+> * 有返回值的函数
+>
+> > * 编译器并不是能检测到所有case是否都有返回值。如果运行时有未返回的情况会直接崩
+> > * 值是如何返回的
+> >   * 返回值用于初始化调用处的一个临界量，该临界量就是函数调用的结果
+> >   * 返回非引用类型会进行一次拷贝，而返回引用则不会进行拷贝
+> > * 不要返回局部引用和局部指针
+> > * 调用运算符
+> >   * 调用运算符和`.`与`->`运算符优先级相同，且满足左结合率
+> >   * 因此可以连续调用
+> >
+> > ***
+>
+> * 预处理变量
+>
+> > * 由预处理器处理而不是由编译器处理
+> > * 因此不用加`std`，而是随便直接用
+> > * 预处理宏其实也就是预处理变量
+> > * 由于预处理变量必须在程序内保持唯一，因此其他地方绝对不要在定义同名的变量
+> >
+> > ***
+>
+> * 返回数组指针：`auto get_array() -> int (*)[10];` 或者 `auto get_array() -> decltype(a)*`
+>
+> ### 6.4 函数重载
+>
+> * 不允许两个函数除了返回类型外其他所有的要素都相同，即函数的返回类型不会参与重载
+> * 重载和const
+>
+> > * 形参有无顶层`const`不是函数区分的依据
+> > * `fun(const int &i); fun(int &i)`是可以的，因为此时是底层const
+> > * 编译器会区分底层const选择最优函数进行调用
+> >
+> > ***
+>
+> * `const_cast`和重载
+>
+> > ```c++
+> > const string &get_shorter(const str &str1, const string &str2)
+> > {
+> >   return str1.size() <= str2.size() ? str1 : str2;
+> > }
+> > 
+> > string &get_shorter(str &str1, string &str2)
+> > {
+> >   auto &r = get_shorter(const_cast<const string&>(str1), const_cast<const str&>(str2));
+> >   return const_cast<sting &>(r);
+> > }
+> > ```
+> >
+> > ***
+>
+> * 函数匹配
+>
+> > * 找一个最优的进行匹配。能不进行类型转换就不进行
+> > * 如果函数有默认实参，则实际穿入的参数可以比实际的数量少
+> > * 小算术值会一步到位转为`int`，而不会中间转为`short`慢慢升级
+> > * 如果没有最优，而是旗鼓相当。则发生错误，称为`二义性错误`
+> >
+> > ***
+>
+> * 局部作用域与重载：局部作用域类函数不能重载。`C++的名字查找发生在类型检查之前`
+> * 默认实参
+>
+> > * 使用：`int fun(int j = 10);`
+> > * 不允许多次声明修改同一个参数的实参
+> > * 默认实参要么在最后一个，否则它后面的所有形参都有默认值
+> > * 默认实参可以是表达式或者函数，前提是能够在这个函数声明的作用域内进行解析
+> >
+> > ***
+>
+> * 内联函数
+>
+> > * `inline const string &get_shorter(const str &str1, const string &str2);`
+> > * `inline`只是给编译器发出一个请求，而编译器可以忽略这个请求
+> >
+> > ***
+>
+> * constexpr函数：编译器能求出值进行替换
+> * 调试局部变量
+>
+> > * `__func__`:编译器定义的局部静态变量，用于存放函数的名字
+> > * `__FILE__`:存放文件名
+> > * `__LINE__`:存放行号
+> > * ……
+> >
+> > ***
+>
+> ### 6.7 函数指针
+>
+> * 函数类型决定因素
+>
+> > * 返回类型
+> > * 形参数量
+> > * 形参类型
+> >
+> > ***
+>
+> * 实际例子
+>
+> > * 函数声明：`const string &get_shorter(const str &str1, const string &str2);`
+> > * 函数类型：`const string& (const str&, const string&);`
+> > * 定义指针: `const string& (*fun_ptr)(const str&, const string&);`
+> >
+> > ***
+>
+> * 使用函数指针
+>
+> > * 函数名可以直接当作指针使用，不用使用取地址符`&`
+> > * 函数指针可以直接调用，不用使用解地址符`*`
+> >
+> > ***
+>
+> * 函数指针作形参
+>
+> > * `void func(const string &ptr(const str&, const string&))`
+> > * `void func(const string& (*ptr)(const str&, const string&))`
+> > * 这两种是一样的
+> >
+> > ***
+>
+> * 函数指针作为返回值
+>
+> > * `auto func() -> const string& (*)(const str&, const string&)`
+> > * 此时必须显示声明返回的是指向函数的指针而不是函数
+> > * 因为不能返回函数
+> >
+> > ***
+>
+> ***
 
