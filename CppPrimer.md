@@ -4,8 +4,9 @@
 
 > ### 1.1 编写一个简单的C++程序
 >
-> * int 类型是一种built-in类型
+> * 内置(built-in)类型：由语言自身定义的类型，如`int`
 > * main函数的返回值一般被用来表示状态，0表示成功，非零返回值的含义由系统定义，通常用来指出错误类型
+> * Unix查看命令执行状态：`echo $?`
 >
 > *****
 >
@@ -18,6 +19,7 @@
 > > * cerr
 > > * clog
 >
+> * 关联性：系统常常将程序运行的窗口与上面这些IO对象关联起来。也就是可以不关联程序运行窗口而关系其他东西
 > * 输入输出运算符
 >
 > > * **<<** 和 **>>** 都是运算符；其中 **<<** 的左侧必须是一个 **ostream** 对象, **>>** 的左侧必须是一个 **istream** 对象
@@ -29,6 +31,10 @@
 > > * **endl**是一个被称为 **操纵符** 的特殊值
 > > * 未写入 **enl** 时内从全在缓冲区，写入 **endl** 时才刷新到屏幕物理设备
 > > * 调试时debug日志应该实时刷新到屏幕，不然可能在缓冲区不显示出来影响问题定位
+> >
+> > ***
+>
+> * 作用域运算符：`::`
 >
 > ***
 >
@@ -47,7 +53,7 @@
 >
 >   ```c++
 >   for (int i = 0;i <= 10;i++) {
->     
+>
 >   }
 >   ```
 >
@@ -55,7 +61,7 @@
 >
 >   ```c++
 >   if (i > 0) {
->     
+>
 >   }
 >   ```
 >
@@ -71,7 +77,7 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->             
+>   
 >   // when the input is "1 2 3 4 5", the output is "1 "
 >   ```
 >
@@ -80,11 +86,53 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->             
+>   
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
 >   * 即`cin`会自动去匹配输入
+>
+> ### 1.5 类简介
+>
+> * 标准库头文件一般不带文件后缀，自定义头文件后缀一般是`.h`
+> * `#include`标准库头文件时使用`<>`，非标准库头文件使用`""`
+>
+> * 左结合的文件重定向
+>
+>   > * `main.out < input.txt > output.txt`，从`input.txt`读入数据，程序运行输出结果到`output.txt`
+>   > * `main.cpp`
+>   >
+>   > ```c++
+>   > #include<iostream>
+>   > 
+>   > int main()
+>   > {
+>   >     int a,b;
+>   >     std::cin >> a >> b;
+>   >     std::cout << "a + b = " << a + b << std::endl;
+>   > }
+>   > ```
+>   >
+>   > * `input.txt`
+>   >
+>   > ```c++
+>   > 2
+>   > 7
+>   > ```
+>   >
+>   > * bash
+>   >
+>   > ```bash
+>   > ./main.out < input.txt
+>   > ```
+>   >
+>   > * result
+>   >
+>   > ```bash
+>   > a + b = 9
+>   > ```
+>   >
+>   > ***
 >
 > ### 术语
 >
@@ -92,7 +140,7 @@
 > * **库类型**：标准库定义的类型，如 **istream**
 > * **操作符对象**：如 std::endl, 在读写流的时候用来 "操纵" 流本身
 > * **标准库**：一个类型和函数的集合，每个C++编译器都必须支持
-> * **类类型**：为了与C++内置类型区分开来，程序员自己定义的类被称为类类型
+> * **类类型**：为了与C++内置类型区分开来，非内置类型就是类类型，类名即为类型名
 >
 > ***
 
@@ -1136,3 +1184,48 @@
 >
 > ***
 
+## HomeWork
+
+> ### 1.3
+>
+> ```c++
+> #include<iostream>
+> 
+> int main()
+> {
+>     std::cout << "Hello World" << std::endl;
+>     return 0;
+> }
+> ```
+>
+> ### 1.4
+>
+> ```c++
+> #include<iostream>
+> 
+> int main()
+> {
+>     double x,y;
+>     std::cout << "please enter x value, and note that x must be a double value." << std::endl;
+>     std::cin >> x;
+>     std::cout << "please enter y value, and note that y must be a double value." << std::endl;
+>     std::cin >> y;
+>     std::cout << "x = " << x << ", and y = " << y << ", and x*y = " << x * y << std::endl;
+>     return 0;
+> }
+> ```
+>
+> ### 1.16
+>
+> ```c++
+> #include<iostream>
+> 
+> int main()
+> {
+>     int a,b;
+>     std::cin >> a >> b;
+>     std::cout << "a + b = " << a + b << std::endl;
+> }
+> ```
+>
+> 
