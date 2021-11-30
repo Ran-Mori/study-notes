@@ -1,3 +1,7 @@
+
+
+
+
 # Cpp Primer 笔记
 
 ## 第一章
@@ -77,8 +81,8 @@
 >   int value = 0;
 >   std::cin >> value;
 >   std::cout << value << " ";
->         
 >   // when the input is "1 2 3 4 5", the output is "1 "
+>   
 >   ```
 >
 >   ```c++
@@ -86,7 +90,6 @@
 >   while (std::cin >> value) {
 >   	std::cout << value << " ";  
 >   }
->         
 >   // when the input is "1 2 3 4 5", the output is "1 2 3 4 5 "
 >   ```
 >
@@ -728,7 +731,7 @@
 > > * 有迭代器的类型同时拥有返回迭代器的成员
 > > * `begin`：负责返回指向第一个元素的迭代器
 > > * `end`：负责返回最后元素的下一个元素的迭代器，无实际作用，只是一个标记
-> > * 如果容器为空，`begin`和`end`返回的迭代器相等
+> > * 如果容器为空，`begin`和`end`返回的迭代器相等，都是尾后迭代器`end`
 > >
 > > ***
 >
@@ -738,7 +741,7 @@
 > > * `iter -> item`：相当于`(*item).item`
 > > * `++item`：指向下一个元素
 > > * `item1 == item2`：判断两个迭代器是否相等
-> > * 迭代器实质：就只**指针**
+> > * 迭代器实质：就是**指针**
 > > * Java程序员for循环喜欢使用`<`，而C++程序员使用`!=`。本质原因是Java使用下标访问而C++使用迭代器访问，而且C++很多标准库容器压根不支持下标访问。
 > > * `for (std::string::const_iterator iter = str.begin(); iter != str.end(); iter++){ std::cout << *iter << std::endl;}`
 > >
@@ -1011,11 +1014,19 @@
 >
 > ### 5.4for语句
 >
-> * 范围for: 实际上是使用了迭代器`begin, end`
+> * 范围for: 实际上是使用了迭代器`begin, end`。
+> * 因为范围for语句预存了`end`的值，因此不能在循环过程中添加元素
 >
 > ### 5.6 try-catch语句
 >
-> * 抛出异常：`throw std::runtime_error("error exception");`
+> * 异常处理机制
+>
+> > * throw: 抛出异常
+> > * try: 处理异常
+> > * 异常类：用于throw和try之间传递信息
+>
+> * 抛出异常：`throw std::runtime_error("error exception");`。抛出后终止当前函数，将控制权转移给能处理该异常的代码
+> * 每个标准库类型都定义了一个`what()`成员函数，返回一个`const char*`
 > * 如果抛到最顶层都没有异常处理，就会执行`std::terminate()`来终止程序
 > * `stdexception.h`定义的异常类：`exception, runtime_error, range_error, overflow_error, underflow_error, logic_error, domain_error, invalid_error, length_error, out_of_range`
 > * `exception`类定义
