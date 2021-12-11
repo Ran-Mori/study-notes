@@ -82,7 +82,7 @@
 >   std::cin >> value;
 >   std::cout << value << " ";
 >   // when the input is "1 2 3 4 5", the output is "1 "
->           
+>                 
 >   ```
 >
 >   ```c++
@@ -2127,6 +2127,411 @@
 > > Book sort() &&; //右值引用调用
 > > Book sort() const &; //任何类型都能调用
 > > ```
+> >
+> > ***
+
+## 第十四章
+
+> ### 14.1基本概念
+>
+> * 是一个函数，有返回值，有参数，有函数体
+> * 默认参数：除了调用运算符`()`外，其他运算符不能有默认参数
+> * 如果是成员函数，则第一个操作数绑定到`this`上面 
+> * 不能重定义内置类型的运算符
+> * 重载的运算符的优先级和结合律和内置运算符保持一致
+> * 直接调用
+>
+> > ```c++
+> > //一个非成员运算符重载
+> > data1 + data2; //调用 + 
+> > operator+(data1, data2); //直接调用函数
+> > 
+> > //一个成员函数运算符
+> > data1 += data2; //调用 +=
+> > data1.operator+=(data2); //直接调用函数
+> > ```
+> >
+> > ***
+>
+> * 某些运算符不应该被重载
+>
+> > * 带短路性质的元素符不应该被重载，因为重载后无短路性质和原运算符的语义不同
+> > * 不重载逗号和取地址符，因为C++已经规定了它们作用于类类型的含义
+> >
+> > ***
+>
+> * 一致性
+>
+> > * 运算符的行为语义应该与内置一致
+> > * 返回类型应该与内置一致
+> >
+> > ***
+>
+> * 作为成员还是非成员
+>
+> > * `=、[]、()、->`必须作为成员
+> > * 复合赋值运算符一般来说是成员，但非必需
+> > * 改变对象状态的运算符或者与给定类型密切相关的运算符应该被声明成成员，如`++、--、*`
+> > * 具有对称性质的运算符，一般定义成非成员。
+> >   * 原因：`"str" + i;` 和`i + "str";`，如果为成员，前面一种调用是错误的
+> >
+> > ***
+>
+> ### 14.2 输入输出运算符
+>
+> * 示例：
+>
+> ```c++
+> //Book.h
+> class Book {
+>     friend std::ostream& operator<<(std::ostream& ostream, const Book& book);
+> public:
+>     Book()  = default;
+>     explicit Book(std::string name);
+> 
+> private:
+>     std::string name;
+>     std::string *alloc_space;
+> };
+> ```
+>
+> ```c++
+> //Book.cpp
+> std::ostream &operator<<(std::ostream &ostream, const Book &book) {
+>     ostream << book.name << *book.alloc_space;
+>     return ostream;
+> }
+> ```
+>
+> * 运算符特点
+>
+> > * 第一个参数是非const引用，因为会往里面写入值改变状态
+> > * 第二个参数是const引用，因为不会改变它的状态，且减少复制开销
+> > * 返回值是引用
+> > * 输出尽量将是否格式化的权限交给用户而不要擅自做主
+> >
+> > ***
+>
+> * 必需是非成员函数，一般是友元函数
+>
+> > * `std::cout << content;`的使用决定了第一个参数肯定必须得是`std::ostream`
+> > * 而我们无法改变标准库`std::ostream`的定义，因此只能是非成员函数
+> > * 一般要访问私有成员，因为声明成友元
+> >
+> > ***
+>
+> * 重载输出运算符：同理
+> * 输入时错误
+>
+> > * 输入流是有可能流出错的，一般要这样写
+> >
+> > ```c++
+> > if(is) {
+> >   item.value = xxx; //流有效才进行赋值
+> > } else {
+> >   item = Book(); //流无效就将待输入元素置成原始状态
+> > }
+> > ```
+> >
+> > ***
+>
+> ### 14.3 算术和关系运算符
+>
+> * 经验
+>
+> > * 定义成非成员函数，因为这样可以允许左右对象进行类型转换
+> > * 一般定义成常量引用，减少复制且不用改变对象的状态
+> > * 返回结果是一个临时值，不要定义成引用
+> > * 一般同时也会定义复合赋值运算符，使用复合赋值运算符来定义算术运算符是最简单的
+> >
+> > ***
+>
+> * 示例
+>
+> ```c++
+> Sales_data operator+(const Sales_data &ldata, const Sale_data &rdata) {
+>   Sale_data sum = ldata; //拷贝构造
+>   sum += rdata; //使用复合赋值运算符
+>   return sum; //返回一个临时变量
+> }
+> ```
+>
+> * 相等运算符
+>
+> ```c++
+> bool operator==(const Book &lbook, const Book &rbook) {
+> 
+> }
+> 
+> bool operator!=(const Book &lbook, const Book &rbook) {
+> 
+> }
+> ```
+>
+> * 关系运算符
+>
+> > * 因为算法会用到小于运算符，因此最好还是定义一下
+> > * 一般是定义`<`号
+> > * 但是不要为了定义而定义，有些时候就是没有明确的小于关系，就不要定义了
+> >
+> > ***
+>
+> ### 14.4赋值运算符
+>
+> * 种类
+>
+> > * 拷贝赋值运算符
+> > * 移动赋值运算符
+> > * 其他赋值运算符
+> >
+> > ***
+>
+> * 示例
+>
+> ```c++
+> vector&  operator=(initializer_list<value_type> __l) {
+>   //接受一个initializer_list的参数，这样就可以使用大括号列表初始化了
+> }
+> ```
+>
+> * 特点
+>
+> > * 必需定义为成员函数
+> > * 返回值是自己同类型对象的一个引用
+> >
+> > ***
+>
+> ### 14.5 下标运算符
+>
+> * 特点
+>
+> > * 必需是成员函数
+> > * 返回类型是当前索引的引用
+> > * 最好定义常量和非常量版本，这样常量版本保证了获取后不会改变值
+> >
+> > ***
+>
+> * 示例
+>
+> ```c++
+> reference operator[](size_type __n); //非常量普通版本
+> const_reference operator[](size_type __n) const; //常量版本
+> ```
+>
+> ### 14.6递增递减运算符
+>
+> * 特点
+>
+> > * 建议最好做为成员函数，因为要改变状态；但并没有强制规定
+> > * 一般要定义两个版本，前置版本和后置版本
+> > * 前置版本返回值是同类型的一个引用，后置版本返回的是一个值
+> >
+> > ***
+>
+> * 区分前置版本和后置版本
+>
+> > * 普通的重载版本无法做区分，因为定义是一样的
+> > * 因此编译器采取主动添加参数的方式
+> >
+> > ```c++
+> > Book& operator++();//前置版本
+> > Book operator++(int);//后置版本
+> > ```
+> >
+> > * 实参默认传0，但这个值不使用，只是一个标记位
+> > * 注意后置版本返回的是一个值而非本身的引用
+> > * 后置版本逻辑
+> >   * 先把当前值存成一个`temp`值
+> >   * 然后调用`前置版本`实现改变值
+> >   * 最后返回`temp`值
+> >
+> > ****
+>
+> ### 14.8函数调用运算符
+>
+> * 特点
+>
+> > * 重载函数调用运算符的类能被当作函数使用，他还能存储其他状态，比普通函数更加灵活
+> > * 重载了`()`的类的对象常常被称作函数对象
+> > * 函数对象常常用作泛型算法的实参
+>
+> * 示例
+>
+> ```c++
+> //重载()运算符
+> int operator()(int val) const {
+>   return val < 0 ? -val : val;
+> }
+> 
+> //调用
+> Book book_one; //创建一个对象
+> cout << book_one(-10) << endl; //像一个函数一样使用
+> ```
+>
+> * 用作泛型算法的实参
+>
+> ```c++
+> for_each(vs.begin(), vs.end(), PrintString(cerr, '\n'));
+> //其中把PrintString的一个临时变量用作参数
+> ```
+>
+> ### lambda
+>
+> * 实质：编译器把lambda表达式编译成一个`未命名类的未命名对象`，该类重载了`()`运算符
+> * 引用捕获举例
+>
+> ```c++
+> //lambda表达式
+> [](const std::string &a, const std::string &b) { return a.size() < b.size(); }
+> 
+> //模拟生成的类
+> class no_name {
+> public:
+>   bool operator()(const std::string &a, const std::string &b) const { 
+>     return a.size() < b.size(); 
+>   }
+> }
+> ```
+>
+> * const : 默认情况下lambda表达式不能改变捕获的变量值，因此生成的类函数一般是const 
+> * 等价性：任何地方使用上面lambda表达式的地方都能使用`no_name()`一个临时对象代替
+> * 值捕获举例
+>
+> ```c++
+> //lambda表达式
+> [](const std::string &a) { return a.size() < size; }
+> 
+> //模拟生成的类
+> class no_name {
+> public:
+>   no_name(int size) : size(size) {}
+>   bool operator()(const std::string &a) const { 
+>     return a.size() < size; 
+>   }
+> private:
+>   int size;
+> }
+> ```
+>
+> * 等价性：任何地方使用上面lambda表达式的地方都可以使用`no_name(size)`来代替，必需提供一个实参
+>
+> ### 标准库定义的函数对象
+>
+> * 特点
+>
+> > * 由标准库定义，一般都是模版类
+> > * 使用：`plus<int> my_plus; my_plus(1, 2);`
+> >
+> > ***
+>
+> * 举例
+>
+> ```c++
+> template<typename _Tp>
+>     struct less : public binary_function<_Tp, _Tp, bool>
+>     {
+>       bool
+>       operator()(const _Tp& __x, const _Tp& __y) const
+>       { return __x < __y; }
+>     };
+> ```
+>
+> * 这些类型能当作函数对象使用，如`less<string>()`
+> * 一般都用作实参传入算法函数
+>
+> ### 可调用对象与fiction
+>
+> * 可调用对象
+>
+> > * 函数
+> > * 函数指针
+> > * lambda表达式
+> > * bind创建的对象
+> > * 重载了`()`的类
+> >
+> > ***
+>
+> * 类型：上面可调用的对象它们有自己的类型，而且都是不能直接相互转换的；它们有时类型不同但调用形式是相同的
+> * 类型示例：
+>
+> ```c++
+> //普通函数
+> int add(int a, int b);
+> //函数指针
+> int (*p)(int, int) = add;
+> //lambda表达式
+> auto my_add = [](int a, int b) { return a + b;}; //lambda的静态类型是一个未命名的类
+> //类
+> class my_add {
+> public:
+>     int operator()(int a, int b) { return a + b;}
+> };
+> ```
+>
+> * 标准库`function`
+>
+> > * 作用：能够存静态类型不同但调用方式相同的可调用函数对象
+> > * 使用：`funtion<int(int, int)>`
+> > * 函数表：`map<string, funtiong<int(int,int)>> ops;`
+> >
+> > ***
+>
+> ### 14.9重载、类型转换与运算符
+>
+> * 类型转换运算符
+>
+> > * 特点
+> >   * 是类的成员函数
+> >   * 负责将一个类类型的值转换成其他类型
+> > * 形式：`oprator type() const`
+> > * 既没有参数也没有返回值；`type`必须是函数能返回的类型；因为不改变转换的内容，常定义成const
+> >
+> > ***
+>
+> * 举例
+>
+> ```c++
+> class small_int {
+> public:
+>     small_int(int value = 0) : value( value % 255 ){}; //可以隐式由int -> SmallInt
+>     operator int() const { return value; } //可以隐式由SmallInt -> int
+> 
+> private:
+>     int value;
+> };
+> ```
+>
+> ```c++
+> SmallInt si;
+> si = 4; // 首先隐式将 int -> small_int，再调用拷贝赋值运算符
+> int j = si + 3; //隐式将 small_int -> int
+> SmallInt sb = 4; //直接隐式将 int -> small_int
+> ```
+>
+> * 类型转换运算符是隐式进行的，无法主动调用，因此无法传递实参
+> * 类型转换运算符因为式隐式的，用起来可能会很坑，慎用。但一般要定义向`bool`的转换
+> * 布尔转换举例：`explicit operator bool() const { return _M_ok; }`
+> * 显式类型转换符
+>
+> > * 因为隐式的太坑了，因此要定义显示的
+> > * 定义：`explicit operator int() const { return value; }`
+> > * 使用：`int j = static_cast<int>(small_int(400));`
+> > * 即使声明成了`explicit`，但还是可能会被隐式执行。就是在作为条件转换成`bool`时
+> >
+> > ***
+>
+> * 避免二义性的转换：注意就行，类型转换不要瞎定义
+> * 重载函数与用户定义的类型转换
+>
+> > * 用户自定义类型转换会使函数匹配变得更复杂
+> > * 当调用重载函数时，如果两个用户定义的类型转换都可以匹配，则认为一样好有二义性
+> >
+> > ***
+>
+> * 函数匹配与重载运算符
+>
+> > * 不能通过调用形式来区分是成员函数还是非成员函数
+> > * 候选函数集即应该包括成员函数，也应该包括非成员函数
 > >
 > > ***
 
