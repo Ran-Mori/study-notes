@@ -9,11 +9,12 @@
 >
 > ### 长连接使用
 >
-> * 端上和server一直操持长连接
-> * server给端上push一条`/count`请求
+> * 端上和server建立一条长连接
+> * 当有新的通知时server给端上一个通知，端上立即发出一条`/count`请求获取未读消息数及未读消息类别
 > * 端上根据返回的结果，如果`multiNoticeCountList.size() > 0`就调用处理未读消息的方法
-> * 处理未读消息的方法首先对`muliNoticeCountList`做一些过滤，然后通过`EventBus`抛出聚合事件
-> * 事件处理方法体调用`/notice/multi`，并带上`group`作为参数，刷新对应`group`的摘要
+> * 处理未读消息的方法首先对`muliNoticeCountList`做一些过滤，然后通过`EventBus`抛出一个事件
+> * 事件处理方法体内请求`/notice/multi`，并带上`group`作为参数
+> * `/notice/multi`返回对应的通知信息，将用其来刷新外部摘要
 >
 > ***
 
