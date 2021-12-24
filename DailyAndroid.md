@@ -393,42 +393,39 @@
 >
 > ### 方法调用顺序
 >
-> * `View.getData()`
-> * `SonPresenter.getData()`
-> * `SonModel.getData()`
-> * `SonModel.commitARunnalbe()`
-> * 用线程池异步执行网络请求
-> * 请求返回后`mMessage.obj = obj; mMessage.sendToTarget();`向UI线程抛一个Message
-> * `成功获取到数据,但过程是使用handler模式获得的，在message里面`
-> * `WeakHandler.handleMessage(Message msg)`
->   * 这一步是handler机制决定的，且方法名都不能改
->   * 其中涉及dispatch机制
-> * `FatherModel.handleMsg()`
-> * `FantherModel.handleData()`
->   * 此步不执行，由于动态分派规则让子类执行
-> * `SonModel.handleData()`
-> * `SonPresenter.onSuccess()`
->   * 这是观察者模式决定的，SonPresenter被添加为了Listener
+> * `View.refresh()`
+> * `DerivedPresenter.refresh()`
+> * `DerivedModel.getData()`
+> * `DerivedModel.userExecutorToPostARunnalbe()`//构造一个`Runnable`抛到线程池里面
+> * `mMessage.obj = obj; mMessage.sendToTarget();`//异步请求返回，向主线程抛一个Message
+> * `mainLooper`处理`message`，交给对应的`DerivedModel`的成员`mHandler`处理
+> * `mHandler.handleMessage(Message msg)`
+>   * 此方法`Override`自`Handler`
+>   * 其中涉及`mHandler`的`dispatchMessage(Message msg)`
+> * `BaseModel.handleMsg()`//`mHandler`弱引用，上一个方法体内调此方法
+> * `DrivedModel.handleData()`//上一个方法体内调用，通过Java多态动态绑定到子类此方法
+> * `DrivedPresenter.onSuccess()`//上上个方法体内调用
+>   * 这是观察者模式决定的，`DrivedPresenter`在构造时被添加为了`DrivedModel`的`listener`
 > * `View.doOnSuccess()`
->
+> 
 > ### handler部分详解
->
-> * 创建一个`Runnable`，里面定义好想执行的操作
->
-> ```java
+> 
+>* 创建一个`Runnable`，里面定义好想执行的操作
+> 
+>```java
 > new Callable() {
->   @Override
+>  @Override
 >   public Object call() throws Exception {
 >     return myApi.getData();//这是一个网络请求
 >   }
 > }
 > ```
->
+> 
 > * 封装另外一个`Runnable`
->
-> ```java
+> 
+>```java
 > new Callable() {
->   @Override
+>  @Override
 >   public Object call() throws Exception {
 >     Object obj = mCallable.call();//这个mCallable是上面的Runnable，执行会耗时
 >     if (mMessage != null) {
@@ -438,13 +435,13 @@
 >   }
 > }
 > ```
->
+> 
 > * 线程池异步执行
->
-> ```java
+> 
+>```java
 > mExecutor.execute(Runnable runnable)//异步执行上面那个Runnable
-> ```
->
+>```
+> 
 > ***
 
 ## Binder
@@ -1529,5 +1526,50 @@
 > * `是不是16.6ms走一次measure/layout/draw?`：不是，只有有绘制任务才三部曲，屏幕静止不三步曲，且绘制时间间隔取决于
 > * `measure/layout/draw走完，界面就立刻刷新了吗?`：不是，要等`VSync`
 > * `Choreographer是干啥的？`：用于实现`VSync`到来时开始绘制
+>
+> ***
+
+## Looper.loop()为什么不会死循环
+
+> ### ANR
+>
+> * 定义：应用在一定的时间内没有得到响应或者响应时间太长
+>
+> ### android主要的流程
+>
+> * `Looper.java`
+>
+> ```java
+> public static void loop() {
+>   for (;;) {
+>     Message msg = queue.next(); // might block
+>     try {
+>       msg.target.dispatchMessage(msg);
+>       if (observer != null) {
+>         observer.messageDispatched(token, msg);
+>       }
+>       dispatchEnd = needEndTime ? SystemClock.uptimeMillis() : 0;
+>     } catch () {
+> 
+>     }
+>   }
+> }
+> ```
+>
+> * 安卓大部分都是从`mainLooper`中取消息执行`msg.target.dispatchMessage(msg);`
+>
+> ### 消息太多
+>
+> * 进`MessageQueue`，慢慢等待执行就行了
+>
+> ### 消息太少
+>
+> * 执行`queue.next()`，会停在`native`方法`private native void nativePollOnce(long ptr, int timeoutMillis);`
+> * 阻塞在这里，这是主线程会释放`cpu`资源，根本不会ANR
+>
+> ### 综上
+>
+> * `android`的机制是不会出现`ANR`的
+> * `ANR`都是因为处理`Message`任务过重
 >
 > ***
