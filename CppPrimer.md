@@ -82,7 +82,7 @@
 >   std::cin >> value;
 >   std::cout << value << " ";
 >   // when the input is "1 2 3 4 5", the output is "1 "
->                             
+>                               
 >   ```
 >
 >   ```c++
@@ -3225,7 +3225,152 @@
 >
 > ***
 
+## 第十九章
 
+> ### 19.1 控制内存分配
+>
+> * `new`的三个步骤
+>
+>   * 分配一块未命名的内存空间
+>   * 编译器执行构造函数构造对象，并为对象传入初始值
+>   * 对象被分配了空间并构造完成，返回一个指针
+>
+> * `delete`两个步骤
+>
+>   * 执行对象的析构函数
+>   * 释放内存空间
+>
+> * `new`和`delete`优先级
+>
+>   * 类的作用域最高
+>   * 全局作用域次之
+>   * 都找不到就用标准库定义版本
+>
+> * 版本
+>
+>   * `new`和`delete`一共定义了8个版本。根据是否分配数组，是否抛出异常做了区分
+>   * 当运算符函数被定义成类成员时，它是隐式静态的。因为`oprator new`在构造函数之前执行，当时还没有对象
+>   * 我们可以定义8个版本之外的自定义运算符函数，但`void *operator new(size_t, void*)`不能被重载，这种形式只供标准库使用
+>
+> * 重载都的区别
+>
+>   * 重载`new`和`delete`和其他运算符重载不一样
+>   * 实际上我们根本没法改变`new`和`delete`的本身行为
+>   * 我们只是可以改变内存的分配方式而已
+>
+> * `malloc`和`free`
+>
+>   * 返回一个指针或者`0`表示分配失败
+>   * `free`将内存归还给操作系统。`free(0)`是安全的
+>
+> * 自定义举例
+>
+>   ```c++
+>   void *operator new(size_t size) {
+>       if(void *mem = malloc(size)) {
+>           return mem;
+>       } else {
+>           throw bad_alloc();
+>       }
+>   }
+>   
+>   void operator delete(void *mem) { free(mem); }
+>   ```
+>
+> ### 19.2 运行时内存识别
+>
+> * `RTTI` - `runtime type identification`
+>
+>   * `typeid`运算符，用于返回表达式的类型
+>   * `dynamic_cast`运算符，用于将基类的指针或引用安全转换为派生类的指针或引用
+>
+> * `dynamic_cast`使用形式
+>
+>   * `dynamic_cast<type*>(...)`
+>   * `dynamic_cast<type&>(...)`
+>   * `dynamic_cast<type&&>(...)`
+>
+> * 转换失败
+>
+>   * 如果是指针，转换失败返回`0`
+>   * 如果是引用，抛出`bad_cast`异常
+>
+> * 使用
+>
+>   * 指针类型转换：`if(Deried *dp = dynamic_cast<Derived*>(bp))`
+>
+>   * 这样既能类型转换，又能进行转换结果的判断
+>
+>   * 引用类型转换
+>
+>     ```c++
+>     try {
+>         const Derived *r = dynamic_cast<const Derived&>(b);
+>     } catch (bad_cast) {
+>         //...
+>     }
+>     ```
+>
+> * `typeid()`运算符
+>
+>   * 返回值是`type_info`或子类的常量引用对象
+>   * 作用于数组和指针返回值不会执行类型转换，而是保留其本身的类型
+>   * 当无虚函数时，返回提示的类型是静态类型；至少含有一个虚函数时，返回提示的类型要直到运行时才知道
+>
+> * 使用
+>
+>   * `if(typeid(*bp) == typeid(*dp))`，两个类型都不知道
+>   * `if(typeid(*bp) == typeid(Derived))`，一个类型不知道
+>
+> * 是否求值
+>
+>   * 无虚函数，直接返回静态类型时不会进行求值
+>   * 有虚函数，运行时才知道要进行求值，因此要保证其求值程序不崩
+>
+> * `equal`的实现
+>
+>   ```c++
+>   class Base {
+>       friend bool operator==(const Base &lhs, const Base &rhs) {
+>           return typeid(lhs) == typeid(rhs) && lhs.equal(rhs);
+>       }
+>   public:
+>       virtual bool equal(const Base&) const;
+>   }
+>   
+>   bool operator==(const Base &lhs, const Base &rhs) {
+>       return typeid(lhs) == typeid(rhs) && lhs.equal(rhs);
+>   }
+>   
+>   bool Derived::equal(const Base &rhs) {
+>       if(Derived &r = dynamic_cast<Derived&>(rhs)){
+>           //...
+>       } else {
+>           
+>       }
+>   }
+>   ```
+>
+> * `type_info`类
+>
+>   * 没有默认构造函数，拷贝和移动构造函数定义为删除，赋值运算符被定义成删除
+>   * 创建`type_info`的唯一途径是通过`typeid`运算符
+>
+> ### 19.8 固有不可移植特性
+>
+> * 位域
+>   * 位域的实现与机器密切相关
+>   * 最好都存储无符号数
+>   * `Bit modified: 1; //一个mofify位，宽度位1`
+> * `volatile`
+>   * 对象的值有可能在程序的控制之外被改变时，应该将对象声明成`volatile`
+>   * 使用方式和`const`很相似
+>   * 允许拷贝`volatile`对象，但很多时候这是无意义的
+> * `extern "C"`
+>   * 这是一个`C`函数
+>   * 要求我们必须有权访问该语言的编译器，且和当前`C++`编译器是兼容的
+>
+> ***
 
 ## HomeWork
 
