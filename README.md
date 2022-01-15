@@ -13,17 +13,17 @@
 
 ## [设计模式之禅读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
 
-## [厦门大学算法设计与分析网课笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
-
-## [GoLang自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/go.md)
-
-## [Kotlin自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/kotlin.md)
+## [Bytedance笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
 
 ## [Daily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
 
 ## [Daily安卓学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DailyAndroid.md)
 
-## [bytedance新人课堂笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
+## [算法设计与分析笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
+
+## [GoLang自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/go.md)
+
+## [Kotlin自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/kotlin.md)
 
 ## [数字图像处理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DigitalImageProcessing.md)
 
