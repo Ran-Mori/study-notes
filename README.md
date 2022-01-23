@@ -13,11 +13,13 @@
 
 ## [设计模式之禅读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
 
-## [Bytedance笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
-
 ## [Daily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
 
 ## [Daily安卓学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DailyAndroid.md)
+
+## [Leetcode笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
+
+## [Bytedance笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
 
 ## [算法设计与分析笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
 
