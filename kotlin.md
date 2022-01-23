@@ -243,9 +243,9 @@
 >   fun interface IntPredicate {
 >      fun accept(i: Int): Boolean
 >   }
->                                 
+>                                   
 >   val isEven = IntPredicate { it % 2 == 0 }
->                                 
+>                                   
 >   fun main() {
 >      println("Is 7 even? - ${isEven.accept(7)}")
 >   }
@@ -412,12 +412,12 @@
 >           //代码逻辑
 >       }
 >   })
->                           
+>                             
 >   //上面很多东西都是多余的，去掉多余东西。由于只有这一个方法，因此重写的肯定是它，因此函数名不用写
 >   button.setOnClickListner(View.OnClickLinstner{
 >       //代码逻辑
 >   })
->                           
+>                             
 >   //根据lamba表达式化简原则，移到括号外面，去除括号
 >   button.setOnClickListner{
 >       //代码逻辑
@@ -651,7 +651,7 @@
 >     context.startActivity(intent)
 > }
 > 
->             //调用
+> //调用
 > startActivity<MainActivity>(this){
 >     putExtra("key","value")
 > }
@@ -848,7 +848,7 @@
 >
 >   ```kotlin
 >   val p: Any? by laterInit {
->   
+>     
 >   }
 >   ```
 >
@@ -871,7 +871,14 @@
 >
 > ### 定义
 >
-> * `public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)`
+> * `to`例子：`public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)`
+>
+> ***
+
+## lazy 函数
+
+> * `lazy`不是关键字而是一个函数
+> * 函数签名：`public actual fun <T> lazy(mode: LazyThreadSafetyMode, initializer: () -> T): Lazy<T>`
 >
 > ***
 

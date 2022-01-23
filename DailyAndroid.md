@@ -506,21 +506,6 @@
 >
 > ***
 
-## ConstrainLayout属性
-
-> ### layout_constraintHorizontal_bias
->
-> * 设左右约束布局分别为`left`和`rigth`
-> * `bias` = `left` / `(left + right)`
->
-> ### layout_constraintHorizontal_chainStyle
->
-> * `spread`：左边界、中间、右边界平分所有空间
-> * `spread_inside`: 只有中间的平分
-> * `packed`:左边界、右边界平分。中间全部聚拢
->
-> ***
-
 ## .9.png
 
 > ### left
@@ -1175,38 +1160,6 @@
 >
 > ***
 
-## kotlin协程
-
-> ### 并行与并发
->
-> * 多任务并发的反义词是多任务`顺序`
-> * 多任务并行的反义词是多任务`串行`
->
-> ### 广义协程
->
-> * 优点
->   * 单线程
->   * 通过`控制代码执行顺序`实现并行而不是`真正的`并行
->   * 单线程支持并发但无`并发冲突`
->   * 比线程性能高，因为不用切换线程
->   * 全程单线程因此是用户态
-> * 缺点
->   * 因为单线程，一旦阻塞则整个线程都阻塞
->   * 因为单线程，不能处理耗时任务
->
-> ### kotlin协程本质
->
-> * `.class`JVM语言不支持广义上的协程
-> * kotlin协程只是一种`线程框架`
-> * 它通过切换线程来模拟广义上的协程效果
-> * 底层本质还是使用`线程池+Handler`
->
-> ### 推导
->
-> * 通过线程切换来实现协程，则性能肯定不是最优的
->
-> ***
-
 ## Lint
 
 > ### lint介绍
@@ -1529,7 +1482,7 @@
 >
 > ***
 
-## Looper.loop()为什么不会死循环
+## Looper不死循环
 
 > ### ANR
 >
@@ -1573,3 +1526,130 @@
 > * `ANR`都是因为处理`Message`任务过重
 >
 > ***
+
+## View相关
+
+> * LayoutInflater.inflate()
+>   * 函数签名：`public View inflate(@LayoutRes int resource, @Nullable ViewGroup root, boolean attachToRoot)`
+>   * `@LayoutRes int resource`：想要初始化创造的View
+>   * `@Nullable ViewGroup root`
+>     * `attachToRoot = true`：调用`root.addView(view)`
+>     * `@Nullable`注解说明可以为空
+> * view操作必须在动画完成后
+>   * 不能对View进行操作，不然当最后的动画`onAnimationEnd()`调用时，导致预期和实际差异巨大
+>   * 要对View进行操作一定要停止动画`animator.clear()`或者`animator.end()`
+>
+> ***
+
+## ViewGroup相关
+
+> * `ViewGroup`
+>
+>   * `ViewGroup.addView(View child)`：向一个`ViewGroup`中添加`View`
+>   * `ViewGroup.removeAllViews()`：删除所有View
+>   * `ViewGroup.getChildCount()`：获取child个数
+>
+> * `LinearLayout`
+>
+>   * 是`ViewGroup`
+>   * `xml`里面定义的是编译期`childen`
+>   * 运行时可以调用父类`ViewGroup`的方法进行修改
+>
+> * LayoutParams
+>
+>   * `View.getLayoutParams()`：每个View都有这个方法，既每个View都有`mLayoutParams`属性
+>   * `ViewGroup.LayoutParams`决定了父容器怎么arrange这个View
+>   * `LayoutParams`有很多子类，如`LinearLayout.LayoutParams`、`FrameLayout.LayoutParams`、`RelativeLayout.LayoutParams`。不同的子类对应父容器不同，即如果父容器是`FrameLayout`则子View的`mLayoutParams`应该是`FrameLayout.LayoutParams`
+>
+> * 动态修改margin
+>
+>   ```kotlin
+>   (mApproveBtn.layoutParams as? LinearLayout.LayoutParams)?.apply {
+>       leftMargin = UIUtils.dip2Px(mItemView.context, 8F).toInt()
+>       mApproveBtn.layoutParams = this
+>   }
+>   ```
+>
+> * ConstrainLayout属性
+>
+>   * layout_constraintHorizontal_bias
+>     * 设左右约束布局分别为`left`和`rigth`
+>     * `bias` = `left` / `(left + right)`
+>
+>   * layout_constraintHorizontal_chainStyle
+>     * `spread`：左边界、中间、右边界平分所有空间
+>     * `spread_inside`: 只有中间的平分
+>     * `packed`:左边界、右边界平分。中间全部聚拢
+>
+> ***
+
+## ViewHolder相关
+
+> * ViewHolder.Bind()
+>
+>   * `ViewHolder.bind()`会在绑定的时候调用，用得好会有很多好处
+>   * 比如展示备注按钮
+>
+> * ViewHolder获取根View
+>
+>   ```kotlin
+>   class MyFragment() {
+>     private mRootView: ViewGroup? = null
+>     override fun onCreateView() {
+>       val view = inflater.inflate(viewGroup, container, false)
+>       (view as? ViewGroup)?.let{
+>         mRootView = it
+>       }
+>     }
+>   }
+>   ```
+>
+> ***
+
+## 多仓问题
+
+> * 未用多仓同步工具时，引入组件一定要记得看看分支对不对，不然编译不过
+>
+> ***
+
+## 自定义通用View对外暴露通用点击实现
+
+> * MyView.kotlin
+>
+> ```kotlin
+> class MyView(context: Context, attrs: AttributeSet?, defStyleAttr: Int = 0): FrameLayout, View.OnClickListener{
+> 
+>   private lateinit var mOnBarClickListener: OnBarClickListener
+> 
+>   override fun onClick(v: View?) {
+>     mOnBarClickListener ?: return
+>     when(v.id) {
+>       back_item -> mOnBarClickListener.onBackClick(v)
+>       confirm_item -> mOnBarClickListener.onConfirmClick(v)
+>     }
+>   }
+> 
+>   fun setOnBarClickListener(listener: OnBarClickListener) {
+>     this.mOnBarClickListener = listener
+>   }
+> }
+> ```
+>
+> * OnBarClickListener.kt
+>
+> ```kotlin
+> interface OnBarClickListener {
+>   fun onBackClick(view: View?)
+>   fun onConfirmClick(view: View?)
+> }
+> ```
+>
+> ***
+
+## LoadingController
+
+> * 实际就是展示一个`Dialog`
+> * 根据状态来`show`和`dismiss`
+>
+> ***
+
