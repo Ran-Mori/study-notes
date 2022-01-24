@@ -5020,6 +5020,56 @@
 >
 > ****
 
+## 841 钥匙和房间
+
+> ### 题目
+>
+> * 有`n`个房间，房间按从`0`到`n - 1`编号。最初，除`0`号房间外的其余所有房间都被锁住。你的目标是进入所有的房间。然而，你不能在没有获得钥匙的时候进入锁住的房间
+> * 当你进入一个房间，你可能会在里面找到一套不同的钥匙，每把钥匙上都有对应的房间号，即表示钥匙可以打开的房间。你可以拿上所有钥匙去解锁其他房间
+> * 给你一个数组 `rooms` 其中 `rooms[i]` 是你进入 `i` 号房间可以获得的钥匙集合。如果能进入**所有**房间返回 `true`，否则返回 `false`。
+>
+> ### 示例
+>
+> ```java
+> 输入：rooms = [[1,3],[3,0,1],[2],[0]]
+> 输出：false
+> 解释：我们不能进入 2 号房间。
+> ```
+>
+> ### 思路
+>
+> * 这道题是找是否存在一条路径，而且已经走过的房间就没有必要在走了，因此非常适合使用`BFS`遍历
+>
+> ### 代码
+>
+> ```java
+> public boolean canVisitAllRooms(List<List<Integer>> rooms) {
+>   int roomSize = rooms.size();
+>   Queue<Integer> queue = new LinkedList<>();
+>   queue.add(0);
+> 
+>   int visitedCount = 0;
+>   boolean[] visited = new boolean[roomSize];
+> 
+>   while (!queue.isEmpty()) {
+>     Integer pop = queue.poll();
+>     if (visited[pop]) {
+>       continue;
+>     }
+>     if (++visitedCount == roomSize) {
+>       return true;
+>     }
+>     visited[pop] = true;
+>     for (Integer value : rooms.get(pop)) {
+>       queue.add(value);
+>     }
+>   }
+>   return false;
+> }
+> ```
+>
+> ****
+
 ## 1047 删除字符串中所有相邻的重复项
 
 > ### 题目
@@ -5090,41 +5140,65 @@
 >
 > ### 思路
 >
-> * **BFS**遍历，遍历过后将0设置为1
+> * **BFS**遍历
+> * 求最短路径一般都是优先使用`BFS`。因为`BFS`遍历一旦找到就直接返回，其他一切都不用管
+> * 为什么要将`grid[i][j] == 1`置为1？因为`BFS`不会走回头路
+> * 为什么中间就可以直接返回，都不用比较的吗？因为广度就是最短路径，一旦找到就是最短
+> * 此问题比较棘手的是如何记录每遍历一层使`++resultPathLength`
+>
+> ### BFS求最短路径
+>
+> * 核心思想是找到一个就是最短，不用继续找了。
+> * 在每一层的末尾插入一个`null`，标志一层的结束，根据这个标志可以记住遍历了多少层
+> * `BFS`不会走回头路，因此遍历完置成`visited`就行了
 >
 > ### 代码
 >
 > ```java
+> //不知道为什么会超时
 > public int shortestPathBinaryMatrix(int[][] grids) {
->     if (grids == null || grids.length == 0 || grids[0].length == 0) {
->         return -1;
->     }
->     int[][] direction = {{1, -1}, {1, 0}, {1, 1}, {0, -1}, {0, 1}, {-1, -1}, {-1, 0}, {-1, 1}};
->     int m = grids.length, n = grids[0].length;
+>     int result = 0;
+>     int length = grids.length;
 >     Queue<Pair<Integer, Integer>> queue = new LinkedList<>();
->     queue.add(new Pair<>(0, 0));
->     int pathLength = 0;
->     while (!queue.isEmpty()) {
->         int size = queue.size();
->         pathLength++;
->         while (size-- > 0) {
->             Pair<Integer, Integer> cur = queue.poll();
->             int cr = cur.getKey(), cc = cur.getValue();
->             if (grids[cr][cc] == 1) {
->                 continue;
->             }
->             if (cr == m - 1 && cc == n - 1) {
->                 return pathLength;
->             }
->             grids[cr][cc] = 1; // 标记
->             for (int[] d : direction) {
->                 int nr = cr + d[0], nc = cc + d[1];
->                 if (nr < 0 || nr >= m || nc < 0 || nc >= n) {
->                     continue;
->                 }
->                 queue.add(new Pair<>(nr, nc));
->             }
+> 
+>     int[][] directions = new int[][] {
+>       {-1, -1},
+>       {0, -1},
+>       {1, -1},
+>       {1, 0},
+>       {1, 1},
+>       {0, 1},
+>       {-1, 1},
+>       {-1, 0}
+>     };
+> 
+>     if (grids[0][0] == 1) {
+>       return -1;
+>     }
+> 
+>     queue.add(new Pair<>(0,0));
+>     queue.add(null);
+> 
+>     while (queue.size() != 1) {
+>       ++result;
+>       while (queue.peek() != null) {
+>         Pair<Integer, Integer> current = queue.poll();
+>         int currentX = current.getKey();
+>         int currentY = current.getValue();
+>         if (currentX == length - 1 && currentY == length - 1) {
+>           return result;
 >         }
+>         grids[currentX][currentY] = 1;
+> 
+>         for (int[] direction : directions) {
+>           int dx = currentX + direction[0];
+>           int dy = currentY + direction[1];
+>           if (dx >= 0 && dx < length && dy >= 0 && dy < length && grids[dx][dy] == 0) {
+>             queue.add(new Pair<>(dx,dy));
+>           }
+>         }
+>       }
+>       queue.add(queue.poll());
 >     }
 >     return -1;
 > }
