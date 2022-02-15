@@ -452,3 +452,31 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 多路指的是网络连接
   * 复用指的是只有一个线程
 
+## CAS机制
+
+* 处理器操作的原子性
+
+  * 处理器实现了从内存中读取或者写入一个字节是原子性的
+
+* CAS
+
+  * 三个值
+    * 内存当前值V
+    * 内存预期值A
+    * 内存欲更新为的值B
+  * 行为
+    * 当且仅当`V == A`时，才向内存中写入`B`/s
+
+* 示例
+
+  ```java
+  int A = 1;
+  int V;
+  int B = 0;
+  do {
+      V = this.getIntVolatile(); //内存当前值V
+  } while(!this.compareAndSwapInt(A,V,B); //V==A时更新内存
+  ```
+
+* 原子性保证
+  * 操作内存时使用到了处理器的特殊指令，该指令操作的内存区域会加锁，导致其他线程无法同时访问这一部分内存，从而保证了原子性
