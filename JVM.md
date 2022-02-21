@@ -2567,289 +2567,280 @@
 
 ## 第九章 类加载及执行子系统的案例和实战
 
-> #### 概述
+> ### 概述
 >
-> > #### 程序员操作
-> >
-> > * 字节码生成
-> > * 类加载器
-> >
-> > ***
+> * 从`class`文件格式到执行引擎这部分里，用户程序能够直接参与的地方不多
+> * 用户能直接参与的地方有两处
+>   * 字节码生成
+>   * 类加载器加载
+> * 仅仅在这两点上，就已经能搞出很多东西了
 >
-> ### 服务器
+> ### Tomcat：正统的类加载器结构
 >
-> > #### 要求
-> >
-> > * 部署在同一个服务器的两个项目所使用的java类库可以相互隔离
-> > * 部署在同一个服务器的两个项目所使用的java类库可以相互共享
-> > * 服务器尽可能保证自己不受部署应用的影响
-> >
-> > #### 解决方案
-> >
-> > * 设置多个ClassPath
-> > * 每个ClassPath下的类库有不同的访问范围
-> >
-> > #### 实现
-> >
-> > * 使用类加载器的委派机制
-> >
-> > ***
+> * 要求
+>   * 部署在同一个服务器的两个web项目所使用的java类库可以相互隔离
+>   * 部署在同一个服务器的两个web项目所使用的java类库可以相互共享
+>   * 服务器尽可能保证自己的安全不受部署的web应用的影响
+> * 四个目录
+>   * `tomcat`和所有`web`服务可见
+>   * `tomcat`可见，所有`web`服务不可见
+>   * `tomcat`不可见，所有服务可见
+>   * 某`web`服务可见，其他所有`web`服务和`tomcat`不可见
+> * 解决方案
+>   * 设置多个`ClassPath`
+>   * 每个`ClassPath下`的类库有不同的访问范围，有自己的类加载器
+> * 类加载器委托结构
+>   * `common`类加载器
+>     * `Catalina`加载器
+>     * `Sharded`加载器
+>       * `WebApp`加载器
+>       * `Jsp`类加载器
 >
 > ### OSGi灵活的类加载结构
 >
-> > #### 流传观点
-> >
-> > * 学Java EE去看JBoss源码
-> > * 学类加载去看OSGi源码
-> >
-> > #### OSGi模块(bundle)特点
-> >
-> > * 文件存储格式上还是jar格式，变化不大
-> > * 一个bundle可以显示声明它所依赖的其他bundle
-> > * 一个bundle可以显示声明它能导出export供其他bundle所使用的部分
-> > * 所有bundle都是平级的关系，而不是传统的上下级关系
-> > * 一个模块只有export的包外界才能访问，未export的包是私有的
-> >
-> > #### OSGi优势
-> >
-> > * 模块级的热插拔功能
-> >
-> > #### 优势实现
-> >
-> > * 灵活的类加载器结构
-> > * OSGi的类加载器只有规则而没有固定的委派关系
-> > * 如果Bundle A 依赖 Bundle B的某一部分，且B的那一部分刚好被Export，则类加载器A的加载任务委派给类加载器B
-> >
-> > #### 结果与缺点
-> >
-> > * 加载器之间的关系成了运行时才能确定的复杂网状结构
-> > * 当两个Bundle互相依赖对方的某个package，由于类加载器的loadClass()方法是同步方法，因此会造成死锁(加载某package时锁定当前loadClass()方法，把加载委派给另一个类加载器，但另一个同样操作造成死锁)
-> >
-> > ***
+> * 流传观点
+>   * 学Java EE去看JBoss源码
+>   * 学类加载去看OSGi源码
+>
+> * OSGi模块(bundle)特点
+>   * 文件存储格式上还是jar格式，变化不大
+>   * 一个bundle可以显示声明它所依赖的其他bundle
+>   * 一个bundle可以显示声明它能导出export供其他bundle所使用的部分
+>   * 所有bundle都是平级的关系，而不是传统的上下级关系
+>   * 一个模块只有export的包外界才能访问，未export的包是私有的
+>
+> * OSGi优势
+>   * 模块级的热插拔功能
+>
+> * 优势实现
+>   * 灵活的类加载器结构
+>   * OSGi的类加载器只有规则而没有固定的委派关系
+>   * 如果Bundle A 依赖 Bundle B的某一部分，且B的那一部分刚好被Export，则类加载器A的加载任务委派给类加载器B
+>
+> * 结果与缺点
+>   * 加载器之间的关系成了运行时才能确定的复杂网状结构
+>   * 当两个Bundle互相依赖对方的某个package，由于类加载器的loadClass()方法是同步方法，因此会造成死锁(加载某package时锁定当前loadClass()方法，把加载委派给另一个类加载器，但另一个同样操作造成死锁)
 >
 > ### 字节码生成与动态代理
 >
-> > #### 字节码生成举例
-> >
-> > * javac命令 —— 字节码生成技术老祖宗
-> > * AOP框架
-> > * 动态代理的动态生成代理类
-> >
-> > #### 动态代理的动态
-> >
-> > * 相对于静态代理在编译时静态完整生成代理类
-> > * 动态代理不在于省去编写代理类的那一点代码量
-> > * 而在于在原始类和接口未知时就确定代理行为
+> * 概述
+>   * 字节码生成不是什么高深的技术
+>   * 因为我们最常用的命令`javac`就是最普通的一个字节码生成器
+>     * 由`java`编写
+>     * 存放在`openjdk`的目录中
+> * 字节码生成举例
+>   * `javac命令`
+>   * `jsp`编辑器
+>   * 编译时织入的AOP框架
+>   * 动态代理的动态生成代理类
+> * 动态代理的动态
+>   * 相对于静态代理在编译时静态完整生成代理类
+>   * 动态代理不在于省去编写代理类的那一点代码量
+>   * 而在于在原始类和接口未知时就确定代理行为
 >
 > ### 动态代理
 >
-> > #### 接口IConsumer
-> >
-> > ```java
-> > public interface IConsumer {
-> > void buy();
-> > }
-> > ```
-> >
-> > #### 实现类Consumer
-> >
-> > ```java
-> > public class Consumer implements IConsumer{
-> > @Override
-> > public void buy() {
-> >   System.out.println("buy something");
-> > }
-> > }
-> > ```
-> >
-> > #### 实现InvocationHandle接口的代理类
-> >
-> > ```java
-> > public class ConsumerProxy implements InvocationHandler {
-> > private IConsumer consumer;
-> > 
-> > public ConsumerProxy(){};
-> > //构造方法传入真正被代理的对象
-> > public ConsumerProxy(IConsumer consumer){
-> >   this.consumer=consumer;
-> > }
-> > 
-> > /*
-> >     * @param proxy 执行newInstance时生成的代理对象
-> >     * @param method 被代理对象的方法
-> >     * @param 被代理对象方法执行的参数
-> >     * */
-> >     @Override
-> >     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-> >         before();
-> >         Object returnValue = method.invoke(consumer, args);
-> >         after();
-> >         return returnValue;
-> >     }
-> > 
-> >     private void before(){
-> >         System.out.println("select before buying");
-> >     }
-> > 
-> >     private void after(){
-> >         System.out.println("sale return after buying");
-> >     }
-> > }
-> > ```
-> >
-> > ### 执行
-> >
-> > ```java
-> > public static void main(String[] args) {
-> >         IConsumer consumer=(IConsumer)Proxy.newProxyInstance(
-> >                 Consumer.class.getClassLoader(),
-> >                 Consumer.class.getInterfaces(),
-> >                 (InvocationHandler) (Class.forName("dynamicproxy.ConsumerProxy").getConstructor(IConsumer.class).newInstance(Class.forName("dynamicproxy.Consumer").newInstance()))
-> >         );
-> >         consumer.buy();
-> > }
-> > ```
-> >
-> > ***
+> * 接口IConsumer
+>
+>   ```java
+>   public interface IConsumer {
+>   	void buy();
+>   }
+>   ```
+>
+> * 实现类Consumer
+>
+>   ```java
+>   public class Consumer implements IConsumer{
+>       @Override
+>       public void buy() {
+>       	System.out.println("buy something");
+>       }
+>   }
+>   ```
+>
+> * 实现InvocationHandle接口的代理类
+>
+>   ```java
+>   public class ConsumerProxy implements InvocationHandler {
+>       private IConsumer consumer;
+>
+>       public ConsumerProxy(){};
+>       //构造方法传入真正被代理的对象
+>       public ConsumerProxy(IConsumer consumer){
+>           this.consumer=consumer;
+>       }
+>
+>       /*
+>       * @param proxy 执行newInstance时生成的代理对象
+>       * @param method 被代理对象的方法
+>       * @param 被代理对象方法执行的参数
+>       * */
+>       @Override
+>       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+>           before();
+>           Object returnValue = method.invoke(consumer, args);
+>           after();
+>           return returnValue;
+>       }
+>
+>       private void before(){
+>           System.out.println("select before buying");
+>       }
+>
+>       private void after(){
+>           System.out.println("sale return after buying");
+>       }
+>   }
+>   ```
+>
+> * 执行
+>
+>   ```java
+>   public static void main(String[] args) {
+>           IConsumer consumer=(IConsumer)Proxy.newProxyInstance(
+>                   Consumer.class.getClassLoader(),
+>                   Consumer.class.getInterfaces(),
+>                   (InvocationHandler) (Class.forName("dynamicproxy.ConsumerProxy").getConstructor(IConsumer.class).newInstance(Class.forName("dynamicproxy.Consumer").newInstance()))
+>           );
+>           consumer.buy();
+>   }
+>   ```
+>
+> * 核心
+>   * `Proxy.newProxyInstance`会调用到磁层，会使用字节码生成技术来生成字节码
 >
 > ### Spring动态代理
 >
-> > #### 接口IConsumer
-> >
-> > ```java
-> > public interface IConsumer {
-> > String buy(String s);
-> > String saleReturn(String s);
-> > }
-> > ```
-> >
-> > #### 实现类RichConsumer
-> >
-> > ```java
-> > @Component("richConsumer")
-> > public class RichConsumer implements IConsumer{
-> > @Override
-> > public String buy(String s) {
-> >   System.out.println("RichConsumer buy:"+s);
-> >   return s;
-> > }
-> > 
-> > @Override
-> > public String saleReturn(String s) {
-> >   System.out.println("RichConsumer sale return:"+s);
-> >   return s;
-> > }
-> > }
-> > ```
-> >
-> > #### 配置类Configuration
-> >
-> > * 配置要扫描的包
-> > * 开启动态代理
-> >
-> > ```java
-> > @Configuration
-> > @ComponentScan(basePackages = {"com"})
-> > @EnableAspectJAutoProxy(exposeProxy = true)
-> > public class Configuration{}
-> > ```
-> >
-> > #### 切面类
-> >
-> > ```java
-> > @Aspect
-> > @Component
-> > public class ConsumerAspect {
-> >     @After("execution(* com.IConsumer.*(..))")
-> >     public void saySomething(){
-> >         System.out.println("穷人、富人say something");
-> >     }
-> > 
-> >     @Before("execution(* com.IConsumer.*(..))")
-> >     public void saleReturn(){
-> >         System.out.println("I need to sale return");
-> >     }
-> > }
-> > ```
-> >
-> > #### 测试
-> >
-> > ```java
-> > public static void main(String[] args) {
-> >         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Configuration.class);
-> >         IConsumer consumer = applicationContext.getBean("richConsumer", IConsumer.class);
-> >         consumer.buy("a");
-> >        applicationContext.getBean("poorConsumer",IConsumer.class).saleReturn("thing");
-> > }
-> > ```
-> >
-> > ***
+> * 接口IConsumer
+>
+>   ```java
+>   public interface IConsumer {
+>       String buy(String s);
+>       String saleReturn(String s);
+>   }
+>   ```
+>
+> * 实现类RichConsumer
+>
+>   ```java
+>   @Component("richConsumer")
+>   public class RichConsumer implements IConsumer{
+>       @Override
+>       public String buy(String s) {
+>       	System.out.println("RichConsumer buy:"+s);
+>       	return s;
+>       }
+>   
+>       @Override
+>       public String saleReturn(String s) {
+>           System.out.println("RichConsumer sale return:"+s);
+>           return s;
+>       }
+>   }
+>   ```
+>
+> * 配置类`Configuration`
+>
+>   * 配置要扫描的包
+>   * 开启动态代理
+>
+>   ```java
+>   @Configuration
+>   @ComponentScan(basePackages = {"com"})
+>   @EnableAspectJAutoProxy(exposeProxy = true)
+>   public class Configuration{}
+>   ```
+>
+> * 切面类
+>
+>   ```java
+>   @Aspect
+>   @Component
+>   public class ConsumerAspect {
+>       @After("execution(* com.IConsumer.*(..))")
+>       public void saySomething(){
+>           System.out.println("穷人、富人say something");
+>       }
+>
+>       @Before("execution(* com.IConsumer.*(..))")
+>       public void saleReturn(){
+>           System.out.println("I need to sale return");
+>       }
+>   }
+>   ```
+>
+> * 测试
+>
+>   ```java
+>   public static void main(String[] args) {
+>           AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(Configuration.class);
+>           IConsumer consumer = applicationContext.getBean("richConsumer", IConsumer.class);
+>           consumer.buy("a");
+>          applicationContext.getBean("poorConsumer",IConsumer.class).saleReturn("thing");
+>   }
+>   ```
+>
 >
 > ### Backport工具
 >
-> > #### JDK更新内容
-> >
-> > * 对Java的API类库的增强
-> > * 在前端编译器做出改进(语法糖)
-> > * 在字节码层面的改动(很少很少，如增加invokedynamic指令)
-> > * JDK整体架构方面的改进(如java模块化系统)
-> > * 虚拟机内部的改变(对程序员透明)
-> >
-> > #### 逆向移植工具
-> >
-> > * 作用范围：只能模拟JDK更新的前面两点
-> > * 更新一：引入其他额外的库来代替新增的API库
-> > * 更新二：使用字节码工具对字节码进行修改，因为指令集数量没有变化，总能使字节码表达的语义高低版本一致
-> >
-> > #### Enum类本质
-> >
-> > * 继承自java.lang.Enum
-> > * 自动生成Values()和ValueOf()方法
-> >
-> > ***
+> * JDK更新内容
+>   * 对Java的API类库的增强
+>   * 在前端编译器做出改进(语法糖)
+>   * 在字节码层面的改动(很少很少，如增加invokedynamic指令)
+>   * JDK整体架构方面的改进(如java模块化系统)
+>   * 虚拟机内部的改变(对程序员透明)
+>
+> * 逆向移植工具
+>   * 作用范围：只能模拟JDK更新的前面两点
+>   * 更新一：引入其他额外的库来代替新增的API库
+>   * 更新二：使用字节码工具对字节码进行修改，因为指令集数量没有变化，总能使字节码表达的语义高低版本一致
+>
+> * Enum类本质
+>   * 继承自`java.lang.Enum`
+>   * 自动生成`Values()`和`ValueOf()`方法
 >
 > ### 实战：远程执行功能
 >
-> > #### 痛点
-> >
-> > * 只需要在已经运行的程序中增加一小段代码就能实现bug排查，但无奈却无法实现
-> >
-> > #### 思路
-> >
-> > * 上传代码到服务器：客户端编译好后上传
-> > * 如何执行编译后的代码：类加载器加载类得到Class对象，反射执行
-> >   * 此类要能访问到服务器端的其他类库才行
-> >   * 是临时代码，执行完后应被回收
-> > * 如何收集结果输出：在字节码层面将执行类的System.out符号引用替换成自定义流的符号引用
-> >   * 不用System.out是因为其他的输出结果会一起输出过来
-> >
-> > #### 类加载器实现
-> >
-> > * 首先让自定义类加载器的上级委派设置为加载此自定义类的类加载器
-> > * 类加载器公开父类的'protected Class defineClass()'方法
-> > * 这样在加载自己类的时候会被委派给上级，就能访问服务端其他类库了
-> > * 之所以不让服务端类加载器直接加载自定义类是因为自定义类不在类加载器的扫描范围内
-> >
-> > #### 修改System.out引用
-> >
-> > * 直接将class文件的byte[]数组进行修改
-> > * 修改完成后将被修改后的byte[]数组传给自定义类加载器进行加载
-> >
-> > #### 自定义流
-> >
-> > * 将System类的静态变量out和err换成另外的流
-> >
-> > #### 汇总在一起
-> >
-> > ```java
-> > HackSystem.clearBuffer();
-> > ClassModifier modifier = new ClassModifier(byte[]);
-> > byte[] modified = modifier.modifyConstantInfo("java/lang/System","zy/selfDefine/HackSystem");
-> > Class object = new SelfDefineClassLoader.load(modified);
-> > object.invoke("main",String[].class);
-> > ```
-> >
-> > ***
+> * 痛点
+>
+>   * 只需要在已经运行的程序中增加一小段代码就能实现bug排查，但无奈却无法实现
+>
+> * 思路
+>
+>   * 上传代码到服务器：客户端编译好后上传
+>   * 如何执行编译后的代码：类加载器加载类得到Class对象，反射执行
+>     * 此类要能访问到服务器端的其他类库才行
+>     * 是临时代码，执行完后应被回收
+>   * 如何收集结果输出：在字节码层面将执行类的System.out符号引用替换成自定义流的符号引用
+>     * 不用System.out是因为其他的输出结果会一起输出过来
+>
+> * 类加载器实现
+>
+>   * 首先让自定义类加载器的上级委派设置为加载此自定义类的类加载器
+>   * 类加载器公开父类的'protected Class defineClass()'方法
+>   * 这样在加载自己类的时候会被委派给上级，就能访问服务端其他类库了
+>   * 之所以不让服务端类加载器直接加载自定义类是因为自定义类不在类加载器的扫描范围内
+>
+> * 修改System.out引用
+>
+>   * 直接将class文件的byte[]数组进行修改
+>   * 修改完成后将被修改后的byte[]数组传给自定义类加载器进行加载
+>
+> * 自定义流
+>
+>   * 将System类的静态变量out和err换成另外的流
+>
+> * 汇总在一起
+>
+>   ```java
+>   HackSystem.clearBuffer();
+>   ClassModifier modifier = new ClassModifier(byte[]);
+>   byte[] modified = modifier.modifyConstantInfo("java/lang/System","zy/selfDefine/HackSystem");
+>   Class object = new SelfDefineClassLoader.load(modified);
+>   object.invoke("main",String[].class);
+>   ```
+>
 >
 > ***
 
