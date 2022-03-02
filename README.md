@@ -19,7 +19,7 @@
 
 ## [Leetcode笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
 
-## [Bytedance笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/BytedanceLearning.md)
+## [公司学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CompanyLearning.md)
 
 ## [算法设计与分析笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
 
