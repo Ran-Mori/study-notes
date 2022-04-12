@@ -479,3 +479,141 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 通常是两者的结合体，总体基于冯诺依曼架构，但也会采取哈佛架构的优势
 
 ***
+
+## Cmake
+
+* 命令
+
+  * 经常使用的两个命令
+
+    ```cmake
+    cmake -S . -B build
+    cmake --build build
+    ```
+
+* 语法
+
+  * `add_execuable(main.out main.cpp other.cpp)`
+
+    * 标准格式
+
+      ```cmake
+      add_executable(<name> [WIN32] [MACOSX_BUNDLE]
+                     [EXCLUDE_FROM_ALL]
+                     [source1] [source2 ...])
+      ```
+
+    * 标准解释
+
+      > Add an executable to the project using the specified source files.
+
+  * `add_library(mainlib SHARED main.cpp other.cpp)`
+
+    * 标准格式
+
+      ```cmake
+      add_library(<name> [STATIC | SHARED | MODULE]
+                  [EXCLUDE_FROM_ALL]
+                  [<source>...])
+      ```
+
+    * 标准解释
+
+      > Add a library to the project using the specified source files.
+
+    * 通俗解释
+
+      > 将mian.cpp和other.cpp源文件编译成一个命名为mainlib的共享库
+
+  * `target_link_libraries(main.out PUBLIC hellolib)`
+
+    * 标准格式
+
+      ```cmake
+      target_link_libraries(<target>
+                            <PRIVATE|PUBLIC|INTERFACE> <item>...
+                           [<PRIVATE|PUBLIC|INTERFACE> <item>...]...)
+      ```
+
+    * 标准解释
+
+      > Specify libraries or flags to use when linking a given target and/or its dependents.
+
+    * 通俗解释
+
+      > 在链接构建main.out时将hellolib库纳入链接库范围
+
+  * `add_subdirectory(fmt)`
+
+    * 标准格式
+
+      ```cmake
+      add_subdirectory(source_dir [binary_dir] [EXCLUDE_FROM_ALL])
+      ```
+
+    * 标准解释
+
+      > Add a subdirectory to the build.
+
+  * `target_include_directories(hellolib PUBLIC .)`
+
+    * 标准格式
+
+      ```cmake
+      target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+        <INTERFACE|PUBLIC|PRIVATE> [items1...]
+        [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+      ```
+
+    * 标准解释
+
+      > Add include directories to a target.
+
+    * 通俗解释
+
+      > 在构建hellolib搜索头文件时，将当前目录纳入头文件搜索目录，并且可以向下传递
+
+* `[PRIVATE|PUBLIC]`区别
+
+  * 是否`link、include`等操作时进行`传染`
+  * 如`target_link_libraries(myexec PRIVATE hellolib)`表示另一个`library`在链接时需要`myexec`库时会自动可以添加`hellolib`进行链接，否则不能进行链接
+
+* C++声明的必要性
+
+  * 声明即引入头文件或在顶部做一个函数等声明如`void hello();`
+  * 不声明编译器无法知道名称的含义。如`vector<MyClass> a`可能会把`vector、MyClass`看作是变量，把`<、>`看作时运算符
+
+* 递归引入头文件
+
+  * 当递归引入头文件时会报错无法通过编译
+
+  * 防止递归引入的两种办法
+
+    * `#pragma once`
+
+    * 宏定义
+
+      ```c++
+      #ifndef INC_01_HEADER_NAME_H
+      #define INC_01_HEADER_NAME_H
+      
+      #endif //INC_01_HEADER_NAME_H
+      ```
+
+* 第三方库引入
+
+  * 纯头文件引入
+    * 直接`target_include_directories()`时将包含头文件的文件夹填入即可
+    * 通常`#include <xxx.h>`时需要定义一个`xxx.h`定义的宏，因为要防止重复引入
+  * 子模块引入
+    * 即作为`cmake`的子模块引入，通过`add_subdirectories()`和`target_link_libraries()`即可
+  * 引用系统中预安装的第三方库
+    * 最麻烦，通常通过`find_package()`
+    * 不推荐使用
+
+* 包管理器
+
+  * `C++`没有包管理器，`vcpkg`太多问题简直没法用
+
+
+***
