@@ -1,49 +1,49 @@
-# VariousKindsLearning
-用于存放各种学习的Markdown笔记
+# various-kinds-learning
+A repository for storing various kinds of study notes.
 
-## [CSAPP读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CSAPP.md)
 
-## [深入理解Java虚拟机读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JVM.md)
 
-## [第一行代码读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/FirstLineOfCode.md)
+## [CSAPP notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CSAPP.md)
 
-## [Android探索艺术读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/AndroidDevelopExploreArt.md)
+## [Understanding the JVM](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JVM.md)
 
-## [C++ Primer读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CppPrimer.md)
+## [First Line of Code notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/FirstLineOfCode.md)
 
-## [设计模式之禅读书笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
+## [Art of developing and exploring Android notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/AndroidDevelopExploreArt.md)
 
-## [Daily日常笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
+## [C++ Primer notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CppPrimer.md)
 
-## [Daily安卓学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DailyAndroid.md)
+## [Zen of Design Patterns notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignPatterns.md)
 
-## [Leetcode笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
+## [daily notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Daily.md)
 
-## [公司学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CompanyLearning.md)
+## [daily android notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DailyAndroid.md)
 
-## [算法设计与分析笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
+## [leetcode notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
 
-## [GoLang自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/go.md)
+## [learning in company notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/CompanyLearning.md)
 
-## [Kotlin自学笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/kotlin.md)
+## [design and analysis of algorithms notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DesignAndAnalysisOfAlgorithms.md)
 
-## [数字图像处理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DigitalImageProcessing.md)
+## [goLang notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/go.md)
 
-## [狂神JavaScript学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JavaScript.md)
+## [kotlin notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/kotlin.md)
 
-## [LeetCode刷题记录](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
+## [digital image processing notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/DigitalImageProcessing.md)
 
-## [编译原理期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/PriciplesOfCompilers.md)
+## [javascript notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/JavaScript.md)
 
-## [人机交互笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Human%20Computer%20Interaction.md)
+## [leetcode records](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/LeetCode.md)
 
-## [Redis基础学习](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Redis.md)
+## [principles of compilation notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/PriciplesOfCompilers.md)
 
-## [Android基础网课学习笔记 java版本](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/android.md)
+## [rCI notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Human%20Computer%20Interaction.md)
 
-## [Docker学习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/docker.md)
+## [redis notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/Redis.md)
 
-## [git高级操作笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/git.md)
+## [docker notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/docker.md)
 
-## [Linux原理与应用期末预习笔记](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/linux.md)
+## [git notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/git.md)
+
+## [linux notes](https://github.com/IzumiSakai-zy/VariousKindsLearning/blob/master/linux.md)
 

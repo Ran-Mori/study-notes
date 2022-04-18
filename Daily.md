@@ -482,6 +482,18 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ## Cmake
 
+* 概念
+
+  * 解释
+
+    > CMake is a generator of buildsystems. It can produce Makefiles, it can produce Ninja build files, it can produce KDEvelop or Xcode projects, it can produce Visual Studio solutions.
+
+  * `cmake`和`make`的区别
+
+    > Make (or rather a Makefile) is a buildsystem - it drives the compiler and other build tools to build your code. But cmake is a generator of buildsystems.
+    >
+    > 即make由cmake构建而来，cmake是构建工具的构建工具。make和nija是平级关系
+
 * 命令
 
   * 经常使用的两个命令
@@ -617,3 +629,41 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 
 ***
+
+## make
+
+* 概念
+
+  > Make (or rather a Makefile) is a buildsystem - it drives the compiler and other build tools to build your code. But cmake is a generator of buildsystems.
+
+* 几个关键指令
+
+  * `configure`
+
+    * 概念
+
+      * 是一个`shell script`
+
+    * 作用
+
+      > make sure all of the dependencies
+      >
+      > produces a customised `Makefile` specific to your system from a template file called `Makefile.in`
+
+    * `configure scipt file`来源
+
+      > run `autoconf` to turn  `configure.ac` into a `configure` script
+
+  * `make`
+
+    > This runs a series of tasks defined in a `Makefile` to build the finished program from its source code.
+
+    * `MakeFile.in`来源
+
+      > Run `automake` to turn  `Makefile.am` into a `Makefile.in`
+
+  * `make install`
+
+    > The `make install` command will copy the built program, and its libraries and documentation, to the correct locations.
+    >
+    > It does do nothing less than running the install function/task in `MakeFile`
