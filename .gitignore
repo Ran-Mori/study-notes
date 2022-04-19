@@ -1,10 +1,10 @@
 *.iml
 .gradle
-/local.properties
-*/.idea/*
+local.properties
+.idea
 .DS_Store
-/build
-/captures
+build
+captures
 .externalNativeBuild
 .cxx
 /Apk
@@ -18,7 +18,7 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
+.mvn
  
 # Compiled class files
 *.class
@@ -27,7 +27,7 @@ buildNumber.properties
 *.log
  
 # About IntelliJ
-/out/
+out
  
 # BlueJ files
 *.ctxt
@@ -55,8 +55,7 @@ buildNumber.properties
  
 
 .DS_Store
-.idea/shelf
-/confluence/target
+confluencet
 /dependencies/repo
 /android.tests.dependencies
 /dependencies/android.tests.dependencies
@@ -81,40 +80,6 @@ build/
 !**/src/**/build
 !**/test/**/build
 *.iml
-!**/testData/**/*.iml
-.idea/libraries/Gradle*.xml
-.idea/libraries/Maven*.xml
-.idea/artifacts/PILL_*.xml
-.idea/artifacts/KotlinPlugin.xml
-.idea/modules
-.idea/runConfigurations/JPS_*.xml
-.idea/runConfigurations/PILL_*.xml
-.idea/runConfigurations/_FP_*.xml
-.idea/runConfigurations/_MT_*.xml
-.idea/libraries
-.idea/modules.xml
-.idea/gradle.xml
-.idea/compiler.xml
-.idea/inspectionProfiles/profiles_settings.xml
-.idea/.name
-.idea/artifacts/dist_auto_*
-.idea/artifacts/dist.xml
-.idea/artifacts/ideaPlugin.xml
-.idea/artifacts/kotlinc.xml
-.idea/artifacts/kotlin_compiler_jar.xml
-.idea/artifacts/kotlin_plugin_jar.xml
-.idea/artifacts/kotlin_jps_plugin_jar.xml
-.idea/artifacts/kotlin_daemon_client_jar.xml
-.idea/artifacts/kotlin_imports_dumper_compiler_plugin_jar.xml
-.idea/artifacts/kotlin_main_kts_jar.xml
-.idea/artifacts/kotlin_compiler_client_embeddable_jar.xml
-.idea/artifacts/kotlin_reflect_jar.xml
-.idea/artifacts/kotlin_stdlib_js_ir_*
-.idea/artifacts/kotlin_test_js_ir_*
-.idea/artifacts/kotlin_stdlib_wasm_*
-.idea/jarRepositories.xml
-.idea/csv-plugin.xml
-.idea/libraries-with-intellij-classes.xml
 node_modules/
 .rpt2_cache/
 libraries/tools/kotlin-test-js-runner/lib/
