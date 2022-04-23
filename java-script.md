@@ -2,363 +2,159 @@
 
 
 
-## 1 什么是JavaScript
+## Introduction
 
-### 	1.1  概述
+* What is JavaScript
+  * JavaScript is a cross-platform, object-oriented scripting language used to make webpages interactive
+  * *Client-side JavaScript* extends the core language by supplying objects to control a browser and its *Document Object Model* (DOM).
+  * *Server-side JavaScript* extends the core language by supplying objects relevant to running JavaScript on a server.
+  * node.js is a more advanced server side versions of JavaScript.
+* ECMA script
+  * The ECMAScript specification is a set of requirements for implementing ECMAScript.
+  * ECMAScript is a Standard for scripting languages such as JavaScript. JavaScript is a language based on ECMAScript.
+  * JavaScript supports all functionality outlined in the ECMAScript specification.
 
-* JavaScript是世界上最流行的脚本语言
 
-### 1.2  历史
 
-* 最新版本的JavaScript已经是ES6了，但很多浏览器只支持 **ES5**
 
 
+## Gramer and types
 
-## 2 快速入门
+* basics
 
-### 2.1 Hello World
+  * case-sensitive
+  * use Unicode character set
+  * simicolon after each statement
 
-* 间接方式
+* declarations
 
-  ```html
-  <head>
-      <meta charset="UTF-8">
-      <title>index</title>
-      <script src="alert.js"></script>
-  </head>
-  ```
+  * `var` - local or grobal variable
+  * `let` - block-scoped variable
+  * `const` - block-scoped read-only constant
 
-* 直接方式
+* evaluate variables
 
-  ```HTML
-  <head>
-      <meta charset="UTF-8">
-      <title>index</title>
-      <script>
-      	alert("Hello World");
-      </script>
-  </head>
-  ```
+  * no assigned value variable has the type `undefined`
+  * `undefined` converts to `false`、`NAN`
+  * `null` converts to `0`
 
-* 注意： 间接引入不要把标签整成斜线闭合，不然容易报错。 
+* variable scope
 
-### 2.2基础
+  * `var` variable is either global or local in a funtion 
+  * `let` and `const ` support block-scoped
 
-```Html
-<script>
-	// 变量定义
-    var i=1;
-    
-    // "==" 只要求值一样，不要求类型一样
-    // "===" 要求值和类型都一样
-    
-    // 对象
-    var person={
-        name: "Izumi Sakai",
-        age: 40
-    }
-</script>
-```
+* variable hoisting
 
+  * variables in JavaScript are hoisted to the top of the function or statement.
+  * `var`  are hoisted return a value of `undefined`. 
+  * `let` and `const` are hoisted but not initialized.
 
+* function hoisting 
 
-### 2.3控制台使用
+  * hoisted if defined using function declarations, but not hoisted if defined using function expressions
 
-* 打印命令 - **console.log(score)**
+    ```javascript
+    //function declarations
+    function calcRectArea(width, height) {}
+    ```
 
-### 2.4浮点数精度损失
+    ```javascript
+    //function expressions
+    const getRectArea = function(width, height) {}
+    ```
 
-* ```java
-  Math.abs(1/3-(1-2/3))<0.0000000001
-  ```
+* constant
 
-### 2.5 JavaScript严格检查
+  * vairable is constant is not equal to the member or value of this variable is constant.
 
-* 局部变量建议都是用 **let** 来定义。
 
-```html
-<script>
-	'user strict';
-    i =1;//会报错
-</script>
-```
 
-### 2.6 对象
 
-```javascript
-var person={
-    name: "IzumiSakai",
-    age :40,
-    toString: function(){
-        return "Hello,my name is ${this.name} and I'm ${age} years old";
-    }
-}
-```
 
-### 2.7 流程判断
+## Data structures and types
 
-```javascript
-// if判断
-if(i>0){
+* eight types
 
-}
-else if(){
+  * seven promitives
+    * Boolean
+    * null 
+    * undefined
+    * Number - An integer or floating point number.
+    * Bigint - An integer with arbitrary precision.
+    * String 
+    * Symbol
+  * one other
+    * object - named containers for values
 
-}
-else{
+* data type conversion
 
-}
+  * numeric values conver to strings when `+`, numeric values not conver to strings when `other operators`
 
-// for循环
-for(let i=0;i<10;i++){
+  * convert string to number
 
-}
-```
+    ```javascript
+    parseInt()
+    ```
 
+    ```javascript
+    parseFloat()
+    ```
 
 
-## 4 函数
 
-### 4.1 定义函数
 
-```javascript
-function abs(x){
-    if(x>=0)
-        return x;
-    else
-        return -x;
-}
-```
 
-### 4.2 arguments
+## literal
 
-* JavaScript 函数传入的参数统一封装成arguments数组
+* array literal
 
-### 4.3 rest参数
+  * ```javascript
+    let array = ["1","2", 1232]
+    ```
 
-* 用rest来接收其他的参数
+  * Array literals are also `Array` objects. 
 
-```javascript
-function restTest(x,y,z,...rest){
-    ...
-}
-```
+* boolean literal
+  * `true`、`false`
+  * Boolean object is a wrapper around the primitive Boolean data type.
 
-### 4.4 JavaScript里的所有函数其实是对象
+* numberic literal
+  * integer literals in different bases and floating-point literals in base-10.
+  * `123.4` - numeric literals should be unsigned. `-123.4` is a plus of `-` and `123.4`
 
-```javascript
-var method=function(){
-    ...
-}
-```
+* integer literal
+  * Integer and BigInt literals can be written in decimal, hexadecimal, octal and binary.
+  * `123456n` - A trailing `n` suffix on an integer literal indicates a BigIntliteral. 
 
-### 4.5 全局变量规范 - 与框架有关
+* float point literal
+  * parts
+    * An unsigned decimal integer
+    * A decimal point ("`.`")
+    * A fraction (another decimal number)
+    * An exponent
+  * `3.1415926`、`3.1E+12`
 
-* 自己定义一个对象，所有的全局变量全部绑定到自定义的对象上。不能让它默认绑定在window上，不然乱套。
+* object literals
 
-```javascript
-var AllViriable={};
-AllVirable.PI=3.1415926;
-```
+  * An object literal is a list of zero or more pairs of property names and associated values of an object, enclosed in curly braces (`{}`).
 
-### 4.6 let关键字
+  * ```javascript
+    var car = { myCar: 'Saturn', getCar: carTypes('Honda'), special: sales };
+    ```
 
-* 现在JavaScript推荐只使用 **let**  和  **const**，不推荐用 **var** 了
+  * In ES2015, object literals are extended, and it's just like more classed base object.
 
+* string literals
 
+  * both `'` and `"` is ok
 
+  * javaScript automatically converts the string literal to a temporary String object.
 
+  * `template` 
 
-## 5 JSON对象
+    * enclosed by the back-tick (**`**)
 
-### 5.1使用 JSON关键字进行对象与json格式的转换与操作。
+    * ```javascript
+      `Hello ${name}, how are you ${time}?`
+      ```
 
-```javascript
-JSON.parse();
-JSON.stringfy(); 
-```
-
-
-
-## 6 面向对象编程
-
-* 类
-
-  ```javascript
-  class Student{
-      sayHello(){
-          console.log("Hello");
-      }
-      // 和java的构造函数不同
-      constructor(name){
-          this.name = name;
-      }  
-  }
-  ```
-
-* 使用对象
-
-  ```javascript
-  let xiaoMing=new Student("小明");
-  ```
-
-* 继承
-
-  ```javascript
-  class Rectangle extends Shape{
-      constructor(type,name){
-          super(type);
-          this.name=name;
-      }
-      ...
-  }
-  ```
-
-
-
-## 7 操作BOM对象
-
-### 7.1获取当前浏览器范围高度宽度
-
-> window
-
-```javascript
-window.innerHeight;
-window.innerWith;
-```
-
-### 7.2 获取用户的浏览器信息
-
-> navigator
-
-* 比如用户是用的手机访问还是Windows访问，用户使用的是什么浏览器
-* 大多数时候不会使用navigator对象，因为它能够被人为修改
-
-```javascript
-navigator.userAgent;
-```
-
-### 7.3 获取屏幕的宽度和高度
-
-> screen
-
-* 当电脑缩放为150%时，分辨率变成了1280
-
-```javascript
-screen.height;
-screen.width;
-```
-
-### 7.4 导航
-
-> location 代表URL信息
-* host - 主机； href - URL； reload() - 重加载方法； assign() - 跳转方法
-```javascript
-console.log(location);
-location.reload();
-location.assign("https://www.bilibili.com")
-```
-
-### 7.5 文档树
-
-> document 
-
-* 可以对浏览器节点进行新增和删除，实现对界面的修改和动态变化
-* document可以获得cookie信息，可能会被恶意劫持暴露用户信息。
-
-### 7.6 历史记录
-
-> history  代表浏览器的历史记录
-
-```javascript
-history.back();
-history.forward();
-```
-
-### 7.7 删除节点
-
-> document    通过父节点来进行删除
-* 删除是一个动态的过程
-
-```javascript
-let father=son.parentElement;
-father.removeChild(son);
-father.children[i]; //删除了第一个过后，后面的索引依次减一
-```
-
-### 7.8 插入节点
-
-```javascript
-father.appendChild(son);
-```
-
-### 7.9 操作表单
-
-> 表单实际上也是一个DOM结点，下面有很多子节点
-
-```html
-<body>
-    <form>
-        用户名: <input type='text' id='username'>
-    </form>
-</body>
-<script>
-	var usrname=document.getElementById("username");  
-    console.log(username.value);
-</script>
-```
-
-### 7.10 表单提交密码加密
-
-* 提交表单密码的时候可以绑定提交事件，在事件中对密码进行加密
-* 可以使用隐藏域进行提交，不然提交的时候密码会突然变长
-
-
-
-## 8 jQuery
-
-### 8.1 和JavaScript的关系
-
-* jQuery里面封装了很多JavaScript的函数
-
-### 8.2 使用在线的CDN链接
-
-```html
-<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
-```
-
-### 8.3 jQuery核心公式
-
-> **$(selector).action**()
-
-* **$**代表jQuery；**selector**代表CSS选择器；
-
-### 8.5 实际使用举例
-
-* **$('#id')** - id选择器
-* **$('span')** - 元素选择器
-* **$('.myClass')** - 类选择器
-
-```javascript
-$('#submit').click(function(){  
-    ...
-})
-```
-
-### 8.5 jQuery事件
-
-* 网页加载完成事件
-
-  ```javascript
-  $(function(){
-      ...
-  });
-  
-  $(document).ready(function(){
-      $('#divMove').mousemove(function(e){
-          $('#mouseMove').text('x='+e.pageX+';y='+e.pageY);
-      });
-  });
-  ```
-
-  
