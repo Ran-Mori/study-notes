@@ -1,7 +1,5 @@
 # OS
 
-
-
 ## system call
 
 ### exit
@@ -63,6 +61,8 @@
 * `int unlink(char *file)`
 * removes a name from the file system.
 * The file’s inode and the disk space holding its content are only freed when the file’s link count is zero and no file descriptors refer to it.
+
+***
 
 ## Unix Utils
 
@@ -135,6 +135,8 @@ wait(0);
 
 
 
+
+***
 
 ## Operating system interfaces
 
@@ -222,7 +224,88 @@ if(fork() == 0) {
   * A file’s name is distinct from the file itself
   * the same underlying file, called an *inode*, can have multiple names, called *links*.
   * Each link consists of an entry in a directory. the entry contains a file name and a reference to an inode.
-  * An inode holds *metadata* about a file,
+  * An inode holds *metadata* about a file
+
+***
+
+## Operating system organization
+
+### requirements
+
+* multiplexing
+* isolation
+* interaction
+
+### abstract
+
+* Some operating systems for embedded devices or real-time systems implement the system calls as a library. Applications could directly interact with hardware resources.
+* Unix processes use exec to build up their memory image, instead of directly interacting with physical memory.
+* The Unix interface is not the only way to abstract resources, but it has proven to be a very good one.
+
+### mode,  system calls
+
+* modes
+  * CPUs provide hardware support for modes.
+  * The software running in kernel space is called the *kernel*.
+* system call
+  * CPUs provide **a special instruction** that switches the CPU from user mode to supervisor mode and enters the kernel at an entry point specified by the kernel.
+
+### kernel organization
+
+* monolithic kernel
+  * what is it 
+    * the entire operating system resides in the kernel, so that the implementations of all system calls run in supervisor mode.
+  * advantages
+    *  the entire operating system runs with full hardware privilege.
+    * it is convenient because the OS designer doesn’t have to decide which part of the operating system doesn’t need full hardware privilege.
+    * it is easier for different parts of the op- erating system to cooperate.
+  * disadvantages
+    * the interfaces between different parts of the operating system are often complex
+    * a mistake is fatal, because an error in supervisor mode will often cause the kernel to fail.
+* microkernel
+  * what is it
+    *  minimize the amount of operating system code that runs in supervisor mode, and execute the bulk of the operating system in user mode.
+  * feature
+    * OS services running as processes are called servers.(eg. file system service)
+    * To allow applications to interact with the file server, the kernel provides an inter-process communication mechanism to send messages from one user-mode process to another.
+    * it is relatively simple, as most of the operating system resides in user-level servers.
+* linux
+  * Linux has a monolithic kernel, although some OS functions run as user-level servers (e.g., the windowing system)
+  * Linux delivers high performance to OS-intensive applications
+* diffirences
+  * faster performance
+  * smaller code size
+  * reliability of the kernel
+  * reliability of the complete operating system (inclusing user-level services)
+
+### process overview
+
+*  mechanisms to implement processes
+  * user/supervisor mode flag
+  * address spaces
+  * time-slicing of threads
+  * etc
+* page tables
+  * translates (or “maps”) a *virtual address*  to a *physical address*
+  * access page table in xv6: `p->pagetable`
+* pointers
+  * pointers on the RISC-V are 64 bits wide; the hardware only uses the low 39 bits
+* kernel space
+  * a page for a trampoline
+  * a page mapping the process’s trapframe
+  * Xv6 uses these two pages to transition into the kernel and back
+* user/kernel stack
+  * When executing user instructions, only its user stack is in use, and its kernel stack is empty.
+  * When the process enters the kernel (for a system call or interrupt), the kernel code executes on the process’s kernel stack
+* make system call
+  * A process can make a system call by executing the RISC-V ecall instruction.This instruction raises the hardware privilege level and changes the program counter to a kernel-defined entry point.
+  * When the system call completes, the kernel switches back to the user stack and returns to user space by calling the sret instruction,
+* summary
+  * an address space to give a process the illusion of its own memory
+  *  a thread gives the process the illusion of its own CPU
+  * In xv6, a process consists of one address space and one thread. In real operating systems a process may have more than one thread to take advantage of multiple CPUs.
+
+***
 
 ## lab
 

@@ -21,6 +21,8 @@ A repository for storing various kinds of study notes.
 
 ## [java-framework](https://github.com/IzumiSakai-zy/various-kinds-learning/tree/master/java-framework)
 
+## [OS](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/os.md)
+
 ## [learning in company notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/company-learning.md)
 
 ## [design and analysis of algorithms notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/design-and-analysis-of-algorithms.md)
