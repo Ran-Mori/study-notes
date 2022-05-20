@@ -285,25 +285,43 @@ if(fork() == 0) {
   * address spaces
   * time-slicing of threads
   * etc
-* page tables
+*  page tables
   * translates (or “maps”) a *virtual address*  to a *physical address*
   * access page table in xv6: `p->pagetable`
-* pointers
+*  pointers
   * pointers on the RISC-V are 64 bits wide; the hardware only uses the low 39 bits
-* kernel space
+*  kernel space
   * a page for a trampoline
   * a page mapping the process’s trapframe
   * Xv6 uses these two pages to transition into the kernel and back
-* user/kernel stack
+*  user/kernel stack
   * When executing user instructions, only its user stack is in use, and its kernel stack is empty.
   * When the process enters the kernel (for a system call or interrupt), the kernel code executes on the process’s kernel stack
-* make system call
+*  make system call
   * A process can make a system call by executing the RISC-V ecall instruction.This instruction raises the hardware privilege level and changes the program counter to a kernel-defined entry point.
   * When the system call completes, the kernel switches back to the user stack and returns to user space by calling the sret instruction,
-* summary
+*  summary
   * an address space to give a process the illusion of its own memory
   *  a thread gives the process the illusion of its own CPU
   * In xv6, a process consists of one address space and one thread. In real operating systems a process may have more than one thread to take advantage of multiple CPUs.
+
+***
+
+## Traps and system calls
+
+* three kinds of event
+  * system call
+  * an exception
+  * device interrupt
+
+
+## Interrupts and device drivers
+
+* functions of driver
+  * configures the device hardware
+  * tells the device to perform operations
+  * handles the resulting interrupts
+  * interacts with processes that may be waiting for I/O from the device
 
 ***
 
