@@ -23,6 +23,8 @@ A repository for storing various kinds of study notes.
 
 ## [OS](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/os.md)
 
+## [Network](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/network-programming.md)
+
 ## [learning in company notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/company-learning.md)
 
 ## [design and analysis of algorithms notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/design-and-analysis-of-algorithms.md)
