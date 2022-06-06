@@ -1440,3 +1440,33 @@ struct position_t *to;
 * 符号表高效实现
   * 哈希：O(1)时间，但空间浪费大
   * 红黑树: O(log n)，比较节约空间
+
+## Clang
+
+> copy from `man clang` results
+
+* it is a driver
+  * The clang executable is actually a small driver which controls the overall execution of other tools such as the compiler, assembler and linker.
+* stages
+  * `clang -E source.c -o result.i`
+    * preprocess
+  * `clang -S source.c -o result.s`
+    * parsing
+    * semantic analysis
+    * code gen - translates an AST into low-level intermediate code (known as "LLVM IR")
+    * optimazation 
+  * `clang -c source.c -o result.o`
+    * assemble
+  * `clang source.c -o source.out`
+    * link
+* Driver Options
+  * `-Wa,<args>` - Pass the comma separated arguments in args to the assembler.
+  * `-Wl,<args>` - Pass the comma separated arguments in args to the linker.
+  * `-Wp,<args>` - Pass the comma separated arguments in args to the preprocessor.
+  * `-Xassembler <arg>` - Pass arg to the assembler.
+  * `-Xlinker <arg>` - Pass arg to the linker.
+* Preprocessor Options
+  * `-D<macroname>=<value>` - Adds an implicit #define into the predefines buffer which is read before the source file is preprocessed.
+  * `-include <filename>` - Adds an implicit #include into the predefines buffer which is read before the source file is preprocessed.
+  * `-I<directory>` - Add the specified directory to the search path for include files.
+  * `-F<directory>` - Add the specified directory to the search path for framework include files.
