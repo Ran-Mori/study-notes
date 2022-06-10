@@ -925,11 +925,15 @@
 * 事件产生及传递
 
   * 硬件产生触动
-  * 触动传递给`InputManagerService`
-  * `InputeManagerService`通过`WindowManagerService`将触动传给对应的`window`
-  * `window`将触动传送给对应的`ViewRootImpl`
-  * `ViewRootImpl`将触动封装成`MotionEvent`对象，传递给下层`View`
 
+  * 触动传递给`InputManagerService`
+
+  * `InputeManagerService`通过`WindowManagerService`将触动传给对应的`window`
+
+  * `window`将触动传送给对应的`ViewRootImpl`
+  
+  * `ViewRootImpl`将触动封装成`MotionEvent`对象，传递给下层`View`
+  
 * 事件传递
 
   * `ViewRootImpl`
@@ -945,7 +949,7 @@
   }
   ```
 
-  * `ViewRootImple`向下传递
+  * `ViewRootImpl`向下传递
 
   ```java
   //ViewRootImpl.ViewPostImeInputStage
@@ -976,7 +980,7 @@
   ```
 
   * 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`，奇怪的是`DecorView`对`dispatchTouchEvent`进行了重写
-  * 如果不为`DecorView`，则直接`顶层ViewGroup.dispatchTouchEvent(ev)`
+  * 如果不为`DecorView`，则直接顶层`ViewGroup.dispatchTouchEvent(ev)`
   * `DecorView.dispatchTouchEvent()`
 
   ```java
@@ -1019,7 +1023,7 @@
 * DecorView叛徒
 
   * 本来事件从`ViewRootImpl.mView.dispatchPointerEvent()`传递好好的
-  * 但是如果`ViewRootImpe.mView is DecorView`，则事件则交给了`Activity`或者`Dialog`
+  * 但是如果`ViewRootImpl.mView is DecorView`，则事件则交给了`Activity`或者`Dialog`
 
 * Activity、PhoneWindow、DecorView、ViewRootImpl关系
 
