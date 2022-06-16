@@ -257,6 +257,12 @@
   * `layout`：决定`View`四个顶点的位置和实际的宽和高
   * `draw`：将`View`显示绘制在屏幕上
 
+* 三大核心方法
+
+  * `setMeasuredDimension`
+  * `setFrame`
+  * `convas?.drawxxx()`
+
 * 递归调用
 
   * 如果是`ViewGroup`，三大流程就如事件分发机制一样做递归调用
@@ -407,6 +413,12 @@
 
   * 如果view已经attach到window了，那么View#post和Handler#post作用一样，都是往调用UI主线程的MessageQueue中扔Runnable
   * 如果view还未attach到window中，则需要通过一个缓存队列将Runnable暂时先缓存起来，等到view attach到window上之后，再将缓存队列中的Runnable取出来，再扔到UI线程的MessageQueue中
+
+* 自定义 - 直接继承`View`
+
+  * [详情看代码]()
+  * 
+
 
 ***
 

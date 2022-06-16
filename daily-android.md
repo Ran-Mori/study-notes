@@ -18,9 +18,11 @@
 
   * 就是一个耦合度极低的观察者模式的框架
 
+* [Analysis of EventBus principle](https://programmer.group/analysis-of-eventbus-principle.html)
+
 * 引入依赖
 
-  * `implementation 'org.greenrobot:eventbus:3.2.0'`
+  * `implementation 'org.greenrobot:eventbus:3.3.0'`
 
 * 定义一个消息类
 
@@ -60,6 +62,7 @@
     super.onStart()  
     EventBus.getDefault().register(this)
   }
+  
   override fun onStop() {  
     super.onStop()  
     EventBus.getDefault().unregister(this)
@@ -71,6 +74,30 @@
 * Observables发送信息
 
   * `EventBus.getDefault().post(Message("一个发出的消息"))`
+
+* 源码解析
+
+  ```java
+  //EventBus$register(Object subscriber)
+  //查找订阅方法
+  List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
+  
+  //EventBus&post(Object event)
+  postSingleEvent(eventQueue.remove(0), postingState);
+  
+  //EventBus&postSingleEventForEventType(Object event, PostingThreadState postingState, Class<?> eventClass)
+  synchronized (this) {
+    //通过抛出的事件找到订阅方法
+    subscriptions = subscriptionsByEventType.get(eventClass);
+  }
+  for (Subscription subscription : subscriptions) {
+   	postToSubscription(subscription, event, postingState.isMainThread); 
+  }
+  
+  //EventBus&invokeSubscriber(Subscription subscription, Object event)
+  //通过反射执行订阅方法
+  subscription.subscriberMethod.method.invoke(subscription.subscriber, event);
+  ```
 
 ***
 
@@ -136,7 +163,7 @@
 * 特点
 
   * `LifecycleOwner`，一般就只能是`Activity`、`Fragment`，必须有`start、resume、stop`等方法
-  * `Observer`必须实现`public interfacr Observer<T>`接口的`onChanged(T t)`方法
+  * `Observer`必须实现`public interface Observer<T>`接口的`onChanged(T t)`方法
   * 不用手动处理生命周期，默认方式封装了只会在活跃生命周期内观察
   * 如果在不正常生命周期漏观察了变化，则在进入正常生命周期时刻会立即更新
   * 总是就是很好用很方便
@@ -177,7 +204,7 @@
 
   * `父Activity`的权限必须是`子Activty`的真子集时，父才能启动子
 
-* OnSaveInstanceState()
+* `OnSaveInstanceState()`
 
   * 用户自己退出时不会调用
   * 只有因为系统资源紧张，系统自动把它清除掉或者其他原因才会调用此方法
@@ -239,6 +266,23 @@
       * `MessageQueue mQueue`
       * `Looper mLooper`
 
+    * 成员变量初始化
+
+      ```java
+      //Handler.java
+      public Handler() { this(null, false); }
+      
+      public Handler(Callback callback, boolean async) {
+        mLooper = Looper.myLooper();
+        mQueue = mLooper.mQueue;
+      }
+      
+      //Looper.java
+      public static Looper myLooper() {
+        return sThreadLocal.get();
+      }
+      ```
+
     * 成员方法
 
       * `public void dispatchMessage(@NonNull Message msg)`
@@ -273,7 +317,7 @@
   * Message
 
     * 成员变量
-      * `Handler target`：所属的Hanlder
+      * `Handler target`：所属的Handler
       * `Object obj`：message携带的数据内容
     * 成员方法
       * `public void sendToTarget()`：把这个消息让自己的成员`Handler target`给`post`出去
@@ -283,6 +327,7 @@
     * 静态方法
       * `private static void prepare(boolean quitAllowed)`：`new and set`当前线程的`looper`，`new and set`当前线程的`MessageQueue`
       * `public static Looper getMainLooper()`：获取`UI线程`的`looper`
+      * `public static void prepareMainLooper()`：`ActivityThread.java`的`main()`方法会调用
       * `public static void loop()`：把当前线程的`MessageQueue`跑起来，每个`message`执行`msg.target.dispatchMessage(msg);`
     * 变量
       * `MessageQueue mQueue`
@@ -352,18 +397,18 @@
 
   ```java
   class FatherModel<T> implements IHandler{
-  protected void handleData(T data) {
-  	//无实现，子类overwrite它
-  }
+    protected void handleData(T data) {
+      //无实现，子类override它
+    }
   
-  //重写WeakHandler的handleMsg方法
-  @Overrite
-  public void handleMsg(Message msg){
-  //调用自己的handleData方法(实际上子类会复写此方法)，处理的数据从Message来。msg.obj就是Resbonse
-  handleData(msg.obj);
-  //成功了调用listner的onSuccess()方法。此处listner为Presenter
-  listener.onSuccess();
-  }
+    //重写WeakHandler的handleMsg方法
+    @Overrite
+    public void handleMsg(Message msg){
+      //调用自己的handleData方法(实际上子类会复写此方法)，处理的数据从Message来。msg.obj就是Response
+      handleData(msg.obj);
+      //成功了调用listner的onSuccess()方法。此处listner为Presenter
+      listener.onSuccess();
+    }
   }
   ```
 
@@ -372,11 +417,11 @@
   ```java
   class SonModel extend FatherModel{
   	private fun fetchData(){
-  		use a handler to commit a Runnable
-  }
-  override fun handleData(response: Response?){
-   //重写父类的handleData
-  }
+        use a handler to commit a Runnable
+    }
+    override fun handleData(response: Response?){
+     	//重写父类的handleData
+    }
   }
   ```
 
@@ -386,9 +431,9 @@
   class FatherPresenter{
   	//在父类的构造方法处将Presenter作为Observer，Model作为Observable
   	public void bindMyModel(Type myModel) {
-  this.mModel = myModel;
-  this.mModel.addNotifyListener(this);
-  }
+      this.mModel = myModel;
+      this.mModel.addNotifyListener(this);
+    }
   }
   ```
 
@@ -398,9 +443,9 @@
   class SonPresenter extend FatherPresenter{
   	//成功的方法。SonPresenter作为观察者，这是观察者的一个回调方法
   	override fun onSuccess(){
-   //成功调用View的doSuccess()方法
-   mView.doSuccess()
-  }
+     //成功调用View的doSuccess()方法
+     mView.doSuccess()
+    }
   }
   ```
 
@@ -545,7 +590,7 @@
 
   * 创建`Observable`并产生事件
   * 创建`Observer`定义消费事件行为
-  * 通过`Subscrib`连接`Observable`和`Observer`
+  * 通过`Subscribe`连接`Observable`和`Observer`
 
 * 创建Observable
 
@@ -600,12 +645,12 @@
 
   ```java
   static <T> Subscription subscribe(Subscriber<? super T> subscriber, Observable<T> observable) {
-          // new Subscriber so onStart it
-          subscriber.onStart();
+    // new Subscriber so onStart it
+    subscriber.onStart();
   
-      	//最后通过Subscriber.java里的接口call()方法开始调用
-          RxJavaHooks.onObservableStart(observable, observable.onSubscribe).call(subscriber);
-          return RxJavaHooks.onObservableReturn(subscriber);
+    //最后通过Subscriber.java里的接口call()方法开始调用
+    RxJavaHooks.onObservableStart(observable, observable.onSubscribe).call(subscriber);
+    return RxJavaHooks.onObservableReturn(subscriber);
   }
   
   
@@ -816,13 +861,17 @@
   
   dependencies { //定义此moudule的依赖关系
       //项目的依赖关系
+    
       implementation fileTree(include: ['*.jar'], dir: 'libs')
       //本地jar包依赖
+    
       implementation 'com.android.support:appcompat-v7:27.1.1'
       //远程依赖
+    
       implementation 'com.android.support.constraint:constraint-layout:1.1.2'
       testImplementation 'junit:junit:4.12'
       //声明测试用例库
+    
       androidTestImplementation 'com.android.support.test:runner:1.0.2'
       androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
   }
@@ -1381,8 +1430,8 @@
 
 ## 屏幕刷新机制
 
+* [VSync、Choreographer 全面理解](https://juejin.cn/post/6863756420380196877)
 * 显示系统基础知识
-
   * 三部分各司其职
     * `cpu`:计算帧数据
     * `gpu`:将帧数据进行处理渲染，处理好后放到`buffer`存起来
@@ -1392,7 +1441,6 @@
     * `逐行扫描`:显示器从左到右，从上到下显示像素点。因为太快了人类感受不到
     * `帧率`:`gpu`一秒内绘制的帧数，帧率是动态变化的。当屏幕静止时，`gpu`不工作不绘制，但屏幕依旧在刷新
     * `画面撕裂(tearing)`:一个画面内的数据来自两个不同的帧，就会画面撕裂
-
 * 双缓存
 
   * 画面撕裂原因
@@ -1406,7 +1454,6 @@
   * `VSync`
     * 屏幕间隔16ms扫描两帧之间有个空隙，就用这个空隙来进行缓存交换
     * 即达到这个空隙就交换，垂直同步`VSnc`就是这个时间点
-
 * 双缓存 + VSync
 
   * 一旦一个`VSync`信息发出，`cpu`立刻开始计算准备下一帧数据，`cpu`计算完成后`gpu`也立刻开始渲染这一帧数据
@@ -1415,7 +1462,6 @@
     * 当前屏幕显示的帧的下一帧内容`gpu`已经渲染好了
   * 即如果计算时间过长，当下一帧没有准备好时，`display`将一直显示同一帧，在视觉上就是一个卡顿
   * 以上是计算不足的缺点，但也有计算太足的缺点。即`cpu`当且仅当`VSync`信号发出后它才会开始进行计算，如果上一帧用不了多少时间，这个时候`cpu`时间就是浪费的
-
 * 三缓存 + VSync
 
   * 即`cpu`、`gpu`、`display`各自一个缓存
@@ -1423,18 +1469,16 @@
   * 缓存多了一个就能够充分利用`cpu`和`gpu`的性能
   * 缓存交换条件就只有一个：达到临界点发出`VSync`信号。不用等`gpu`把当前屏幕显示的帧的下一帧内容渲染好就可以直接开始下下帧的计算
   * 但如果计算时间太长该卡还是会卡
-
 * Choreographer
 
   * 作用：实现收到`VSync`信号立刻开始`cpu`计算下一帧的类
   * 核心方法：`doFrame()`
   * `mHander.getLooper().getQueue().postSyncBarrier()`，插入同步屏障，保证收到`VSync`信号时立即执行`doFrame()`开始绘制
 
-  ### 疑问解答
-
+* 疑问解答
   * `丢帧`：某一帧延迟显示，因为有其他帧多次显示
   * `布局复杂/主线程耗时是如何造成丢帧的？`：计算时间超过`16.6ms`就会丢帧
-  * `是不是16.6ms走一次measure/layout/draw?`：不是，只有有绘制任务才三部曲，屏幕静止不三步曲，且绘制时间间隔取决于
+  * `是不是16.6ms走一次measure/layout/draw?`：不是，只有有绘制任务才三部曲，屏幕静止不三步曲，且绘制时间间隔取决于布局复杂度及主线程耗时
   * `measure/layout/draw走完，界面就立刻刷新了吗?`：不是，要等`VSync`
   * `Choreographer是干啥的？`：用于实现`VSync`到来时开始绘制
 

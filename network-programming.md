@@ -96,7 +96,7 @@
 
   * `int select(int maxfdp1, fd_set readset, fd_set writeset, fd_set exceptset, const struct timeval timeout)`
   * Returns: positive count of ready descriptors, 0 on timeout, –1 on error
-  * if first tree arguments are all null, then it is a higher precision timer than the normal Unix `sleep` function.
+  * if first three arguments are all null, then it is a higher precision timer than the normal Unix `sleep` function.
 
 * Descriptor Ready
 
