@@ -29,17 +29,39 @@
   * 消息类的作用就是一个消息
 
   ```kotlin
-  data class MessageEvent(val msg:String)
+  data class EventBusMessage(val msg: String)
   ```
 
 * 定义Observer的处理事件方法
 
   ```kotlin
-  @Subscribe(threadMode = ThreadMode.BACKGROUND)
-  fun subscribe(msg:MessageEvent){  
-      Log.d("MainActivity", "receive a message")  
-      binding.buttonFirst.text = msg.msg  
-      Toast.makeText(activity,"click one",Toast.LENGTH_LONG).show()
+  class MainActivity {
+    override fun onCreate(savedInstanceState: Bundle?) {
+      super.onCreate(savedInstanceState)
+      //注册
+      EventBus.getDefault().register(this)
+    }
+    
+    override fun onDestroy() {
+      super.onDestroy()
+      //解注册
+      EventBus.getDefault().unregister(this)
+    }
+    
+    override fun onClick(view: View?) {
+      view ?: return
+      when (view.id) {
+        R.id.button -> {
+          // post a event
+          EventBus.getDefault().post(EventBusMessage("post a event bug message"))
+        }
+      }
+    }
+    
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun handleMessage(msg: EventBusMessage) {
+      //do something when receive a msg
+    }
   }
   ```
 
@@ -55,48 +77,52 @@
     * 如果被`Observable`不是在`Main`线程发出post。那么任务队列就直接在发出post的那条线程执行
   * `ASYNC`：既不在`Main`线程执行，也不在`Observable`的post线程执行。EventBus有一个线程池
 
-* 注册与解注册
-
-  ```kotlin
-  override fun onStart() {  
-    super.onStart()  
-    EventBus.getDefault().register(this)
-  }
-  
-  override fun onStop() {  
-    super.onStop()  
-    EventBus.getDefault().unregister(this)
-  }
-  ```
-
-  * 使用的是默认的`EventBus`对象
-
-* Observables发送信息
-
-  * `EventBus.getDefault().post(Message("一个发出的消息"))`
-
 * 源码解析
 
   ```java
-  //EventBus$register(Object subscriber)
-  //查找订阅方法
-  List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
-  
-  //EventBus&post(Object event)
-  postSingleEvent(eventQueue.remove(0), postingState);
-  
-  //EventBus&postSingleEventForEventType(Object event, PostingThreadState postingState, Class<?> eventClass)
-  synchronized (this) {
-    //通过抛出的事件找到订阅方法
-    subscriptions = subscriptionsByEventType.get(eventClass);
+  public class EventBus { 
+  	public void register(Object subscriber) {
+      //查找订阅方法
+      List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
+      //将方法进行订阅
+      synchronized (this) {
+        for (SubscriberMethod subscriberMethod : subscriberMethods) {
+          subscribe(subscriber, subscriberMethod);
+        }
+      }
+    }
+    
+    public void post(Object event) {
+      //将事件抛出，调用postSingleEvent方法
+      postSingleEvent(eventQueue.remove(0), postingState);
+    }
+    
+    private boolean postSingleEventForEventType(Object event, PostingThreadState postingState, Class<?> eventClass) {
+      synchronized (this) {
+        //通过抛出的事件找到订阅方法
+        subscriptions = subscriptionsByEventType.get(eventClass);
+      }
+      for (Subscription subscription : subscriptions) {
+        //将事件处理传递给postToSubscription方法
+        postToSubscription(subscription, event, postingState.isMainThread); 
+      }
+    }
+    
+    private void postToSubscription(Subscription subscription, Object event, boolean isMainThread) {
+      switch (subscription.subscriberMethod.threadMode) {
+          //区分注解threadMode
+          case MAIN:
+          	//将事件处理传递给invokeSubscriber
+          	invokeSubscriber(subscription, event);
+          	break;
+      }
+    }
+    
+    void invokeSubscriber(Subscription subscription, Object event) {
+      //直接反射开始执行
+      subscription.subscriberMethod.method.invoke(subscription.subscriber, event);
+    }
   }
-  for (Subscription subscription : subscriptions) {
-   	postToSubscription(subscription, event, postingState.isMainThread); 
-  }
-  
-  //EventBus&invokeSubscriber(Subscription subscription, Object event)
-  //通过反射执行订阅方法
-  subscription.subscriberMethod.method.invoke(subscription.subscriber, event);
   ```
 
 ***
@@ -112,19 +138,23 @@
 * 定义`Observer`
 
   ```kotlin
-  class MyLifecycleObserver:LifecycleObserver {    
+  class MyLifecycleObserver: LifecycleObserver {    
+    
     @OnLifecycleEvent(Lifecycle.Event.ON_START)    
     fun onStart(){        
       Log.d("LifecycleObserver","onStart")    
     }    
+    
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)    
     fun onStop(){        
       Log.d("LifecycleObserver","onStop")    
     }    
+    
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)    
     fun onDestroy(){        
       Log.d("LifecycleObserver","onDestroy")    
     }
+    
   }
   ```
 
@@ -135,12 +165,14 @@
 
   ```kotlin
   class FirstFragment : Fragment() {    
-    private lateinit var myLifecycleObserver: MyLifecycleObserver    
+    private lateinit var myLifecycleObserver: MyLifecycleObserver  
+    
     override fun onCreate(savedInstanceState: Bundle?) {        
       super.onCreate(savedInstanceState)        
       myLifecycleObserver = MyLifecycleObserver(this)        
       lifecycle.addObserver(myLifecycleObserver)    
     }
+    
   }
   ```
 
@@ -150,6 +182,87 @@
 * 注
 
   * Android手动杀死进程。依旧会执行`onStop()、onDestroy()`方法
+
+* 实现原理
+
+  * `LifecycleOwner`接口的实现类在`androidx.activity.ComponentActivity`
+
+    ```java
+    public class ComponentActivity implements LifecycleOwner {
+      //声明一个LifecycleRegistry
+      private final LifecycleRegistry mLifecycleRegistry = new LifecycleRegistry(this);
+      
+      protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //将生命周期的变化委托到ReportFragment
+        ReportFragment.injectIfNeededIn(this);
+      }
+    }
+    ```
+
+  * `ReportFragment`生命周期依附`Activity`，这样可以无侵入`Activity`即可观察`Activity`的生命周期
+
+    ```java
+    public class ReportFragment extends android.app.Fragment {
+      public static void injectIfNeededIn(Activity activity) {
+        LifecycleCallbacks.registerIn(activity);
+      }
+      
+      static class LifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+        static void registerIn(Activity activity) {
+          //给Activity注册一个ActivityLifecycleCallback，而这个Callback的实现如下所示
+          activity.registerActivityLifecycleCallbacks(new LifecycleCallbacks());
+        }
+        
+        @Override
+        public void onActivityPostStarted(@NonNull Activity activity) {
+          //将start事件diapatch出去
+          dispatch(activity, Lifecycle.Event.ON_START);
+        }
+        
+        @Override
+        public void onActivityPostResumed(@NonNull Activity activity) {
+          dispatch(activity, Lifecycle.Event.ON_RESUME);
+        }
+        
+        @Override
+        public void onActivityPreDestroyed(@NonNull Activity activity) {
+          dispatch(activity, Lifecycle.Event.ON_DESTROY);
+        }
+      }
+      
+      static void dispatch(@NonNull Activity activity, @NonNull Lifecycle.Event event) {
+        Lifecycle lifecycle = ((LifecycleOwner) activity).getLifecycle();
+        //将事件交给了LifecycleRegistry，调用handleLifecycleEvent方法来处理
+        ((LifecycleRegistry) lifecycle).handleLifecycleEvent(event);
+      }
+    }
+    ```
+
+    * 综上`ReportFragment`只是一个没有界面的`Fragment`，它的作用就是将`Activity`的生命周期引借出来，最后实际的生命周期处理还是交给了`Activity.mLifecycleRegistry`
+
+  * `LifecycleRegistry`
+
+    ```java
+    public class LifecycleRegistry extends Lifecycle { 
+      
+    	public void handleLifecycleEvent(@NonNull Lifecycle.Event event) {
+        //处理生命周期只是调用了一下moveToState
+        moveToState(event.getTargetState());
+      }
+      
+      private void moveToState(State next) {
+        mState = next;
+        mHandlingEvent = true;
+        //调用核心的sync方法
+        sync();
+        mHandlingEvent = false;
+      }
+    }
+    ```
+
+  * 未完待续
+
 
 ***
 
