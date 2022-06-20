@@ -2,16 +2,6 @@
 
 ***
 
-## 系统分层
-
-* 内核层
-* 硬件抽象层
-  * 最开始没有，一部分原因是因为开源协议问题而迫不得已添加此层
-* 本地库层 + 运行时环境
-  * 很多实际的系统运行库都是成熟的开源项目，如`WebKit、OpenGL、SQLite`等，都是由`C++`实现
-* Java库层
-* 应用程序层
-
 ## Eventbus
 
 * 概述
@@ -80,8 +70,8 @@
 * 源码解析
 
   ```java
-  public class EventBus { 
-  	public void register(Object subscriber) {
+  public class EventBus {
+    public void register(Object subscriber) {
       //查找订阅方法
       List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
       //将方法进行订阅
@@ -239,14 +229,18 @@
     }
     ```
 
-    * 综上`ReportFragment`只是一个没有界面的`Fragment`，它的作用就是将`Activity`的生命周期引借出来，最后实际的生命周期处理还是交给了`Activity.mLifecycleRegistry`
+    * 综上`ReportFragment`只是一个没有界面的`Fragment`，它的作用就是将`Activity`的生命周期引借出来。通过注册一个监听器来监听`Activity`的生命周期，在监听的处理中又将生命周期处理交还给了`Activity.mLifecycleRegistry`
 
   * `LifecycleRegistry`
 
     ```java
     public class LifecycleRegistry extends Lifecycle { 
       
-    	public void handleLifecycleEvent(@NonNull Lifecycle.Event event) {
+      //mLifecycleOwner在这里是一个Activity
+      private final WeakReference<LifecycleOwner> mLifecycleOwner;
+      private FastSafeIterableMap<LifecycleObserver, ObserverWithState> mObserverMap = new FastSafeIterableMap<>();
+      
+      public void handleLifecycleEvent(@NonNull Lifecycle.Event event) {
         //处理生命周期只是调用了一下moveToState
         moveToState(event.getTargetState());
       }
@@ -258,10 +252,58 @@
         sync();
         mHandlingEvent = false;
       }
+      
+      private void sync() {
+        LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
+        backwardPass(lifecycleOwner);
+      }
+      
+      private void backwardPass(LifecycleOwner lifecycleOwner) {
+        //observer is get from `mObserverMap`, and it is an ObserverWithState
+        Event event = Event.downFrom(observer.mState);
+        observer.dispatchEvent(lifecycleOwner, event);
+      }
+      
+      static class ObserverWithState {
+        State mState;
+        LifecycleEventObserver mLifecycleObserver;
+        
+        ObserverWithState(LifecycleObserver observer, State initialState) {
+          //通过Lifecycling.lifecycleEventObserver()将LifecycleObserver转换为ReflectiveGenericLifecycleObserver
+          mLifecycleObserver = Lifecycling.lifecycleEventObserver(observer);
+          mState = initialState;
+        }
+        
+        void dispatchEvent(LifecycleOwner owner, Event event) {
+          mLifecycleObserver.onStateChanged(owner, event);
+        }
+      }
     }
     ```
-
-  * 未完待续
+  
+  * `ReflectiveGenericLifecycleObserver`
+  
+    ```java
+    //public interface LifecycleEventObserver extends LifecycleObserver
+    class ReflectiveGenericLifecycleObserver implements LifecycleEventObserver {
+      //这个mWrapped是LifecycleObserver
+      private final Object mWrapped;
+      private final CallbackInfo mInfo;
+    
+      ReflectiveGenericLifecycleObserver(Object wrapped) {
+        mWrapped = wrapped;
+        mInfo = ClassesInfoCache.sInstance.getInfo(mWrapped.getClass());
+      }
+    
+      @Override
+      public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Event event) {
+        //这一行会通过反射执行目标方法
+        mInfo.invokeCallbacks(source, event, mWrapped);
+      }
+    }
+    ```
+  
+    * 还是同样一个思路，尽量不侵入用户自定义的`class MyLifeCycle: LifecycleObserver`类。而是通过继承的方式将方法引出来。
 
 
 ***
@@ -286,6 +328,74 @@
   ```java
   //LiveData.observe()
   public void observe(LifecycleOwner owner, Observer<? super T> observer) {}
+  ```
+
+* `LiveData`
+
+  ```java
+  public abstract class LiveData<T> {
+    
+    //observer容器
+    private SafeIterableMap<Observer<? super T>, ObserverWrapper> mObservers = new SafeIterableMap<>();
+    
+    @MainThread
+    public void observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
+  
+      //包一层，将LifecycleOwner生命周期观察引借出来
+      LifecycleBoundObserver wrapper = new LifecycleBoundObserver(owner, observer);
+      //存放入容器
+      ObserverWrapper existing = mObservers.putIfAbsent(observer, wrapper);
+      //LifecycleOwner观察wrapper
+      owner.getLifecycle().addObserver(wrapper);
+    }
+    
+    @MainThread
+    protected void setValue(T value) {
+      mVersion++;
+      mData = value;
+      //setValue调用到dispatchValue()
+      dispatchingValue(null);
+    }
+    
+    void dispatchingValue(@Nullable ObserverWrapper initiator) {
+      for (Iterator<Map.Entry<Observer<? super T>, ObserverWrapper>> iterator =
+           mObservers.iteratorWithAdditions(); iterator.hasNext(); ) {
+        //调用considerNotify
+        considerNotify(iterator.next().getValue());
+      }
+    }
+    
+    private void considerNotify(ObserverWrapper observer) {
+      //调用observer的方法
+      observer.mObserver.onChanged((T) mData);
+    }
+    
+    class LifecycleBoundObserver extends ObserverWrapper implements LifecycleEventObserver {
+      //在lifecycleOwner的生命周期前提下进行观察者模式
+      @Override
+      public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+        Lifecycle.State currentState = mOwner.getLifecycle().getCurrentState();
+        if (currentState == DESTROYED) {
+          removeObserver(mObserver);
+          return;
+        }
+        Lifecycle.State prevState = null;
+        while (prevState != currentState) {
+          prevState = currentState;
+          //因lifecycle生命周期发生改变而进行观察改变,实际调用ObserverWrapper.activeStateChanged
+          activeStateChanged(shouldBeActive());
+          currentState = mOwner.getLifecycle().getCurrentState();
+        }
+      }
+    }
+    
+    private abstract class ObserverWrapper {
+      void activeStateChanged(boolean newActive) {
+        //调用dispatchValue
+        dispatchingValue(this);
+      }
+    }
+  }
   ```
 
 ***
@@ -346,14 +456,12 @@
 * 架构层
   * app
   * java api
-  * native、android runtime
-  * hal 
+  * native、android runtime - 很多实际的系统运行库都是成熟的开源项目，如`WebKit、OpenGL、SQLite`等，都是由`C++`实现
+  * hal - 最开始没有，一部分原因是因为开源协议问题而迫不得已添加此层
   * kernel
-
 * 调用
-  * api 和 native C++通过JNI调用
+  * java api 和 native C++通过JNI调用
   * native 和 kernel之间通过System call 调用
-
 * 通信方式
   * `Binder`：进程间通信，CS架构
   * `Socket`：主要用于framework层和native层之间的通信
