@@ -776,3 +776,31 @@ object SubServiceImpl:ISubService, PushCallBack {
    ```
 
    `Hello World JNI`
+
+## websocket
+
+* links
+  * [What is web socket and how it is different from the HTTP](https://www.geeksforgeeks.org/what-is-web-socket-and-how-it-is-different-from-the-http/)
+  * [The WebSocket Protocol - RFC](https://datatracker.ietf.org/doc/html/rfc6455)
+* http features
+  * `unidirectiona`l  - each HTTP or HTTPS request establish the new connection to the server every time and after getting the response the connection gets terminated by itself. 
+  * `stateless ` 
+* what used to be like without websocket
+  * Creating web applications that need bidirectional communication between a client and a server has required an abuse of HTTP to poll the server for updates while sending upstream notifications as distinct HTTP calls.
+* disadvantages of using http for bidirectional communication
+  * at least two connections are created. one for sending information to the client and a new one for each incoming message.
+  * The wire protocol has a high overhead, with each client-to-server message having an HTTP header.
+  * The client-side script is forced to maintain a mapping from the  outgoing connections to the incoming connection to track replies.
+* what is websocket
+  * a bidirectional protocol, a full-duplex protocol, a stateful protocol, an independent TCP-based protocol
+* websocket  feature
+  * `stateful` - the connection between client and server will keep alive until it is terminated by either party
+* url
+  * **ws://** or **wss://**
+* What scene is suitable for using it
+  * real-time app
+  * instant chat app
+  * game app
+* Relationship to TCP and HTTP
+  * The WebSocket Protocol is an independent TCP-based protocol. Its only relationship to HTTP is that its handshake is interpreted by HTTP servers as an Upgrade request.
+  * By default, the WebSocket Protocol uses port 80 for regular WebSocket connections and port 443 for WebSocket connections tunneled over Transport Layer Security (TLS)
