@@ -804,3 +804,13 @@ object SubServiceImpl:ISubService, PushCallBack {
 * Relationship to TCP and HTTP
   * The WebSocket Protocol is an independent TCP-based protocol. Its only relationship to HTTP is that its handshake is interpreted by HTTP servers as an Upgrade request.
   * By default, the WebSocket Protocol uses port 80 for regular WebSocket connections and port 443 for WebSocket connections tunneled over Transport Layer Security (TLS)
+
+***
+
+## Linux Device Driver
+
+* what is 
+  * User activities are performed by means of a set of standardized calls that are indepen- dent of the specific driver; mapping those calls to device-specific operations that act on real hardware is then the role of the device driver.
+* hot plugin
+  * This programming interface is such that drivers can be built separately from the rest of the kernel and “plugged in” at runtime when needed.
+* 
