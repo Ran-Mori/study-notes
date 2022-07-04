@@ -725,33 +725,15 @@
 
 ## Binder
 
-* android多进程
-  * 现状：很多Android应用并不是只有一个进程，高级的安卓应用一般都是多进程
-  * 优点
-    * 安全
-      * `WebView`，图片加载等较危险逻辑放在一个进程。这样出现意外这个进程闪退挂掉不会影响主进程
-      * 微信小程序是第三方开发，它单独运行在一个进程之中。一旦挂掉不会影响微信本身
+* 理解类比
 
-    * 大内存
-      * 一个进程能够申请的内存是有一定限度的，多进程有助于申请更大的内存
-
-* 重要性
-  * 四大组件底层的通信都依赖 Binder IPC
-
-* 原理
-  * 进程之间的用户空间是不共享的，一般为3G
-  * 进程之间的内核空间是共享的，一般为1G
-
-* Binder原理
-  * 应用层
-    * Client，Server之间可以**间接**通信
-  * Native C++层
-    * Client向ServiceManager申请获取服务
-    * Server向ServiceManager申请注册服务
-  * 内核空间
-    * Binder驱动设备(/dev/binder)
+  * binder驱动 - 路由器
+  * ServiceManager - DNS
+  * Client - client
+  * Server - server
 
 * 总结
+
   * 应用层的Client和Server之间不能直接交互，必须通过ServiceManager间接交互
   * Binder驱动位于内核空间，而Client、Server、ServiceManager位于用户空间
   * Binder和ServiceManager是Android平台的基础架构
@@ -765,24 +747,15 @@
   * `信号量`：主要作为一种锁机制，用于进程同步
   * `信号`：类似于杀死进程等操作，使用软件形式的异常，即`ECF`
 
-* 为什么使用Binder
+* Binder优势
   * `性能`：binder只需要复制一次，性能仅次于共享内存
+    * 发送进程将数据从用户空间拷贝到内核空间。即一次复制
+    * 由于内核缓冲空间和接收进程的用户空间存在内存映射关系，即不用复制就可以直接读取到数据。即零次复制
+    * 总就只复制了一次
   * `稳定性`：CS架构比较稳定
   * `安全性`：Linux通信方式在内核态无任何保护措施，完全只看效率。Binder通信可以获得可靠的uid/pid
   * `语言角度`：Binder机制是面向对象的。一个Binder对象在各个进程中都可以有引用
   * `Google战略`：Google让GPL协议止步于Linux内核空间，而binder是实现在用户空间的
-
-* 复制一次
-  * 发送进程将数据从用户空间拷贝到内核空间。即一次复制
-  * 由于内核缓冲空间和接收进程的用户空间存在内存映射关系，即不用复制就可以直接读取到数据。即零次复制
-  * 总就只复制了一次
-
-* 继承关系
-  * `Java framework`：作为Server端继承(或间接继承)于Binder类，Client端继承(或间接继承)于BinderProxy类
-  * `Native Framework`：这是C++层，作为Server端继承(或间接继承)于BBinder类，Client端继承(或间接继承)于BpBinder
-
-* 总
-  * `无Binder不Android`
 
 * `binder`的使用
 
@@ -1071,7 +1044,7 @@
 * 调用顺序
 
   * `MainActivity.java`
-  
+
     ```java
     public class MainActivity extends AppCompatActivity implements ServiceConnection {
       @Override
@@ -1082,9 +1055,9 @@
       }
     }
     ```
-  
+
   * `ContextImpl.java`
-  
+
     ```java
     class ReceiverRestrictedContext extends ContextWrapper {
       @Override
@@ -1104,9 +1077,9 @@
       }
     }
     ```
-  
+
   * `ActivityManager.java`
-  
+
     ```java
     public class ActivityManager {
       
@@ -1126,9 +1099,9 @@
       }
     }
     ```
-  
+
   * `ActivityManagerService.java`
-  
+
     ```java
     public class ActivityManagerService extends IActivityManager.Stub {
       
@@ -1142,9 +1115,9 @@
       
     }
     ```
-  
+
   * `ActiveServices.java`
-  
+
     ```java
     public final class ActiveServices {
       int bindServiceLocked(Intent service, final IServiceConnection connection) {
@@ -1166,9 +1139,9 @@
       }
     }
     ```
-  
+
   * `ActivityThread.java`
-  
+
     ```java
     public final class ActivityThread extends ClientTransactionHandler {
       
@@ -1194,9 +1167,9 @@
       }
     }
     ```
-  
+
   * `ActivityManagerService.java`
-  
+
     ```java
     public class ActivityManagerService extends IActivityManager.Stub {
       
@@ -1207,9 +1180,9 @@
       }
     }
     ```
-  
+
   * `ActiveServices.java`
-  
+
     ```java
     public final class ActiveServices {
       void publishServiceLocked(ServiceRecord r, Intent intent, IBinder service) {
@@ -1218,11 +1191,11 @@
       }
     }
     ```
-  
+
   * `IServiceConnection`由何而来
-  
+
     * `ContextImpl.java`
-  
+
       ```java
       class ReceiverRestrictedContext extends ContextWrapper {
         final @NonNull LoadedApk mPackageInfo;
@@ -1233,9 +1206,9 @@
        }
       }
       ```
-  
+
     * `LoadeApk.java`
-  
+
       ```java
       public final class LoadedApk {
         public final IServiceConnection getServiceDispatcher(ServiceConnection c) {
@@ -2398,3 +2371,13 @@ interface OnBarClickListener {
 
 ***
 
+## android多进程
+
+* 现状：很多Android应用并不是只有一个进程，高级的安卓应用一般都是多进程
+* 优点
+  * 安全
+    * `WebView`，图片加载等较危险逻辑放在一个进程。这样出现意外这个进程闪退挂掉不会影响主进程
+    * 微信小程序是第三方开发，它单独运行在一个进程之中。一旦挂掉不会影响微信本身
+
+  * 大内存
+    * 一个进程能够申请的内存是有一定限度的，多进程有助于申请更大的内存
