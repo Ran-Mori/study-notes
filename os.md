@@ -62,6 +62,32 @@
 * removes a name from the file system.
 * The file’s inode and the disk space holding its content are only freed when the file’s link count is zero and no file descriptors refer to it.
 
+### ioctl
+
+* `int ioctl(int fd, unsigned long request, ...);`
+* references
+  * [Linux manual page](https://man7.org/linux/man-pages/man2/ioctl.2.html)
+  * [stackoverflow](https://stackoverflow.com/questions/15807846/ioctl-linux-device-driver)
+* The `ioctl` function is useful for implementing a device driver to set the configuration on the device.
+* The ioctl() system call manipulates the underlying device parameters of special files.
+
+### mmap
+
+* `void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);`
+  * addr - The starting address for the new mapping is specified
+  * fd - This is the file descriptor which has to be mapped.
+  * offset - This is offset from where the file mapping started. In simple terms, the mapping connects to (offset) to (offset+length-1)  bytes for the file open on filedes descriptor.
+* url
+  * [Linux manual page](https://man7.org/linux/man-pages/man2/mmap.2.html)
+  * [When should I use mmap for file access](https://stackoverflow.com/questions/258091/when-should-i-use-mmap-for-file-access)
+  * [How to use mmap function in C language?](https://linuxhint.com/using_mmap_function_linux/)
+    * Memory allocation (Example1.c)
+    * Reading file (Example2.c)
+    * Writing file (Example3.c)
+    * Interprocess communication (Example4.c)
+* what is for
+  * map or unmap files or `devices` into memory.
+
 ***
 
 ## Unix Utils
