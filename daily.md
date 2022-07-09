@@ -813,4 +813,19 @@ object SubServiceImpl:ISubService, PushCallBack {
   * User activities are performed by means of a set of standardized calls that are indepen- dent of the specific driver; mapping those calls to device-specific operations that act on real hardware is then the role of the device driver.
 * hot plugin
   * This programming interface is such that drivers can be built separately from the rest of the kernel and “plugged in” at runtime when needed.
-* 
+* three classes devices
+  * Character devices
+    * can be accessed as a stream of bytes (like a file)
+    * The text console (*/dev/console*) and the serial ports (*/dev/ttyS0* and friends) are examples of char devices
+    * are accessed by means of filesystem nodes, such as */dev/tty1* and */dev/lp0*.
+  * Block devices
+    * for instance, a disk
+    * block and char devices differ only in the way data is managed internally by the kernel
+  * Network interfaces
+    * A network driver knows nothing about individual connections; it only handles packets.
+    * Not being a stream-oriented device, a network interface isn’t easily mapped to a node in the filesystem,
+
+## Policy and Mechanism
+
+* [wiki](https://en.wikipedia.org/wiki/Separation_of_mechanism_and_policy)
+* In this course, we shall distinguish between **policy** and **mechanism**. Policies are ways to choose which activities to perform. Mechanisms are the implementations that enforce policies, and often depend to some extent on the hardware on which the operating system runs. For instance, a processes may be granted resources using the first come, first serve policy. This policy may be implemented using a queue of requests. Often the kernel provides mechanisms that are used to implement policies in servers.
