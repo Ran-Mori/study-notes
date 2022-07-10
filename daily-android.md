@@ -732,6 +732,12 @@
   * Client - client
   * Server - server
 
+* 原理简介
+
+  * binder是一个设备，但其没有对应的硬件实体，而是内核态的一段内存。这个设备对外有`open、ioctl、mmap`等接口操作
+  * `ioctl`指令 - 这是binder接口中工作量最大的一个，它承担了Binder驱动的大部分业务。常规的`read、write`就是通过`ioctl`来实现的
+    * binder接口`ioctl`提供的指令非常非常的多，关于`ioctl`指令详解参考`os.md`
+
 * 总结
 
   * 应用层的Client和Server之间不能直接交互，必须通过ServiceManager间接交互
@@ -1248,6 +1254,97 @@
       }
       ```
 
+
+***
+
+## ServiceManager
+
+* 介绍
+
+  * SM同样是一个binder服务，它相当于DNS的作用。它启动时机非常早，保证了在有人使用binder服务前它已经启动。
+  * 它单独运行在一个进程中
+
+* 工作原理
+
+  * `Service_manger.c`的`main`函数
+
+    ```c
+    int main(int argc, char **argv){
+      bs = binder_open(128*1024);//调用binder_open打开驱动
+    	binder_become_context_manager(bs);//将自己注册成DNS
+      bidner_loop(bs, handler);//使用消息循环模式开始服务
+    }
+    ```
+
+    * 打开binder驱动，做好初始化
+      * 调用`open("/dev/binder", O_RDWR)`打开驱动节点
+      * 调用`mmap`映射内存
+    * 设置自己为DNS
+      * 通过`ioctl`发送`BINDER_SET_CONTEXT_MGR`指令实现
+    * 进入主循环
+      * 主循环采用`handler`一模一样的消息循环机制
+      * 读取消息 - 通过`ioctl`发送`BINDER_WRITE_READ`消息
+      * 处理消息
+
+  * 设计思考
+
+    * 使用`native`实现还是`java`实现并没有任何关系，无论那种方式的本质都是围绕`binder`驱动展开的
+    * 由于发起binder请求的可能是Android APK，而请求binder一般都是通过SM间接请求，因此SM必须有java层的接口
+    * 如果每次访问都需要打开binder设备，执行mmap操作就太费时了，因此一个进程的所有线程共享binder设备，使得binder只需要打开一次
+
+  * 访问一个binder server的步骤
+
+    * 打开binder设备
+    * 执行mmap
+    * 通过binder驱动向SM发送请求
+    * 获取结果
+
+***
+
+## Android启动过程
+
+* 启动三个阶段
+
+  * Boot loader
+  * Linux kernel
+  * Android System service
+
+* 介绍
+
+  * Android系统实际上是运行于`linux`内核之上的一系列`“服务进程”`，并不算一个完整意义上的`操作系统`
+  * 进程的老祖宗0号进程是`init`进程
+
+* `init.rc`中启动的进程
+
+  * `ServiceManager`进程
+
+    * 它在一个独立的进程中
+
+    ```bash
+    service servicemanager /system/bin/servicemanager
+    	class core
+    	user system
+    	group system
+    	critical
+    	onrestart restart zygote
+    	onrestart restart media
+    	onrestart restart surfaceflinger
+    	onrestart restart drm
+    ```
+
+  * `Zygote`进程
+
+    * 它所在的程序名为`app_process`。`app_process`充当一个壳的角色，它会启动虚拟机
+    * `app_process`就是系统服务的根据地。它在`init`进程的帮助下通过`zygote`逐步建立起各`SystemServer`的运行环境
+
+  * `SystemServer`进程
+
+    * 是由`java`语言编写的系统服务
+    * 由`ZygoteInit`最终调用到`fork`系统调用生成一个新的进程
+    * 它会接着启动如`SurfaceFlinger、AudioFlinger`等native层服务启动
+    * 还会新建一个线程来启动java层服务，如`PowerManagerService、ActivityManagerService`
+
+  * `adbd`进程
 
 ***
 
