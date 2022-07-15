@@ -2478,3 +2478,32 @@ interface OnBarClickListener {
 
   * 大内存
     * 一个进程能够申请的内存是有一定限度的，多进程有助于申请更大的内存
+
+***
+
+## FrameLayout
+
+* `xml`中最上面的是栈底，最下面最后写的是栈顶
+
+  ```xml
+  <?xml version="1.0" encoding="utf-8"?>
+  <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent">
+  
+    <!--在栈底会被掩盖-->
+    <View
+          android:layout_width="match_parent"
+          android:layout_height="106dp" />
+  	<!--在栈顶不会被掩盖-->
+    <View
+          android:layout_width="match_parent"
+          android:layout_height="106dp" />
+  
+  </FrameLayout>
+  
+  ```
+
+  
