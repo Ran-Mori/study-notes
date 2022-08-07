@@ -898,3 +898,49 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 比如频繁的进行装拆箱创建引用对象会十分耗费性能
 
 ***
+
+## Declarative and Imperative
+
+* 编程范式
+  * 声明式
+    * 函数式
+    * 约束式
+    * ……
+  * 过程式
+    * 面向对象
+    * 面向过程
+
+* 定义
+
+  * Declarative programming is a paradigm describing **WHAT** the program does, without explicitly specifying its control flow.
+
+  * Imperative programming is a paradigm describing **HOW** the program should do something by explicitly specifying each instruction (or statement) step by step, which mutate the program's state.
+
+* 副作用
+
+  * 定义 -> 对作用域以外的状态/变量造成了影响
+
+  * 常见例子
+    * 修改外部变量的值
+    * 修改静态函数传入的值
+    * 有IO操作
+    * 抛出异常
+
+* 纯函数
+
+  * 幂等性 -> 给定一个输入必定输出一个确定的输出
+
+  * 无任何副作用
+
+* 函数式编程
+
+  * 使用纯函数
+
+  * 用函数的组合来干各种各样的事情
+
+  * 函数是第一等公民(first class)
+
+* 如果有副作用怎么办？
+  * 使用`monad`做一层封装
+
+***

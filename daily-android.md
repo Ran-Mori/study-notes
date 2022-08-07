@@ -1372,6 +1372,59 @@
   * `函数式编程`：是面向数学的抽象，将计算描述为一种表达式求值，函数可以在任何地方定义，并且可以对函数进行组合
   * `响应式编程`：是一种面向数据流和变化传播的编程范式，数据的更新是关联的
 
+* `callback`式的缺点
+
+  * 消费者需要关注的点太多，比如什么时候IO、线程切换、异步操作
+  * 消费者职责不单一，数据处理应该是生产者的事情，但有时消费者还要负责数据处理
+  * 多次异步时，就会有回调地狱
+
+* ReactiveX响应式
+
+  * 迭代器设计
+
+    ```kotlin
+    public interface Iterable<out T> {
+        public operator fun iterator(): Iterator<T>
+    }
+    
+    public interface Iterator<out T> {
+        public operator fun next(): T
+        public operator fun hasNext(): Boolean
+    }
+    ```
+
+  * `Observable`和`Observer`设计
+
+    ```kotlin
+    public interface ObservableSource<T> {
+        void subscribe(@NonNull Observer<? super T> observer);
+    }
+    
+    public interface Observer<T> {
+      void onSubscribe(@NonNull Disposable d);
+      void onNext(@NonNull T t); //对应onNext()
+      void onError(@NonNull Throwable e); //对应throw Exception
+      void onComplete();//对应!hasNext()
+    }
+    ```
+
+* 函数式
+
+  * 按照道理是不能函数式的，因为有异常有副作用
+
+  * 原理是使用了`monad`。即`Observable`是`Monad`，rxjava中操作符起了`monad`的作用
+
+    ```kotlin
+    class ObservableMap<T, U> (
+      private val source: ObservableSource<T>, 
+      private val mapper: (T) -> U,
+    ) : Observable<U>() {} //两个入参一个返回值的结构完全符合monad
+    
+    
+    ```
+
+  * 由于monad的函数组合能力，最终成为一个简洁明了的链式调用
+
 * 四个角色
 
   * `Observable`：`produce event`
