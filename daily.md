@@ -777,6 +777,8 @@ object SubServiceImpl:ISubService, PushCallBack {
 
    `Hello World JNI`
 
+***
+
 ## websocket
 
 * links
@@ -823,9 +825,76 @@ object SubServiceImpl:ISubService, PushCallBack {
     * block and char devices differ only in the way data is managed internally by the kernel
   * Network interfaces
     * A network driver knows nothing about individual connections; it only handles packets.
-    * Not being a stream-oriented device, a network interface isn’t easily mapped to a node in the filesystem,
+    * Not being a stream-oriented device, a network interface isn’t easily mapped to a node in the filesystem
+
+***
 
 ## Policy and Mechanism
 
 * [wiki](https://en.wikipedia.org/wiki/Separation_of_mechanism_and_policy)
 * In this course, we shall distinguish between **policy** and **mechanism**. Policies are ways to choose which activities to perform. Mechanisms are the implementations that enforce policies, and often depend to some extent on the hardware on which the operating system runs. For instance, a processes may be granted resources using the first come, first serve policy. This policy may be implemented using a queue of requests. Often the kernel provides mechanisms that are used to implement policies in servers.
+
+***
+
+## 基本/引用数据类型
+
+* 基本类型有8种
+  * `boolean, byte, char, short, int, long, float, double`
+* 基本类型相互转换
+  * 范围小的可以`隐式`无声明地向大范围进行转换，如`short -> int`
+  * 范围小的必须显示声明转换，否则编译器会报错，如`f = (float)doubleValue`
+* 基本类型初始值
+  * 在类作用域有默认初始值，如`static`变量
+  * 在方法中无初始值，必须要进行初始化，否则编译器报错，如方法`int i;`尝试访问`i`会报错
+* 两种类型比较
+  * 分配位置
+    * 基本类型在栈上分配；引用类型在堆上分配，栈上存堆的地址引用
+  * 变量名与实际对象
+    * 基本类型变量名指向的就是实际对象；引用类型变量名只是一个地址
+  * 内存分配
+    * 基本类型在变量声明后就会立即分配空间；引用类型在声明后只有立即分配这个引用的空间，实际堆空间不会分配
+  * `=`号
+    * 基本类型是创建新的拷贝；引用类型是创建新的`地址拷贝`
+  * `==`号
+    * 基本类型是比较值；引用类型是`equals()，默认比地址是否相同`
+  * 销毁
+    * 基本类型不用后立即销毁；引用类型需要等`GC`
+
+***
+
+## 自动装箱拆箱
+
+* 概念
+
+  * java基础数据类型和包装数据类型之间的转换
+
+* 实质
+
+  * 编译器自动调用`intValue(), doubleValue()`这类静态方法
+
+* 出现原因
+
+  * 为了方便开发者，比如原来`List`不能放入基本数据类型，只能放入引用数据类型
+
+* 何时发生装拆箱
+
+  * 当目标类型和实际提供的类型不同时会发生装拆箱
+
+    ```java
+    ArrayList<Integer> intList = new ArrayList<Integer>();
+    intList.add(1); //autoboxing - primitive to object
+    intList.add(2); //autoboxing
+    
+    ThreadLocal<Integer> intLocal = new ThreadLocal<Integer>();
+    intLocal.set(4); //autoboxing
+    
+    int number = intList.get(0); // unboxing
+    int local = intLocal.get(); // unboxing in Java
+    ```
+
+* 缺点
+
+  * 自动装拆箱的目的本身是为了方便开发者，但其有一些弊端
+  * 比如频繁的进行装拆箱创建引用对象会十分耗费性能
+
+***

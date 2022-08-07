@@ -20,7 +20,7 @@
 * 浮点数默认是`Double`，如果要声明`Float`必须显示地末尾添加`f`
 * 注意：Kotlin不像Java有数字**隐式拓宽转换**，要转换就显示地转，即`Double`参数不允许传入的参数是`Float`，不允许把`Byte`的值赋值为`Int`类型的变量
 * Kotlin数字支持下划线方便阅读，如：`val x:Int = 0xFF_2B_1D`
-* 上面提到的都是基本数据类型，如果要变成可空类型会发生自动装箱。如：`val x:Int? = b`。同Java一样，数字做比较会自动拆箱以保证相等性
+* kotlin数字声明一般编译后都是对应java的基本数据类型。但当声明类型变成可空类型或者泛型会发生自动装箱，可空很好理解，泛型是因为类型会被擦除变成`Object`所以也会自动装箱
 * Kotlin不支持数字隐式类型转换，但可以显示地做转换。提供了很多如`toInt()`的方法
 * 位操作不支持运算符，而是要显示地函数调用
 
@@ -299,6 +299,7 @@ class Student(var sno: String, var grade: Int, name: String, age: Int): Person(n
 ### 静态解析
 
 * 拓展并没有真正地去改变这个类，而是在调用时做静态解析，即编译期就确定其调用行为
+* 具体实现原理是在这个类中加入了一个静态方法，这个静态方法的第一个参数是这个类本身的一个引用
 
 ### 定义位置
 
@@ -763,7 +764,7 @@ inline fun myTest(num1: Int,num2: Int,operation:(Int,Int) -> Int):Int{
 ### 类委托举例
 
 ```kotlin
-class MySet<T : Any?>(val helper: HashSet<T>): Set<T> by helper{
+class MySet<T : Any?>(val helper: HashSet<T>): Set<T> by helper {
     fun addNewFunction(){
         Log.d("MySet","新添加的方法")
     }
@@ -964,3 +965,39 @@ public interface Collection<out E> : Iterable<E> {
 
 ***
 
+## Effective kotlin
+
+### 装箱与拆箱
+
+* 为了避免装箱与拆箱，可以将意图的可空类型设置成不可空类型并给它加上一个默认值
+
+### 基本/引用类型与序列化
+
+* 声明成基本类型的变量，即是server未下发也一定不会为空，会有缺省默认值。但此时可能会有默认值与业务相关的问题
+* 声明成可空类型的变量，server未下发则其一定为`null`
+
+### 数组与列表
+
+* 列表底层由数组实现，虽然数组性能更高，但业务中使用列表更加方便
+
+### data class慎用
+
+* data class只有在所有成员变量都声明了默认值时，编译器才会生成无参构造函数
+* gson在反序列化时，会使用无参数的构造函数反射来创建实例，在找不到无参数的构造函数时，会使用`Unsafe`来创建，此时除了基础类型外不会设置任何的默认值(即data class的默认值失效)
+* data class在配合json使用时，无比保证所有成员变量都有默认值或手动增加一个无参构造函数
+
+### java 与kotlin混调
+
+* 当kotlin调用java类的一个属性时，如果java类的属性没加上`@Nullable`注解，则kotlin无法推断这个属性是可空还是非空，且编译器不会给任何提示，如果有问题提则会在运行时崩掉
+* 所以建议java的属性加上`@Nullable`或非空注解来帮助kotlin推断
+
+### when 与switch
+
+* java的switch语句只能比较整型，即是支持了`string`,也是通过`hashcode`来实现的
+* java的switch不支持`boolean, float, double, long`。第一个是没必要，第二三个是会丢失精度，第四个是因为都是转换成`int`比较，也会丢失精度
+* `when`语句的实现是能转换成`switch`就转，因为`switch`有字节码优化效率更高；不能转就编译成`if-else`语句
+
+### 循环
+
+* `foreach > for > while`，因为过程中局部变量更少性能更高
+* 善于使用kotlin中各种列表的拓展函数
