@@ -424,6 +424,9 @@ public static int getDefaultSize(int size, int measureSpec) {
 * 如果view已经attach到window了，那么View#post和Handler#post作用一样，都是往调用UI主线程的MessageQueue中扔Runnable
 * 如果view还未attach到window中，则需要通过一个缓存队列将Runnable暂时先缓存起来，等到view attach到window上之后，再将缓存队列中的Runnable取出来，再扔到UI线程的MessageQueue中
 
+### 参考文档
+
+* [Android自定义ViewGroup的OnMeasure和onLayout详解](https://blog.csdn.net/tuke_tuke/article/details/73379123)
 
 ***
 
