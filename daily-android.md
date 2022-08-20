@@ -2530,7 +2530,7 @@ interface OnBarClickListener {
 
 ***
 
-## NDK
+## NDK与so
 
 * JNI简介
   * `java`劣势
@@ -2547,6 +2547,24 @@ interface OnBarClickListener {
   * 在`Android`中，`NDK`是一系列工具的集合，主要用于扩展`Android SDK`。`NDK`提供了一系列的工具可以帮助开发者快速的开发`C/C++`的动态库，并能自动将`so`和`Java`应用一起打包成`apk`
 * 与`JNI`关系
   * `JNI`是想达到的目的，而`ndk`是达到这个目的的一种工具
+  * `NDK`只是构建`so`链接文件的其中一种工具，还可以使用其他的工具如`make,ninja`等等
+* `so`动态链接库体积优化手段
+  * [美团文章](https://mp.weixin.qq.com/s/7YVuouHAq2OfrowhoHVmnQ)
+
+* 几种方式
+  * 精简动态符号表
+    * 原理：对外暴露的必要的符号就行，越少越好
+
+  * 移除无用代码
+    * 方式：使用`LTO`扩大编译优化
+
+  * 优化指令长度
+    * 方式：使用`clang`编译器的优化级别达到最少量的体积
+
+  * 其他措施
+    * 禁用`C++异常`、`RTTI`
+    * 合并`so`
+
 
 ***
 
@@ -2563,4 +2581,3 @@ interface OnBarClickListener {
 
 ***
 
-## 
