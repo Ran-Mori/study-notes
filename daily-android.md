@@ -2429,6 +2429,35 @@
     * `spread_inside`: 只有中间的平分
     * `packed`:左边界、右边界平分。中间全部聚拢
 
+* FrameLayout
+
+  * `xml`中最上面的是栈底，最下面最后写的是栈顶
+
+  ```xml
+  <?xml version="1.0" encoding="utf-8"?>
+  <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent">
+  
+    <!--在栈底会被掩盖-->
+    <View
+          android:layout_width="match_parent"
+          android:layout_height="106dp" />
+  	<!--在栈顶不会被掩盖-->
+    <View
+          android:layout_width="match_parent"
+          android:layout_height="106dp" />
+  
+  </FrameLayout>
+  ```
+
+* RelativeLayout
+
+  * 和`FrameLayout`一样，支持栈式View重叠。最下面写的是栈顶，最上面写的是堆栈底
+
+
 ***
 
 ## ViewHolder相关
@@ -2534,29 +2563,4 @@ interface OnBarClickListener {
 
 ***
 
-## FrameLayout
-
-* `xml`中最上面的是栈底，最下面最后写的是栈顶
-
-  ```xml
-  <?xml version="1.0" encoding="utf-8"?>
-  <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent">
-  
-    <!--在栈底会被掩盖-->
-    <View
-          android:layout_width="match_parent"
-          android:layout_height="106dp" />
-  	<!--在栈顶不会被掩盖-->
-    <View
-          android:layout_width="match_parent"
-          android:layout_height="106dp" />
-  
-  </FrameLayout>
-  
-  ```
-
-  
+## 
