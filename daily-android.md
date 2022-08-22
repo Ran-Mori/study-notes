@@ -2581,3 +2581,81 @@ interface OnBarClickListener {
 
 ***
 
+## android打包
+
+* [Android应用程序资源的编译和打包过程分析](https://blog.csdn.net/luoshengyang/article/details/8744683)
+
+* 名词解释
+
+  * `aapt` - `Android Asset Packaging Tool`
+
+* 概要
+
+  * 除了`assets`(实际日常根本没看到)和`res/raw`(实际日常也没看到)外，其余资源都会被编译或处理，`png、jpg`的`drawable`都有可能会被处理和压缩
+  * 除了`assets`外其他都有一个`id`。`res/raw`下会原封不动进apk但还是有`id`
+  * `aapt`处理完成最后会生成一个资源索引表-`resources.arsc`和资源ID常量类`R.java`
+  * 所有的`xml`都会被编译成`二进制的xml`，然后打入`apk`
+    * 体积小 - 所有标签和值都收到字符串常量池并去重
+    * 解析快 - 不用解析字符串，而是解析`id`
+  * 应用程序运行时通过`AssetManager`、`资源id`、`文件名`来访问资源。其中`资源id`最常用
+
+* 打包三最重要过程
+
+  * `xml`资源的编译
+  * 资源id文件`R.java`的生成
+  * 资源索引文件`resources.arsc`的生成
+
+* 资源id结构
+
+  * 最高字节 - `package id`。系统资源是`0x01`，应用程序自身是`0x7f`。我们引用的`android:orientation、vertical`等就是在系统资源`0x01`中
+  * 次高字节 - `type id`。如`animator、anim、color、drawable、layout`
+  * 最低两字节 - `entry id`
+
+* 打包流程
+
+  * 解析AndroidManifest.xml - 获取包名
+
+  * 添加被引用包资源 - 比如添加`package id `为`0x01`的系统资源包进来
+
+  * 收集资源文件 - 收集当前需要编译的资源文件保存到一个对象中
+
+  * 将收集到的资源(不包括value)增加到资源表 - 将上一步收集到增加到另一个对象中，这个对象最终会生成`resources.arsc`
+
+  * 编译`values`类资源 - 将`values`都编成很多item
+
+  * 给Bag资源分配id
+
+  * 编译`xml`文件
+
+    * 解析`xml`文件 - 将文件解析成内存中的树
+    * 赋予标签和值资源id - `@+[package:]id/button_text`，其中`@`表示引用类型，`+`表示如果没有就新建，`package`表示包名(如无则是当前包)
+    * 压平`xml` - 从文本格式的文件转变成二进制格式的文件
+
+  * 生成资源符号 - 为生成`R.java`做准备
+
+  * 生成资源索引表 - 生成`resources.arsc`
+
+  * 编译`AndroidManifest.xml` - 之所以后面编是因为要用到前面编译`xml`的值
+
+  * 生成`R.java`文件
+
+    ```java
+    public final class R {
+        public static final class layout {
+            public static final int main=0x7f030000;
+            public static final int sub=0x7f030001;
+        }
+    }
+    ```
+
+  * 打包apk
+
+* 资源加载流程
+
+  * 资源的load过程都是从`ActivityThread -> ContextImpl -> AssetManager -> native AssetManager`
+
+* 资源寻找过程
+
+  * 首先通过`R.java`中的`id`，最终`java`层会调到`AssetManager`的一个方法，然后嵌入到`native`层，通过缓存和各种锁机制读取`resoureces.arsc`文件保存到`Asset`对象中，最后加载文件到内存中
+
+***
