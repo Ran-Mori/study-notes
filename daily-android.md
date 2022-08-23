@@ -2659,3 +2659,18 @@ interface OnBarClickListener {
   * 首先通过`R.java`中的`id`，最终`java`层会调到`AssetManager`的一个方法，然后嵌入到`native`层，通过缓存和各种锁机制读取`resoureces.arsc`文件保存到`Asset`对象中，最后加载文件到内存中
 
 ***
+
+## Fresco
+
+* 重要构成
+  * `DraweeView` - 继承`ImageView`，但它的接口别用，未来会考虑直接继承`View`
+  * `DraweeHierachy` - `Draweable`容器，包含`背景图，失败图，重试图`等
+  * `DraweeController` - 控制图片的加载，请求，并根据不同事件控制Hierarchy
+  * `ImagePipline` - 顾名思义
+* 图片加载流程
+  * `controller`请求`dataSourece`
+  * 经过一系列`producer`委托责任链处理最终获得`dataSource`
+  * 将`dataSource`传给`hirachy`
+  * `DraweeView`将`hirachy`最顶层`view`取出来展示
+* 重点设计思路
+  * 将整个图片处理过程拆成很多小的个，利用责任链模式通过`producer`一步步串起来
