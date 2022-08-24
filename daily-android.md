@@ -1549,9 +1549,14 @@
   * `subscribeOn(final Scheduler scheduler)`：`specify the Scheduler on which an Observable will operate`
   * `observeOn(final Scheduler scheduler)`：`specify the Scheduler on which an observer will observe this Observable`
 
-* zip
+* 操作符
 
-  * `public static <T1, T2, R> Observable<R> zip(ObservableSource<? extends T1> source1, ObservableSource<? extends T2> source2,BiFunction<? super T1, ? super T2, ? extends R> zipper){ ... }`
+  * `zip`
+    *  `combine the emissions of multiple Observables together via a specified function and emit single items for each combination based on the results of this function.`
+    * 适用场景 - 同时发多个请求，等多个请求都返回才处理。（粉丝通知的粉丝和推人同时发）
+  * `concat`
+    * `emit the emissions from two or more`
+    * 适用场景 - 同时发多个请求，但请求处理要求次序。（同时读缓存和进行网络请求，但要求先处理缓存）
 
 ***
 
@@ -2674,3 +2679,26 @@ interface OnBarClickListener {
   * `DraweeView`将`hirachy`最顶层`view`取出来展示
 * 重点设计思路
   * 将整个图片处理过程拆成很多小的个，利用责任链模式通过`producer`一步步串起来
+
+***
+
+## SmartRouter
+
+* 基本实现原理
+  * 将所有的`url -> page`映射存放在一个`map`仓库内，需要跳转的时候就进行查找然后跳转
+* 优势
+  * 极大地降低耦合
+  * 多端`iOS、Android、web`可以统一协议
+* 协议制定
+  * `<schema>://<host>:<authority>/<path>?<query>`
+  * `schema -> 产品`，`host -> 模块`，`authority -> 权限`，`path -> 页面`，`query -> 参数`
+* 实现流程
+  * 写代码时在类上添加自定义注解
+  * 编译`.kotlin`文件时注解处理器处理注解，生成一个类名相关的map
+  * 所有`.class`文件编译完成后，使用`gradle`的`transform`能力接管所有`.class`，遍历找出所有的类名相关map合成一个大map(整体过程类似于`R.java`类的生成)
+* 运行时过程
+  * 指定url调用跳转方法
+  * 从大路由表仓库找到目标页
+  * 进行跳转
+* 拦截器 - 类似于`ViewGroup onInterceptTouchEvent`
+* 参数传递 - 底层还是使用的`Intent`，将url的quecy参数映射到`Intent`里面就行

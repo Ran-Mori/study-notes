@@ -905,16 +905,17 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 声明式
     * 函数式
     * 约束式
+    * 响应式
     * ……
   * 过程式
     * 面向对象
     * 面向过程
-
+  
 * 定义
 
   * Declarative programming is a paradigm describing **WHAT** the program does, without explicitly specifying its control flow.
-
-  * Imperative programming is a paradigm describing **HOW** the program should do something by explicitly specifying each instruction (or statement) step by step, which mutate the program's state.
+* Imperative programming is a paradigm describing **HOW** the program should do something by explicitly specifying each instruction (or statement) step by step, which mutate the program's state.
+  * Reactive programning is declarative programing paradigm concerned with **data stream** and **the propagation of change**. 
 
 * 副作用
 
