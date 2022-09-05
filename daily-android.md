@@ -162,13 +162,12 @@
       myLifecycleObserver = MyLifecycleObserver(this)        
       lifecycle.addObserver(myLifecycleObserver)    
     }
-    
   }
   ```
-
+  
   * 首先实例化出一个`Observer`对象
   * 再将`Observer`对象添加进去
-
+  
 * 注
 
   * Android手动杀死进程。依旧会执行`onStop()、onDestroy()`方法
@@ -1558,6 +1557,12 @@
     * `emit the emissions from two or more`
     * 适用场景 - 同时发多个请求，但请求处理要求次序。（同时读缓存和进行网络请求，但要求先处理缓存）
 
+* `Disposable`
+
+  * [When and How to Use RxJava Disposable](https://cupsofcode.com/post/when_how_use_rxjava_disposable_serialdisposable_compositedisposable/)
+  * 为什么建议要在`onDestory`进行`dispose`？因为流的发射通常是网络请求，耗时事件很长，有时结果还没有返回但页面已经退出了，此时应该终止流的进行与订阅，否则可能出现内存泄漏问题
+
+
 ***
 
 ## RecyclerView优化
@@ -2462,6 +2467,40 @@
 
   * 和`FrameLayout`一样，支持栈式View重叠。最下面写的是栈顶，最上面写的是堆栈底
 
+* `merge`标签
+
+  ```kotlin
+  //建三个标准构造函数，直接inflate并且最后一个参数为true
+  class SelfDefineView: FrameLayout {
+    constructor(context: Context) : this(context, null)
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+    
+    init{
+      LayoutInflater.from(context).inflate(R.layout.self_define_view, this, true)
+    }
+  }
+  ```
+
+  ```xml
+  <!--首标签是merge-->
+  <?xml version="1.0" encoding="utf-8"?>
+  <merge xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:fresco="http://schemas.android.com/apk/res-auto">
+  
+      <com.facebook.drawee.view.SimpleDraweeView
+          android:id="@+id/bg_view"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          app:actualImageScaleType="centerCrop"
+          app:actualImageResource="@drawable/back_ground"/>
+  
+  </merge>
+  ```
+
 
 ***
 
@@ -2702,3 +2741,4 @@ interface OnBarClickListener {
   * 进行跳转
 * 拦截器 - 类似于`ViewGroup onInterceptTouchEvent`
 * 参数传递 - 底层还是使用的`Intent`，将url的quecy参数映射到`Intent`里面就行
+
