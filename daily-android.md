@@ -2635,7 +2635,7 @@ interface OnBarClickListener {
 
 * 概要
 
-  * 除了`assets`(实际日常根本没看到)和`res/raw`(实际日常也没看到)外，其余资源都会被编译或处理，`png、jpg`的`drawable`都有可能会被处理和压缩
+  * 除了`assets`(实际日常根本没看到)和`res/raw`(实际日常也没看到)外，其余资源都会被编译或处理，`png、jpg`的`drawable`都有可能会被处理和压缩。那两个不会被处理而是原封不动打进apk
   * 除了`assets`外其他都有一个`id`。`res/raw`下会原封不动进apk但还是有`id`
   * `aapt`处理完成最后会生成一个资源索引表-`resources.arsc`和资源ID常量类`R.java`
   * 所有的`xml`都会被编译成`二进制的xml`，然后打入`apk`
@@ -2742,3 +2742,8 @@ interface OnBarClickListener {
 * 拦截器 - 类似于`ViewGroup onInterceptTouchEvent`
 * 参数传递 - 底层还是使用的`Intent`，将url的quecy参数映射到`Intent`里面就行
 
+***
+
+## Overlay
+
+* see this link [ViewOverlay: When, How and for What Purpose?](http://old.flavienlaurent.com/blog/2013/08/14/viewoverlay-when-how-and-for-what-purpose/)
