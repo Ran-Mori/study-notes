@@ -202,7 +202,7 @@
 * `View.onTouchEvent(MotionEvent event)`：Implement this method to handle touch screen motion events.
 * `ViewGroup.onInterceptTouchEvent(MotionEvent ev)`：This allows you to watch events as they are dispatched to your children, and take ownership of the current gesture at any point.
 
-### 三方法伪代码
+### ViewGroup#dispatchTouchEvent()
 
 ```kotlin
 fun dispatchTouchEvent(val ev:MotionEvent){
@@ -216,15 +216,94 @@ fun dispatchTouchEvent(val ev:MotionEvent){
 }
 ```
 
-* 是一个递归函数
+### View#dispatchTouchEvent()
 
-### 返回值true、false
+```kotlin
+//以下所有方法都是View类里面的
+fun dispatchTouchEvent(val event: MotionEvent) {
+  if(event.isTargetAccessibilityFocus()) {
+    //处理Talkback模式，这个阶段不会消费事件
+  }
+  //一个变量来记录是否消费事件
+  var result: Boolean = false 
+  //这货直接响应
+  mInputEventConsistencyVerifier?.onTouchEvent(event, 0)
+  //这做了一层安全判断，但是大多情况下返回都是true，因此都会执行里面的代码
+  if (onFilterTouchEventForSecurity(event)) { 
+    //关键点一：首先尝试让onTouchListener消费事件
+    if (mListenerInfo?.mOnTouchListener.onTouch(this, event)) {
+      result = true
+    }
+    //关键点二：如果没有onTouchListener，则让onTouchEvent消费事件
+    if (!result && onTouchEvent(event)) {
+      result = true
+    }
+  }
+  //返回最终是否消费掉事件
+  return result
+}
 
-* `true`代表消耗了事件，`false`代表未消耗事件
+//设置onTouchListener接口
+fun setOnTouchListener(l:OnTouchListener) {
+  getListenerInfo().mOnTouchListener = l;
+}
 
-### 传递优先级
+//onTouchEvent是一个已经有默认实现的方法，而且非常复杂
+open fun onTouchEvent(event: MotionEvent): Boolean {
+  //先存个变量看这个View是否可以点击
+  val clickable = boolean clickable = ((viewFlags & CLICKABLE) == CLICKABLE
+                || (viewFlags & LONG_CLICKABLE) == LONG_CLICKABLE)
+                || (viewFlags & CONTEXT_CLICKABLE) == CONTEXT_CLICKABLE
+  //用户设置的touchDelegate优先级高
+  if (mTouchDelegate?.onTouchEvent(event)) {
+    return true;
+  }
+  //真正开始处理点击的地方
+  if (clickable || (viewFlags & TOOLTIP) == TOOLTIP) {
+    switch (action) {
+      //点击肯定是ACTION_UP的时候
+      case MotionEvent.ACTION_UP:
+      	//如果不可点击，一切都清空
+      	if (!clickable) {
+          removeTapCallback();
+          removeLongPressCallback();
+          mInContextButtonPress = false;
+          mHasPerformedLongPress = false;
+          mIgnoreNextUpEvent = false;
+          break;
+        }
+      	//这个方法内部有调用onClickListener()
+      	performClickInternal()
+    }
+    //只要进到这来就肯定被消费
+    return true
+  }
+  return false
+}
 
-* `onTouchListner`最高，`onTouchEvent`次之，`onClickListner`最低
+//真正调点击listener
+fun performClick(): Boolean {
+  val result: Boolean = false
+  final ListenerInfo li = mListenerInfo;
+  if (li != null && li.mOnClickListener != null) {
+    playSoundEffect(SoundEffectConstants.CLICK)
+    //关键代码
+    li.mOnClickListener.onClick(this)
+    result = true
+  } else {
+    result = false
+  }
+  return result;
+}
+```
+
+* 由上面代码可知优先级
+  1. `setOnTouchListener()`
+  2. 自己重写的`onTouchEvent()`，但一般没人会去重写它
+  3. `onTouchEvent()`内调用的`setOnClickListener()`
+* 建议
+  * `onTouchListener()`内有两个参数`View、MotionEvent`，对它的自定义度更高
+  * `onClickListener()`内只有一个参数`View`，对它的自定义度更低
 
 ### 暂时结论
 
