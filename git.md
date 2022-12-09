@@ -29,7 +29,7 @@
 
 ### 删除远程分支
 
-* `git push origin --delete branchname`
+* `git push origin --delete branchname` / `git push origin -d branchname`
 
 ### 切换一台电脑上不同的git账号
 
@@ -113,3 +113,7 @@
   * 在branchA上做了一个commit，commitId为`1234`。现欲将此commit移动到branchB
   * 进行切换分支，将分支从branchA 切换到 branchB。`git checkout branchB`
   * 在branchB上进行commit移动。`git cherry-pick 1234`
+
+### 将本地分支A推到远端分支B
+
+* `git push origin local_branch_nameA:remote_branch_B`
