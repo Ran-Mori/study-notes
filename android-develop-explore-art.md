@@ -342,163 +342,221 @@ fun performClick(): Boolean {
 
 ### 三大流程
 
-* `measure`：决定`View`的测量宽和高
-* `layout`：决定`View`四个顶点的位置和实际的宽和高
-* `draw`：将`View`显示绘制在屏幕上
+1. 作用
 
-### 三大核心方法
+   * `measure`：决定`View`的测量宽和高
 
-* `setMeasuredDimension`
-* `setFrame`
-* `convas?.drawxxx()`
+   * `layout`：决定`View`四个顶点的位置和实际的宽和高
 
-### 递归调用
+   * `draw`：将`View`绘制显示在屏幕上
 
-* 如果是`ViewGroup`，三大流程就如事件分发机制一样做递归调用
+2. 核心方法
+
+   * `setMeasuredDimension`
+
+   * `setFrame`
+
+   * `convas?.drawxxx()`
+
 
 ### MeasureSpec
 
-* 高两位是`mode`，低30位是`size`
+1. 构造
 
-### 三种`mode`
+   1. 前2位表示mode，后30位表示实际大小
 
-* `UNSPECIFIED`：父对子无任何限制，要多大给多大。一般不用
-* `EXACTLY`：父已经检测出了子的精确大小，就给那么大。对应`dp、match_parent`
-* `AT_MOST`：父指定了一个最大值，最大不能超过这个值。对应`wrap_content`
+2. 三种mode
 
-### MeasureSpec和LayoutParams对应关系
+   * `UNSPECIFIED`：父对子无任何限制，要多大给多大。一般不用
 
-* 系统会将`LayoutParams`在父容器的约束下转换成对应的`MeasureSpec`，然后再根据这个`MeasureSpec`确定`View`的测量宽高 
-* 对于`DecorView`，`MeasureSpec`由窗口尺寸和自身的`LayoutParams`决定
-* 对于其他普通`View`，`MeasureSpec`由父容器的`MeasureSpec`和自身的`LayoutParam`决定
+   * `EXACTLY`：父已经检测出了子的精确大小，就给那么大。对应`dp、match_parent`
 
-### 父MeasueSpec和子LayoutParams决定子MeasureSpec
+   * `AT_MOST`：父指定了一个最大值，最大不能超过这个值。对应`wrap_content`
 
-> 横轴为parent，众轴为child
->
-> 详情在`ViewGrour$getChildMeasureSpec`
+3. 如何获得
 
-|              | EXACTLY | AT_MOST |
-| ------------ | ------- | ------- |
-| dp           | EXACTLY | EXACTLY |
-| match_parent | EXACTLY | AT_MOST |
-| wrap_content | AT_MOST | AT_MOST |
+   * 公式 -> `子MeasureSpec = 父MeasureSpec + 子LayoutParams`
 
-### Measure
+   * 代码实现 ->`ViewGroup#measureChild`、 `ViewGoup#getChildMeasureSpec`
 
-* 测量`View`的宽度高度
-* `ViewGroup`涉及递归调用
-* `Measure`和`Activity`的生命周期不匹配，不一定取得到。如果没测完，则宽高都返回零
+     ```java
+     protected void measureChild() {
+       final LayoutParams lp = child.getLayoutParams();
+     
+       final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,mPaddingLeft + mPaddingRight, lp.width);
+       final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,mPaddingTop + mPaddingBottom, lp.height);
+     
+       child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+     }
+     ```
+
+   * 图示: 横轴为parent，众轴为child
+
+     |              | EXACTLY | AT_MOST |
+     | ------------ | ------- | ------- |
+     | dp           | EXACTLY | EXACTLY |
+     | match_parent | EXACTLY | AT_MOST |
+     | wrap_content | AT_MOST | AT_MOST |
 
 ### 测量宽高和实际宽高
 
-* 测量宽高在measure时获得，实际宽高在layout时候获得
-* 它们俩的值百分之九十九都是一样的
-* 赋值时机measure偏前一点
+* 测量宽高在`setMeasuredDimension()`结束时赋值，即变量`mMeasureWidth、mMeasureHeight`；实际宽高在`setFrame()`结束时赋值，即`left、right、top、bottom`
+* `measure`和`activity`的生命周期不匹配，不一定取得到。如果没测完，则宽高都返回零
 
-### 普通View的`onMeasure`过程
+### measure相关方法
 
-> `ViewGruoup$getChildMeasureSpec` 确定了`View`的`MeasureSpec`是多少
->
-> `View$getDefaultSize`根据`MeasureSpec`最终确定`View`的宽高
+* `View#measure()`
+  * 签名 -> `public final void measure(int widthMeasureSpec, int heightMeasureSpec)`
+  * 特点 -> `final`不可被重写，此方法内会调用`onMeasure`
+* `View#onMeasure()`
+  * 签名 -> `protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)`
+  * 作用 -> 确定这个View的测量宽和测量高
+  * 特点 -> `View`中有一个基础的默认实现，但子`View`和子`ViewGroup`都会进行复写
+* `ViewGroup#measureChild()`
+  * 作用 -> 构造子View的MeasureSpec，调用`child.measure()`
+* `ViewGroup#measureChildren()`
+  * 作用 -> 遍历children并调用`measureChild(child, xx, xx)`
 
-```java
-//View$getDefaultSize
-public static int getDefaultSize(int size, int measureSpec) {
-  //size是getSuggestedMinimumWidth()
-  int result = size;
-  int specMode = MeasureSpec.getMode(measureSpec);
-  int specSize = MeasureSpec.getSize(measureSpec);
+### measure流程
 
-  switch (specMode) {
-    case MeasureSpec.UNSPECIFIED:
-      result = size;
-      break;
-    case MeasureSpec.AT_MOST:
-    case MeasureSpec.EXACTLY:
-      result = specSize;
-      break;
-  }
-  return result;
-}
-```
+1. 叶子节点`View`
 
-* `specMode`是`此View`的属性，`specSize`是`此View`设置的具体大小值或父容器能提供的最大值
-* 当`specMode`是`EXACTILY`时，`result = specSize`是无问题的
-* 当`specMode`是`AT_MOST`，此`View`设置为`match_parent`时无问题
-* 当`specMode`是`AT_MOST`，此`View`设置为`wrap_content`就有大问题。因为它的实际效果和`match_parent`一样了，因此自定义必须重写`onMeasure`，否则不支持`wrap_content`
+   * `measure()` -> `onMeasure()`来确定自己的宽高
 
-### `ViewGroup`的`onMeasure`过程
+   * `onMeasure`的默认实现 -> `View#getDefaultSize`
 
-* `ViewGroup$onMeasure`是虚方法，需要每个`layout`自己去实现
-* 但`ViewGroup`有`measureChild`和`measureChildren`方法
-* `LinearLayout`这种先测出所有子View，最后根据子View最后测量自己
+   * 现状 -> 除了`View`类外根本不会有其他子类使用，子类都是根据自身的内容来决定自己的宽高，而不是仅仅根据一个`MeasureSpec`
 
-### `meseasure`结果获取
+   * 代码示例
 
-* `measure`结束后就可以获取`View`的宽度和高度了，但`Measure`的过程和`Activity`生命周期不同步，因此常常获取到`View`的宽高为`0`
-* 常常使用`View.post()`来获取`View`的宽和高
+     ```java
+     //View#getDefaultSize
+     public static int getDefaultSize(int size, int measureSpec) {
+       //size是getSuggestedMinimumWidth()，返回mMinWidth或mBackground.getMinimumWidth()
+       int result = size;
+       int specMode = MeasureSpec.getMode(measureSpec);
+       int specSize = MeasureSpec.getSize(measureSpec);
+     
+       switch (specMode) {
+         case MeasureSpec.UNSPECIFIED:
+           result = size;
+           break;
+         case MeasureSpec.AT_MOST:
+         case MeasureSpec.EXACTLY:
+           result = specSize;
+           break;
+       }
+       return result;
+     }
+     ```
 
-### `layout()`方法
+   * 当`specMode`是`EXACTILY`时，`result = specSize`是无问题的；当`specMode`是`AT_MOST`，此`View`设置为`match_parent`时无问题
 
-> `public void layout(int l, int t, int r, int b)`
+   * 当`specMode`是`AT_MOST`，此`View`设置为`wrap_content`就有大问题。因为它的实际效果和`match_parent`一样了，因此自定义View必须重写`onMeasure`，否则不支持`wrap_content`
 
-* `layout`方法确定`View`本身的位置，它定义于`View`类中
-* 主要工作是调用`setFrame()`方法来确定4个点的位置(相对于父容器)，如果布局有改变，则调用`onLayout()`方法来递归`layout`
+2. 非叶子节点`ViewGroup`
 
-### `onLayout()`方法
+   * `measure()` -> `onMeasure()`调用
+   * 重写`onMeasure`并调用`ViewGroup#measureChildren、ViewGroup#measureChild`来对children进行测量
+   * children测量结束后最后通过`setMeasuredDimension`来设置自己的宽高
 
-> `protected void onLayout(boolean changed, int left, int top, int right, int bottom)`
 
-* 用于确定所有`子View`的位置，定义于`View`类中，不过是个空方法，需要`View`和`ViewGroup`去自己实现
-* `onLayout()`的逻辑是调用每一个`子View`的`layout`方法，不同的布局逻辑是通过不同的`l, t, r, b`参数来实现的
+### layout相关方法
 
-### `draw()`方法
+1. `View#layout()`
 
-* 这个方法一般不会`override`，一般只会重写`onDraw()`
-* 四个步骤
-  * Step 1, draw the background, if need -  `(drawBackground(canvas))`
-  * Step 3, draw the content - (`onDraw(canvas)`)
-  * Step 4, draw the children - (`dispatchDraw(canvas)`)
-  * Step 6, draw decorations (foreground, scrollbars) - (`onDrawForeground(canvas)`)
+   * 签名 -> `public void layout(int l, int t, int r, int b)`
 
-### `onDraw()`方法
+   * 作用 -> 确定`View`本身的位置
 
-* 定义在`View`里面，但是一个空方法，需要不同的`View`和`ViewGroup`来自己实现
-* 这个方法负责如何`draw`自己
+   * 工作 -> 调用`setFrame()`方法来确定4个点的位置(相对于父容器)；如果布局有改变，则调用`View#onLayout()`方法来递归布局children
 
-### `dispatchDraw()`方法
+2. `View#onLayout()`
 
-* 定义在`View`里面，但是一个空方法，需要不同的`View`和`ViewGroup`来自己实现
-* 一般逻辑是调用每一个`子View`的`draw()`方法
+   * 签名 -> `protected void onLayout(boolean changed, int left, int top, int right, int bottom)`
+
+   * 特点 -> 在`View`中是个空方法，需要子`View`和`ViewGroup`去自己实现
+
+
+### layout流程
+
+1. 叶子节点
+   * `layout()`方法把自己放好
+2. 非叶子节点
+   * `layout()`方法把自己放好，`layout()`方法中调用`onLayout`。`onLayout`被重写过后会遍历调用`child.layout()`
+
+### draw相关
+
+1. `View.draw()`
+
+   * 这个方法一般不会`override`，一般只会重写`onDraw()`
+
+   * 四个步骤
+     * Step 1, draw the background, if need -  `(drawBackground(canvas))`
+     * Step 3, draw the content - (`onDraw(canvas)`)
+     * Step 4, draw the children - (`dispatchDraw(canvas)`)
+     * Step 6, draw decorations (foreground, scrollbars) - (`onDrawForeground(canvas)`)
+
+2. `View#onDraw()`
+
+   * 特点 ->  在`View`中是一个空方法，需要不同的`View`和`ViewGroup`来自己实现
+
+   * 作用 -> 负责如何`draw`自己
+
+3. `View#dispatchDraw()`
+
+   * 特点 -> 在`View`中是一个空方法，需要不同的`ViewGroup`来自己实现
+
+4. `ViewGroup#drawChild`
+
+   * 作用 -> 调用`child.draw()`
+
+### draw()流程
+
+1. 叶子节点
+   * 直接调用`draw()`方法，通过`draw()`方法调`onDraw()`把自己draw出来
+2. 非叶子节点
+   1. 直接调用`draw()`方法，先通过`draw()`方法调`onDraw()`把自己draw出来，接着调用`dispatchDraw()`，复写的`dispatchDraw`会通过`drawChild()`最后调用到`child.draw()`把children给draw出来
 
 ### 自定义View
 
-* 比较难
-* 是一个综合技术体系，涉及View的层次结构、事件分发机制和View的工作原理细节
+1. 概述
 
-### 自定义View分类
+   * 比较难
 
-* 继承`View`：需重写`onDraw()`，重写`onMeasure()`支持`wrap_content`，`padding`也要自己处理
-* 继承`ViewGroup`：自己处理`onMeasure()、onLayout()`，并还要顺带处理子元素的测量和布局
-* 继承特定的`View`：简单
-* 继承特定的`Layout`：简单
+   * 是一个综合技术体系，涉及View的层次结构、事件分发机制和View的工作原理细节
 
-### 自定义View须知
+2. 分类
 
-* 继承自View类不支持`wrap_content`
-* 继承自View类不支持`padding`
-* 继承自ViewGroup类需要考虑padding和子元素margin的影响
-* 不要在View中使用handler，因为View有post方法
-* View有线程或者动画要及时停止，一般在`onDetachFromWindow()`中处理，不然内存泄漏
-* 有嵌套处理要自己解决滑动冲突
+   * 继承`View`：需重写`onDraw()`，重写`onMeasure()`支持`wrap_content`，`padding`也要自己处理
 
-### `padding`和`margin`
+   * 继承`ViewGroup`：自己处理`onMeasure()、onLayout()`，并还要顺带处理子元素的测量和布局
+
+   * 继承特定的`View`：简单
+
+   * 继承特定的`Layout`：简单
+
+3. 须知
+
+   * 继承自View类不支持`wrap_content`
+
+   * 继承自View类不支持`padding`
+
+   * 继承自ViewGroup类需要考虑padding和子元素margin的影响
+
+   * 不要在View中使用handler，因为View有post方法
+
+   * View有线程或者动画要及时停止，一般在`onDetachFromWindow()`中处理，不然内存泄漏
+
+   * 有嵌套处理要自己解决滑动冲突
+
+
+### padding和margin
 
 * `margin`是父容器控制的，一般`ViewGroup`要在`onMeasure()`和`onLayout`中使`margin`生效
 * `padding`是每个`View`自己控制的，一般要在`onMeasure()`和`onDraw()`中使`padding`生效
 
-### `View.post()`和`Handler.post()`
+### View.post()和Handler.post()
 
 * 如果view已经attach到window了，那么View#post和Handler#post作用一样，都是往调用UI主线程的MessageQueue中扔Runnable
 * 如果view还未attach到window中，则需要通过一个缓存队列将Runnable暂时先缓存起来，等到view attach到window上之后，再将缓存队列中的Runnable取出来，再扔到UI线程的MessageQueue中
