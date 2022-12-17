@@ -518,6 +518,66 @@ fun performClick(): Boolean {
 2. 非叶子节点
    1. 直接调用`draw()`方法，先通过`draw()`方法调`onDraw()`把自己draw出来，接着调用`dispatchDraw()`，复写的`dispatchDraw`会通过`drawChild()`最后调用到`child.draw()`把children给draw出来
 
+### ViewRootImpl开始
+
+1. measure
+
+```java
+class ViewRootImpl {
+  private void performTraversals() {
+    // 真正开始measure的地方
+    windowSizeMayChange |= measureHierarchy(...)
+  }
+  
+  private boolean measureHierarchy(...) {
+    performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
+  }
+  
+  private void performMeasure(...) {
+    // mView为DecorView。然后开始正常的measure流程
+    mView.measure(...);
+  }
+}
+```
+
+2. layout
+
+```java
+class ViewRootImpl {
+  private void performTraversals() {
+    // 真正开始layout的地方
+    performLayout(lp, mWidth, mHeight);
+  }
+  
+  private void performLayout(...) {
+    // host为DecorView。然后开始正常的layout流程
+    host.layout(...)
+  }
+}
+```
+
+3. draw
+
+```java
+class ViewRootImpl {
+  private void performTraversals() {
+    // 真正开始draw的地方
+    if (!performDraw() && mSyncBufferCallback != null) {
+      mSyncBufferCallback.onBufferReady(null);
+    }
+  }
+  
+  private boolean performDraw(...) {
+    boolean canUseAsync = draw(...);
+  }
+  
+  private boolean draw(...) {
+    mAttachInfo.mThreadedRenderer.draw(...);
+  }
+  // 中间会经过ThreadedRenderer的几个方法，最终走到DecorView.draw()
+}
+```
+
 ### 自定义View
 
 1. 概述
