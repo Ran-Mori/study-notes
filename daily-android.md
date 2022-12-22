@@ -1753,19 +1753,6 @@
 
 ***
 
-## 组件化
-
-* 模块化
-  * 实现模块化依然耦合严重
-  * 模块化的下一步目标是组件化
-
-* 优势
-  * 每个模块可以作为独立的App存在
-  * 模块间无直接的依赖
-  * 基础组件作为业务组件的更低层
-
-***
-
 ## 事件分发
 
 * window链接
@@ -2051,15 +2038,6 @@
 
 * 总结
   * `Application`虽然是全局单例`context`，但是别乱用
-
-***
-
-## Lint
-
-* lint介绍
-  * 是Android Studio提供的一种代码扫描工具
-  * 每次鼠标放上去提示的警告内容等，其实都是lint
-  * Android Studio已经自动配置了上百条lint，当那边觉得内置的lint不够用了，就可以自定义lint了
 
 ***
 
@@ -2498,79 +2476,8 @@
           app:actualImageScaleType="centerCrop"
           app:actualImageResource="@drawable/back_ground"/>
   
-  </merge>
+  </merge>`
   ```
-
-
-***
-
-## ViewHolder相关
-
-* ViewHolder.Bind()
-
-  * `ViewHolder.bind()`会在绑定的时候调用，用得好会有很多好处
-  * 比如展示备注按钮
-
-* ViewHolder获取根View
-
-  ```kotlin
-  class MyFragment() {
-    private mRootView: ViewGroup? = null
-    override fun onCreateView() {
-      val view = inflater.inflate(viewGroup, container, false)
-      (view as? ViewGroup)?.let{
-        mRootView = it
-      }
-    }
-  }
-  ```
-
-***
-
-## 多仓问题
-
-* 未用多仓同步工具时，引入组件一定要记得看看分支对不对，不然编译不过
-
-***
-
-## 自定义通用View对外暴露通用点击实现
-
-* MyView.kotlin
-
-```kotlin
-class MyView(context: Context, attrs: AttributeSet?, defStyleAttr: Int = 0): FrameLayout, View.OnClickListener{
-
-  private lateinit var mOnBarClickListener: OnBarClickListener
-
-  override fun onClick(v: View?) {
-    mOnBarClickListener ?: return
-    when(v.id) {
-      back_item -> mOnBarClickListener.onBackClick(v)
-      confirm_item -> mOnBarClickListener.onConfirmClick(v)
-    }
-  }
-
-  fun setOnBarClickListener(listener: OnBarClickListener) {
-    this.mOnBarClickListener = listener
-  }
-}
-```
-
-* OnBarClickListener.kt
-
-```kotlin
-interface OnBarClickListener {
-  fun onBackClick(view: View?)
-  fun onConfirmClick(view: View?)
-}
-```
-
-***
-
-## LoadingController
-
-* 实际就是展示一个`Dialog`
-* 根据状态来`show`和`dismiss`
 
 ***
 
@@ -2706,6 +2613,9 @@ interface OnBarClickListener {
 
 ## Fresco
 
+* 参考文档
+  * [Fresco架构设计赏析](https://juejin.cn/post/6844903784460582926)
+  
 * 重要构成
   * `DraweeView` - 继承`ImageView`，但它的接口别用，未来会考虑直接继承`View`
   * `DraweeHierachy` - `Draweable`容器，包含`背景图，失败图，重试图`等
