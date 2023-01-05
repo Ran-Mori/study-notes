@@ -2615,18 +2615,131 @@
 
 * 参考文档
   * [Fresco架构设计赏析](https://juejin.cn/post/6844903784460582926)
-  
+
 * 重要构成
-  * `DraweeView` - 继承`ImageView`，但它的接口别用，未来会考虑直接继承`View`
-  * `DraweeHierachy` - `Draweable`容器，包含`背景图，失败图，重试图`等
-  * `DraweeController` - 控制图片的加载，请求，并根据不同事件控制Hierarchy
+  * `DraweeView`
+
+    1. 官方解释 -> `View that displays a DraweeHierarchy.`
+
+    2. 继承`ImageView`，但它的接口别用，未来会考虑直接继承`View`。唯一交集: 利用`ImageView`来显示`Drawable`
+
+    3. 持有`DraweeHolder`对象
+
+       ```java
+       public class DraweeView extends ImageView {
+         private DraweeHolder<DH> mDraweeHolder;
+       }
+       ```
+
+  * `DraweeHolder`
+
+    * 官方解释 -> `A holder class for Drawee controller and hierarchy.`
+
+    * 持有`DraweeController`和`DraweeHierarchy`
+
+      ```java
+      public class DraweeHolder {
+        @Nullable private DH mHierarchy;
+        private DraweeController mController = null;
+      }
+      ```
+
+  * `DraweeHierachy`
+
+    * ``Draweable`的容器，从`BACKGROUND -> OVERLAY`一共包含7层`Drawable`
+
+      ```java
+      public class GenericDraweeHierarchy {
+        private static final int BACKGROUND_IMAGE_INDEX = 0;
+        private static final int PLACEHOLDER_IMAGE_INDEX = 1;
+        private static final int ACTUAL_IMAGE_INDEX = 2;
+        private static final int PROGRESS_BAR_IMAGE_INDEX = 3;
+        private static final int RETRY_IMAGE_INDEX = 4;
+        private static final int FAILURE_IMAGE_INDEX = 5;
+        private static final int OVERLAY_IMAGES_INDEX = 6;
+      }
+      ```
+
+  * `DraweeController` 
+
+    * 控制图片的加载，请求，并根据不同事件控制`Hierarchy`
+
+    * 持有`DraweeHierarchy`
+
+      ```java
+      public abstract class AbstractDraweeController {
+        private SettableDraweeHierarchy mSettableDraweeHierarchy;
+      }
+      ```
+
   * `ImagePipline` - 顾名思义
+
 * 图片加载流程
+
   * `controller`请求`dataSourece`
   * 经过一系列`producer`委托责任链处理最终获得`dataSource`
   * 将`dataSource`传给`hirachy`
-  * `DraweeView`将`hirachy`最顶层`view`取出来展示
+  * `DraweeView`将`hierachy`最顶层`view`取出来展示
+
+* 加载逻辑控制层
+
+  ```java
+  //DraweeView#setController
+  public void setController(draweeController) {
+    //将设置controller委托给mDraweeHolder
+    mDraweeHolder.setController(draweeController);
+  }
+  
+  //DraweeHolder#setController
+  public void setController(draweeController) {
+    mController = draweeController;
+    if (wasAttached) {
+      //尝试进行attach
+      attachController();
+    }
+  }
+  private void attachController() {
+    //调用controller的attach
+    mController.onAttach();
+  }
+  
+  //AbstractDraweeController#onAttach()
+  public void onAttach() {
+    if (!mIsRequestSubmitted) {
+      submitRequest();
+    }
+  }
+  protected void submitRequest() {
+    final T closeableImage = getCachedImage();
+    
+    if (closeableImage != null) {
+      //有缓存(代码只找了内存缓存)，根本不用请求，直接return
+      return
+    }
+    
+    //内存缓存没有就通过mDataSource进行请求
+    DataSubscriber<T> dataSubscriber = new BaseDataSubscriber<T>() {
+      public void onNewResultImpl(DataSource<T> dataSource) {
+        //...
+      }
+      public void onFailureImpl(DataSource<T> dataSource) {
+        //...
+      }
+      public void onProgressUpdate(DataSource<T> dataSource) {
+        //...
+      }
+    }
+    mDataSource.subscribe(dataSubscriber, mUiThreadImmediateExecutor);
+  }
+  ```
+
+  * `controller`进行`attach`有两条路径
+    1. 当进行赋值设置`controller`时会把`controller`给`attach`
+    2. 当`DraweeView#onAttachedToWindow()`时也会尝试将当前已赋值的`controller`进行`attach`
+    3. `detach`同理
+
 * 重点设计思路
+
   * 将整个图片处理过程拆成很多小的个，利用责任链模式通过`producer`一步步串起来
 
 ***
@@ -2657,3 +2770,5 @@
 ## Overlay
 
 * see this link [ViewOverlay: When, How and for What Purpose?](http://old.flavienlaurent.com/blog/2013/08/14/viewoverlay-when-how-and-for-what-purpose/)
+
+***
