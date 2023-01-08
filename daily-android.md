@@ -2674,7 +2674,7 @@
 
   * `ImagePipline` - 顾名思义
 
-* 图片加载流程
+* 图片加载简要流程
 
   1. `Controller`将请求任务委托给`DataSource`，在`DataSource`内注册一个请求结果的回调 -> `DataSubscriber`
 
@@ -2684,229 +2684,347 @@
 
   4. `DraweeView`将`Hierachy`的`topLevelDrawable`取出来展示
 
-* 设置`controller` ～ 订阅`dataSourceSubsciber`
+* 与加载相关的一些关键接口
 
-  ```java
-  //DraweeView#setController
-  public void setController(draweeController) {
-    //将设置controller委托给mDraweeHolder
-    mDraweeHolder.setController(draweeController);
-  }
-  
-  //DraweeHolder#setController
-  public void setController(draweeController) {
-    mController = draweeController;
-    if (wasAttached) {
-      //尝试进行attach
-      attachController();
-    }
-  }
-  private void attachController() {
-    //调用controller的attach
-    mController.onAttach();
-  }
-  
-  //AbstractDraweeController
-  public void onAttach() {
-    if (!mIsRequestSubmitted) {
-      submitRequest();
-    }
-  }
-  protected void submitRequest() {
-    final T closeableImage = getCachedImage();
-    
-    if (closeableImage != null) {
-      //有缓存(代码只找了内存缓存)，根本不用请求，直接return
-      return
-    }
-    
-    //内存缓存没有就通过mDataSource进行请求
-    DataSubscriber<T> dataSubscriber = new BaseDataSubscriber<T>() {
-      public void onNewResultImpl(DataSource<T> dataSource) {
-        //...
-      }
-      public void onFailureImpl(DataSource<T> dataSource) {
-        //...
-      }
-      public void onProgressUpdate(DataSource<T> dataSource) {
-        //...
-      }
-    }
-    mDataSource.subscribe(dataSubscriber, mUiThreadImmediateExecutor);
-  }
-  ```
+  1. `DataSource`
 
-  * `controller`进行`attach`有两条路径
-    1. 当进行赋值设置`controller`时会把`controller`给`attach`
-    2. 当`DraweeView#onAttachedToWindow()`时也会尝试将当前已赋值的`controller`进行`attach`
-    3. `detach`同理
+     ```java
+     public interface DataSource<T> {
+       //获取结果
+       T getResult();
+       //查询状态
+       boolean isFinished();
+       boolean hasFailed();
+       //注册回调，类似于RxJava
+       void subscribe(DataSubscriber<T> dataSubscriber, Executor executor);
+     }
+     ```
 
-* `DataSource`与`DataSubscirber`
+  2. `DataSubscirber`
 
-  * `DataSource`
+     ```java
+     public interface DataSubscriber<T> {
+       //成功回调
+       void onNewResult(@Nonnull DataSource<T> dataSource);
+       //失败回调
+       void onFailure(@Nonnull DataSource<T> dataSource);
+       //取消回调
+       void onFailure(@Nonnull DataSource<T> dataSource);
+     }
+     ```
 
-  ```java
-  public interface DataSource<T> {
-    //获取结果
-    T getResult();
-    //查询状态
-    boolean isFinished();
-    boolean hasFailed();
-    //注册回调，类似于RxJava
-    void subscribe(DataSubscriber<T> dataSubscriber, Executor executor);
-  }
-  ```
+  3. `Producer`
 
-  * `DataSubscriber`
+     ```java
+     public interface Producer<T> {
+       // 产生数据，并通知consumer消费
+       void produceResults(Consumer<T> consumer, ProducerContext context);
+     }
+     ```
 
-  ```java
-  public interface DataSubscriber<T> {
-    //成功回调
-    void onNewResult(@Nonnull DataSource<T> dataSource);
-    //失败回调
-    void onFailure(@Nonnull DataSource<T> dataSource);
-    //取消回调
-    void onFailure(@Nonnull DataSource<T> dataSource);
-  }
-  ```
+  4. `Consumer`
 
-* `Producer`与`Consumer`
+     ```java
+     public interface Consumer<T> {
+       //实际上就是一个回调
+       void onNewResult(@Nullable T newResult, @Status int status);
+       void onFailure(Throwable t);
+       void onCancellation();
+     }
+     ```
 
-  * `Producer`
+* 图片加载详细流程
 
-  ```java
-  public interface Producer<T> {
-    // 产生数据，并通知consumer消费
-    void produceResults(Consumer<T> consumer, ProducerContext context);
-  }
-  ```
+  1. 设置`controller`，订阅`dataSourceSubsciber`
 
-  * `Consumer`
+     ```java
+     //DraweeView#setController
+     public void setController(draweeController) {
+       //将设置controller委托给mDraweeHolder
+       mDraweeHolder.setController(draweeController);
+     }
+     
+     //DraweeHolder#setController
+     public void setController(draweeController) {
+       mController = draweeController;
+       if (wasAttached) {
+         //尝试进行attach
+         attachController();
+       }
+     }
+     private void attachController() {
+       //调用controller的attach
+       mController.onAttach();
+     }
+     
+     //AbstractDraweeController
+     public void onAttach() {
+       if (!mIsRequestSubmitted) {
+         submitRequest();
+       }
+     }
+     protected void submitRequest() {
+       final T closeableImage = getCachedImage();
+       
+       if (closeableImage != null) {
+         //有缓存(代码只找了内存缓存)，根本不用请求，直接return
+         return
+       }
+       
+       //内存缓存没有就通过mDataSource进行请求
+       DataSubscriber<T> dataSubscriber = new BaseDataSubscriber<T>() {
+         public void onNewResultImpl(DataSource<T> dataSource) {
+           //...
+         }
+         public void onFailureImpl(DataSource<T> dataSource) {
+           //...
+         }
+         public void onProgressUpdate(DataSource<T> dataSource) {
+           //...
+         }
+       }
+       mDataSource.subscribe(dataSubscriber, mUiThreadImmediateExecutor);
+     }
+     ```
 
-  ```java
-  public interface Consumer<T> {
-    //实际上就是一个回调
-    void onNewResult(@Nullable T newResult, @Status int status);
-    void onFailure(Throwable t);
-    void onCancellation();
-  }
-  ```
+     * `controller`进行`attach`有两条路径
+       1. 当进行赋值设置`controller`时会把`controller`给`attach`
+       2. 当`DraweeView#onAttachedToWindow()`时也会尝试将当前已赋值的`controller`进行`attach`
+       3. `detach`同理
 
-* 加载图片请求过程
+  2. `DataSource`获取、首个`Producer`获取并注入`DataSource`
 
-  1. 由`DataSouce`开始调用首个`Producer`
-
-  ```java
-  //AbstractDraweeController
-  protected void submitRequest() {
-    //非常核心的一行，去获取dataSource
-  	mDataSource = getDataSource();  
-    //订阅请求成功的回调
-    DataSubscriber<T> dataSubscriber = new BaseDataSubscriber<T>() {}
-    mDataSource.subscribe(dataSubscriber, mUiThreadImmediateExecutor);
-  }
-  
-  //上面的mDataSource实际上是CloseableProducerToDataSourceAdapter，以下就走到了这个adapter的代码
-  //CloseableProducerToDataSourceAdapter
-  private CloseableProducerToDataSourceAdapter() {
-    //构造函数直接走到super，super是AbstractProducerToDataSourceAdapter
-    super(producer, settableProducerContext, listener);
-  }
-  
-  //AbstractProducerToDataSourceAdapter
-  protected AbstractProducerToDataSourceAdapter() {
-    //开始调用producer.produceResults了，并且注册了回调createConsumer()
-    //这里的producer是BitmapMemoryCacheProducer
-    producer.produceResults(createConsumer(), settableProducerContext);
-  }
-  private Consumer<T> createConsumer() {
-    return new BaseConsumer<T>() {
-      protected void onNewResultImpl(T newResult) {
-        //注册的回调就是给dataSource的实现类result赋值，这样接口方法`T getResult();`才能返回
-        AbstractProducerToDataSourceAdapter.this.onNewResultImpl(newResult);
-      }
-    }
-  }
-  ```
-
-  2. `BitmapMemoryCacheProducer` -> 尝试从内存缓存中找
-
-  ```java
-  //内存缓存容器
-  private final MemoryCache<CacheKey, CloseableImage> mMemoryCache;
-  //cacheKey容器
-  private final CacheKeyFactory mCacheKeyFactory;
-  //下一个Producer -> ThreadHandoffProducer
-  private final Producer<CloseableReference<CloseableImage>> mInputProducer;
-  
-  public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
-    //...代码太多了，讲一下代码的逻辑
-    
-    //看下isBitmapCacheEnabled，开启就从根据key从内存缓存map里找，cacheKey默认是图片url，找到的话就执行回调然后返回，如下图
-    if(cachedReference != null) {
-      consumer.onNewResult(cachedReference);
-      return;
+    ```java
+    //AbstractDraweeController
+    protected void submitRequest() {
+      //非常核心的一行，去获取dataSource
+    	mDataSource = getDataSource();
     }
     
-    //没找到就将请求委托给mInputProducer
-    mInputProducer.produceResults(wrappedConsumer, producerContext);
-  }
-  ```
-
-  3. `ThreadHandoffProducer` -> 不找，将任务委托到非UI线程
-
-  ```java
-  //下一个Producer -> BitmapMemoryCacheKeyMultiplexProducer(父类是MultiplexProducer)
-  private final Producer<T> mInputProducer;
-  //一个queue，里面有ThreadPoolExecutor
-  private final ThreadHandoffProducerQueue mThreadHandoffProducerQueue;
-  
-  public void produceResults(Consumer<T> consumer, ProducerContext context) {
-    // new了一个runnable出来，在这个runnable内会将图片请求委托给mInputProducer
-  	Runnable<T> runnable = new StatefulProducerRunnable {
-      protected void onSuccess(@Nullable T ignored) {
-        mInputProducer.produceResults(consumer, context);
-      }
+    //从AbstractDraweeController#getDataSource()开始调用，会调到ImagePipeline#fetchDecodedImage()
+    //ImagePipeline
+    public DataSource<CloseableReference<CloseableImage>> fetchDecodedImage() {
+      //首个Producer获取，一般是BitmapMemoryCacheProducer
+      Producer<CloseableReference<CloseableImage>> producerSequence =
+              mProducerSequenceFactory.getDecodedImageProducerSequence(imageRequest);
+      return submitFetchRequest(producerSequence, ...)
     }
-    //将runnable添加到异步线程池里面等待执行
-    mThreadHandoffProducerQueue.addToQueueOrExecute(runnable);
-  }
-  ```
+    
+    private <T> DataSource<CloseableReference<T>> submitFetchRequest() {
+      //将首个Producer给传进去，new一个CloseableProducerToDataSourceAdapter
+      return CloseableProducerToDataSourceAdapter.create(producerSequence, settableProducerContext);
+    }
+    ```
 
-  4. `MultiplexProducer` -> 不找。Producer for combining multiple identical requests into a single request.
+  3. 首个`Producer`开始执行`produceResults`，并注册`Consumer`
 
-  ```java
-  //下一个Producer -> BitmapMemoryCacheProducer
-  private final Producer<T> mInputProducer;
-  
-  public void produceResults(Consumer<T> consumer, ProducerContext context) {
-    //组合的过程比较复杂，与请求过程关系不大，先跳过不看了
-    mInputProducer.produceResults(forwardingConsumer, multiplexProducerContext);
-  }
-  ```
+     ```java
+     //CloseableProducerToDataSourceAdapter
+     private CloseableProducerToDataSourceAdapter() {
+       //构造函数直接走到super，super是AbstractProducerToDataSourceAdapter
+       super(producer, settableProducerContext, listener);
+     }
+     
+     //AbstractProducerToDataSourceAdapter
+     protected AbstractProducerToDataSourceAdapter() {
+       //开始调用producer.produceResults了，并且注册了回调createConsumer()
+       //这里的producer是BitmapMemoryCacheProducer
+       producer.produceResults(createConsumer(), settableProducerContext);
+     }
+     
+     private Consumer<T> createConsumer() {
+       return new BaseConsumer<T>() {
+         protected void onNewResultImpl(T newResult) {
+           //注册的回调就是给dataSource的实现类result赋值，这样接口方法`T getResult();`才能返回
+           AbstractProducerToDataSourceAdapter.this.onNewResultImpl(newResult);
+         }
+       }
+     }
+     ```
 
-  5. `BitmapMemoryCacheProducer` -> 又找了一次内存缓存，简直离谱
+* 各种各种的`Producer`
 
-  ```java
-  //下一个Producer -> DecodeProducer
-  private final Producer<CloseableReference<CloseableImage>> mInputProducer;
-  
-  public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
-    //没找到就将请求委托给mInputProducer
-    mInputProducer.produceResults(wrappedConsumer, producerContext);
-  }
-  ```
+  1. `BitmapMemoryCacheProducer` -> 尝试从内存缓存中找
 
-  6. `DecodeProducer`
-  7. `ResizeAndRotateProducer`
-  8. `AddImageTransformMetaDataProducer`
-  9. `EncodedMemoryCacheProducer`
-  10. `DiskCacheReadProducer`
-  11. `DiskCacheWriteProducer`
-  12. `NetworkFetchProducer`
+     ```java
+     //内存缓存容器
+     private final MemoryCache<CacheKey, CloseableImage> mMemoryCache;
+     //cacheKey容器
+     private final CacheKeyFactory mCacheKeyFactory;
+     //下一个Producer -> ThreadHandoffProducer
+     private final Producer<CloseableReference<CloseableImage>> mInputProducer;
+     
+     public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
+       //...代码太多了，讲一下代码的逻辑
+       
+       //看下isBitmapCacheEnabled，开启就从根据key从内存缓存map里找，cacheKey默认是图片url，找到的话就执行回调然后返回，如下图
+       if(cachedReference != null) {
+         consumer.onNewResult(cachedReference);
+         return;
+       }
+       
+       //没找到就将请求委托给mInputProducer
+       mInputProducer.produceResults(wrappedConsumer, producerContext);
+     }
+     ```
 
-* 重点设计思路
-  * 将整个图片处理过程拆成很多小的个，利用责任链模式通过`producer`一步步串起来
+  2. `ThreadHandoffProducer` -> 不找，将任务委托到非UI线程
+
+     ```java
+     //下一个Producer -> BitmapMemoryCacheKeyMultiplexProducer(父类是MultiplexProducer)
+     private final Producer<T> mInputProducer;
+     //一个queue，里面有ThreadPoolExecutor
+     private final ThreadHandoffProducerQueue mThreadHandoffProducerQueue;
+     
+     public void produceResults(Consumer<T> consumer, ProducerContext context) {
+       // new了一个runnable出来，在这个runnable内会将图片请求委托给mInputProducer
+     	Runnable<T> runnable = new StatefulProducerRunnable {
+         protected void onSuccess(@Nullable T ignored) {
+           mInputProducer.produceResults(consumer, context);
+         }
+       }
+       //将runnable添加到异步线程池里面等待执行
+       mThreadHandoffProducerQueue.addToQueueOrExecute(runnable);
+     }
+     ```
+
+  3. `MultiplexProducer` -> 不找。Producer for combining multiple identical requests into a single request.
+
+     ```java
+     //下一个Producer -> BitmapMemoryCacheProducer
+     private final Producer<T> mInputProducer;
+     
+     public void produceResults(Consumer<T> consumer, ProducerContext context) {
+       //组合的过程比较复杂，与请求过程关系不大，先跳过不看了
+       mInputProducer.produceResults(forwardingConsumer, multiplexProducerContext);
+     }
+     ```
+
+  4. `BitmapMemoryCacheProducer` -> 又找了一次内存缓存，简直离谱
+
+     ```java
+     //下一个Producer -> DecodeProducer
+     private final Producer<CloseableReference<CloseableImage>> mInputProducer;
+     
+     public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
+       //没找到就将请求委托给mInputProducer
+       mInputProducer.produceResults(wrappedConsumer, producerContext);
+     }
+     ```
+
+  5. `DecodeProducer`
+
+  6. `ResizeAndRotateProducer`
+
+  7. `AddImageTransformMetaDataProducer`
+
+  8. `EncodedMemoryCacheProducer`
+
+  9. `DiskCacheReadProducer`
+
+  10. `DiskCacheWriteProducer`
+
+  11. `NetworkFetchProducer`
+
+* `PostProcessor`原理
+
+  1. `new`一个 `PostprocessorProducer`，并将`BaseProducer`传进去当作下一个`inputProducer`
+
+     ```java
+     //ImagePipeline
+     public DataSource<CloseableReference<CloseableImage>> fetchDecodedImage() {
+       //这个入口会去获取首个producer
+       Producer<CloseableReference<CloseableImage>> producerSequence =
+               mProducerSequenceFactory.getDecodedImageProducerSequence(imageRequest);
+       return submitFetchRequest(...)
+     }
+     
+     //ProducerSequenceFactory
+     public Producer getDecodedImageProducerSequence(imageRequest) {
+       //基础的Producer
+       Producer<> pipelineSequence = getBasicDecodedImageSequence(imageRequest);
+       //如果有Postprocessor，就将producer包一层，将pipelineSequence作为下一个Producer
+       if (imageRequest.getPostprocessor() != null) {
+         //开始包一层
+         pipelineSequence = getPostprocessorSequence(pipelineSequence);
+       }
+       //返回包了一层的Producer
+       return pipelineSequence;
+     }
+     private Producer getPostprocessorSequence() {
+       //将刚才的Producer当成inputProducer传进去
+       PostprocessorProducer postprocessorProducer = mProducerFactory.newPostprocessorProducer(inputProducer);
+     }
+     ```
+
+  2. ``PostprocessorProducer`的处理实际上是把`Consumer`给包一层
+
+     ```java
+     //PostprocessorProducer
+     public void produceResults() {
+       //从ImageRequest中获取Processor
+       Postprocessor postprocessor = context.getImageRequest().getPostprocessor();
+       //将原来的Consumer用PostprocessorConsumer包一层
+       PostprocessorConsumer postprocessorConsumer = new PostprocessorConsumer(consumer, listener, postprocessor, context);
+       //啥都不干，直接让mInputProducer去produce图片。把包好的consumer给传进去
+       mInputProducer.produceResults(postprocessorConsumer, context);
+     }
+     ```
+
+  3. `PostprocessorConsumer`处理
+
+     1. `DelegatingConsumer` -> 如何将`Consumer`给包一层
+
+        ```java
+        public abstract class DelegatingConsumer {
+          private final Consumer<O> mConsumer;
+          public DelegatingConsumer(Consumer<O> consumer) {
+            mConsumer = consumer;
+          }
+          public Consumer<O> getConsumer() {
+            return mConsumer;
+          }
+          
+          protected void onFailureImpl(Throwable t) { mConsumer.onFailure(t);}
+        }
+        ```
+
+     2. `PostprocessorConsumer` -> 将内层`Consumer`给拦截住，处理结束后在通知内层`Consumer`
+
+        ```java
+        //PostprocessorConsumer
+        private final Postprocessor mPostprocessor;
+        //涉及异步线程操作了
+        private final Executor mExecutor;
+        
+        //缓存、网络等producer返回结果了
+        protected void onNewResultImpl(CloseableReference<CloseableImage> newResult, @Status int status) {
+          //开始准备Postprocessing
+          submitPostprocessing();
+        }
+        
+        private void submitPostprocessing() {
+          mExecutor.execute(
+            new Runnable() {
+              @Override
+              public void run() {
+                //在异步线程中执行Postprocessing
+                doPostprocessing(closeableImageRef, status);
+              }
+            }
+        }
+        
+        private void doPostprocessing(CloseableReference<CloseableImage> sourceImageRef) {
+          //核心处理的三行代码
+          CloseableStaticBitmap staticBitmap = (CloseableStaticBitmap) sourceImage;
+          Bitmap sourceBitmap = staticBitmap.getUnderlyingBitmap();
+          CloseableReference<Bitmap> bitmapRef = mPostprocessor.process(sourceBitmap, mBitmapFactory);
+          //处理后的Bitmap
+          destImageRef = new CloseableStaticBitmap(bitmapRef);
+          //获取内容的consumer，然后将新图片通知给内层consumer
+          getConsumer().onNewResult(destImageRef, status);
+        }
+        ```
 
 ***
 
