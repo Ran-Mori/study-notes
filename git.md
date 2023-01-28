@@ -117,3 +117,9 @@
 ### 将本地分支A推到远端分支B
 
 * `git push origin local_branch_nameA:remote_branch_B`
+
+### 查看两个commit之间的某个文件的git diff
+
+1. 让想查看的文件有一定的`git diff`
+2. 使用`git diff --name-only`快速查出这个文件的全路径名
+3. 使用`git diff [<options>] <commit>...<commit> [--] [<path>...]`来查看这个文件的diff
