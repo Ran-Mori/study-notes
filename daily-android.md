@@ -2844,7 +2844,10 @@
 
 * 各种各种的`Producer`
 
-  1. `BitmapMemoryCacheProducer` -> 尝试从内存缓存中找
+  1. `BitmapMemoryCacheProducer`
+
+     * 尝试从内存缓存中找`Bitmap`
+     * 包装`consumer`，将`result`存入`mMemoryCache`
 
      ```java
      //内存缓存容器
@@ -2865,6 +2868,21 @@
        
        //没找到就将请求委托给mInputProducer
        mInputProducer.produceResults(wrappedConsumer, producerContext);
+     }
+     
+     //包装consumer
+     protected Consumer<CloseableReference<CloseableImage>> wrapConsumer() {
+       return new DelegatingConsumer {
+         public void onNewResultImpl() {
+           //是否支持写入缓存
+           if (isBitmapCacheEnabledForWrite) {
+             //写入缓存
+             newCachedResult = mMemoryCache.cache(cacheKey, newResult);
+           }
+           //写入缓存后才执行原来的consumer的onNewResult()
+           getConsumer().onNewResult()
+         }
+       }
      }
      ```
 
@@ -2888,7 +2906,7 @@
      }
      ```
 
-  3. `MultiplexProducer` -> 不找。Producer for combining multiple identical requests into a single request.
+  3. `MultiplexProducer` -> 不找，Producer for combining multiple identical requests into a single request.
 
      ```java
      //下一个Producer -> BitmapMemoryCacheProducer
@@ -2900,7 +2918,7 @@
      }
      ```
 
-  4. `BitmapMemoryCacheProducer` -> 又找了一次内存缓存，简直离谱
+  4. `BitmapMemoryCacheProducer` -> 又找了一次`Bitmap`内存缓存，简直离谱
 
      ```java
      //下一个Producer -> DecodeProducer
@@ -2912,19 +2930,121 @@
      }
      ```
 
-  5. `DecodeProducer`
+  5. `DecodeProducer` -> 将解码任务封在`consumer`里往下传递
 
-  6. `ResizeAndRotateProducer`
+     ```java
+     public class DecodeProducer {
+       public void produceResults() {
+         ProgressiveJpegParser jpegParser = new ProgressiveJpegParser(mByteArrayPool);
+         progressiveDecoder =
+                 new NetworkImagesProgressiveDecoder(consumer,jpegParser);
+         mInputProducer.produceResults(progressiveDecoder)
+       }
+     }
 
-  7. `AddImageTransformMetaDataProducer`
+  6. `ResizeAndRotateProducer` 
 
-  8. `EncodedMemoryCacheProducer`
+     *  Resizes and rotates images according to the EXIF orientation data or a specified rotation angle. 
+     * 包一层`consumer`进行`resize、rotate`
 
-  9. `DiskCacheReadProducer`
+     ```java
+     public class ResizeAndRotateProducer {
+       public void produceResults(final Consumer<EncodedImage> consumer, final ProducerContext context) {
+         mInputProducer.produceResults(
+             new TransformingConsumer(consumer, context, mIsResizingEnabled, mImageTranscoderFactory),
+             context);
+       }
+     }
+     ```
 
-  10. `DiskCacheWriteProducer`
+  7. `AddImageTransformMetaDataProducer` ->
+
+     *  Add image transform meta data producer. 
+     * 包一层`consumer`
+
+     ```java
+     public class AddImageTransformMetaDataProducer {
+       public void produceResults(Consumer<EncodedImage> consumer, ProducerContext context) {
+         mInputProducer.produceResults(new AddImageTransformMetaDataConsumer(consumer), context);
+       }
+     }
+     ```
+
+  8. `EncodedMemoryCacheProducer` 
+
+     * 从内存缓存中找`encoded image`
+     * 包一层`consumer`将结果写入`mMemoryCache`
+
+  9. `DiskCacheReadProducer` -> 从磁盘中找
+
+  10. `DiskCacheWriteProducer` -> 仅仅是包了个`consumer`用于存磁盘缓存
 
   11. `NetworkFetchProducer`
+
+* 网络数据转成图片
+
+  1. 把网络流转换为`EncodeImage`
+
+     ```java
+     public class NetworkFetchProducer {
+       protected static void notifyConsumer(PooledByteBufferOutputStream pooledOutputStream) {
+         encodedImage = new EncodedImage(result);
+       }
+     }
+     ```
+
+  2. 决定图片的类型
+
+     ```java
+     public class DefaultImageFormatChecker {
+       public final ImageFormat determineFormat(byte[] headerBytes, int headerSize) {
+         if (isJpegHeader(headerBytes, headerSize)) {
+           return DefaultImageFormats.JPEG;
+         }
+     
+         if (isPngHeader(headerBytes, headerSize)) {
+           return DefaultImageFormats.PNG;
+         }
+       }
+     }
+     ```
+
+  3. 将`EncodeImage`变为`Bitmap`
+
+     ```java
+     public abstract class DefaultDecoder {
+       private CloseableReference<Bitmap> decodeFromStream() {
+         //EncodedImage只是包含所有信息，没有被解码。可以从中获取流
+         InputStream in = encodedImage.getInputStream();
+         //调用系统的方法，将流变成Bitmap。系统方法会调用到native
+         Bitmap decodedBitmap = BitmapFactory.decodeStream(inputStream, null, options);
+       }
+     }
+     ```
+
+  4. 将`Bitmap`变成`CloseableStaticBitmap`
+
+     ```java
+     public class DefaultImageDecoder {
+       public CloseableStaticBitmap decodeJpeg() {
+         //先从`EncodeImage`变为`Bitmap`
+         CloseableReference<Bitmap> bitmapReference = ...;
+         //在从`Bitmap`变成`CloseableStaticBitmap`
+          CloseableStaticBitmap closeableStaticBitmap = new CloseableStaticBitmap(bitmapReference);
+       }
+     }
+     ```
+
+  5. 将`CloseableStaticBitmap`变成`BitmapDrawable`
+
+     ```java
+     public class DefaultDrawableFactory {
+       public Drawable createDrawable(CloseableImage closeableImage) {
+         Drawable bitmapDrawable =
+                 new BitmapDrawable(mResources, closeableStaticBitmap.getUnderlyingBitmap());
+       }
+     }
+     ```
 
 * `PostProcessor`原理
 
@@ -2957,7 +3077,7 @@
      }
      ```
 
-  2. ``PostprocessorProducer`的处理实际上是把`Consumer`给包一层
+  2. `PostprocessorProducer`的处理实际上是把`Consumer`给包一层
 
      ```java
      //PostprocessorProducer
@@ -2973,10 +3093,13 @@
 
   3. `PostprocessorConsumer`处理
 
-     1. `DelegatingConsumer` -> 如何将`Consumer`给包一层
+     1. `DelegatingConsumer`
 
+        * 以下代码示例如何将`Consumer`给包一层
+        * 泛型表示这个`DelegateConsumer`的`输入`和`输出`
+     
         ```java
-        public abstract class DelegatingConsumer {
+        public abstract class DelegatingConsumer<I, O> extends BaseConsumer<I> {
           private final Consumer<O> mConsumer;
           public DelegatingConsumer(Consumer<O> consumer) {
             mConsumer = consumer;
@@ -2988,9 +3111,9 @@
           protected void onFailureImpl(Throwable t) { mConsumer.onFailure(t);}
         }
         ```
-
+     
      2. `PostprocessorConsumer` -> 将内层`Consumer`给拦截住，处理结束后在通知内层`Consumer`
-
+     
         ```java
         //PostprocessorConsumer
         private final Postprocessor mPostprocessor;
