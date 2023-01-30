@@ -2858,44 +2858,45 @@
   1. `BitmapMemoryCacheProducer`
 
      * 尝试从内存缓存中找`Bitmap`
+
      * 包装`consumer`，将`result`存入`mMemoryCache`
 
-     ```java
-     //内存缓存容器
-     private final MemoryCache<CacheKey, CloseableImage> mMemoryCache;
-     //cacheKey容器
-     private final CacheKeyFactory mCacheKeyFactory;
-     //下一个Producer -> ThreadHandoffProducer
-     private final Producer<CloseableReference<CloseableImage>> mInputProducer;
-     
-     public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
-       //...代码太多了，讲一下代码的逻辑
+       ```java
+       //内存缓存容器
+       private final MemoryCache<CacheKey, CloseableImage> mMemoryCache;
+       //cacheKey容器
+       private final CacheKeyFactory mCacheKeyFactory;
+       //下一个Producer -> ThreadHandoffProducer
+       private final Producer<CloseableReference<CloseableImage>> mInputProducer;
        
-       //看下isBitmapCacheEnabled，开启就从根据key从内存缓存map里找，cacheKey默认是图片url，找到的话就执行回调然后返回，如下图
-       if(cachedReference != null) {
-         consumer.onNewResult(cachedReference);
-         return;
+       public void produceResults(Consumer<CloseableReference<CloseableImage>> consumer, ProducerContext context) {
+         //...代码太多了，讲一下代码的逻辑
+         
+         //看下isBitmapCacheEnabled，开启就从根据key从内存缓存map里找，cacheKey默认是图片url，找到的话就执行回调然后返回，如下图
+         if(cachedReference != null) {
+           consumer.onNewResult(cachedReference);
+           return;
+         }
+         
+         //没找到就将请求委托给mInputProducer
+         mInputProducer.produceResults(wrappedConsumer, producerContext);
        }
        
-       //没找到就将请求委托给mInputProducer
-       mInputProducer.produceResults(wrappedConsumer, producerContext);
-     }
-     
-     //包装consumer
-     protected Consumer<CloseableReference<CloseableImage>> wrapConsumer() {
-       return new DelegatingConsumer {
-         public void onNewResultImpl() {
-           //是否支持写入缓存
-           if (isBitmapCacheEnabledForWrite) {
-             //写入缓存
-             newCachedResult = mMemoryCache.cache(cacheKey, newResult);
+       //包装consumer
+       protected Consumer<CloseableReference<CloseableImage>> wrapConsumer() {
+         return new DelegatingConsumer {
+           public void onNewResultImpl() {
+             //是否支持写入缓存
+             if (isBitmapCacheEnabledForWrite) {
+               //写入缓存
+               newCachedResult = mMemoryCache.cache(cacheKey, newResult);
+             }
+             //写入缓存后才执行原来的consumer的onNewResult()
+             getConsumer().onNewResult()
            }
-           //写入缓存后才执行原来的consumer的onNewResult()
-           getConsumer().onNewResult()
          }
        }
-     }
-     ```
+       ```
 
   2. `ThreadHandoffProducer` -> 不找，将任务委托到非UI线程
 
@@ -2955,31 +2956,33 @@
 
   6. `ResizeAndRotateProducer` 
 
-     *  Resizes and rotates images according to the EXIF orientation data or a specified rotation angle. 
+     * Resizes and rotates images according to the EXIF orientation data or a specified rotation angle. 
+
      * 包一层`consumer`进行`resize、rotate`
 
-     ```java
-     public class ResizeAndRotateProducer {
-       public void produceResults(final Consumer<EncodedImage> consumer, final ProducerContext context) {
-         mInputProducer.produceResults(
-             new TransformingConsumer(consumer, context, mIsResizingEnabled, mImageTranscoderFactory),
-             context);
+       ```java
+       public class ResizeAndRotateProducer {
+         public void produceResults(final Consumer<EncodedImage> consumer, final ProducerContext context) {
+           mInputProducer.produceResults(
+               new TransformingConsumer(consumer, context, mIsResizingEnabled, mImageTranscoderFactory),
+               context);
+         }
        }
-     }
-     ```
+       ```
 
   7. `AddImageTransformMetaDataProducer` ->
 
-     *  Add image transform meta data producer. 
+     * Add image transform meta data producer. 
+
      * 包一层`consumer`
 
-     ```java
-     public class AddImageTransformMetaDataProducer {
-       public void produceResults(Consumer<EncodedImage> consumer, ProducerContext context) {
-         mInputProducer.produceResults(new AddImageTransformMetaDataConsumer(consumer), context);
+       ```java
+       public class AddImageTransformMetaDataProducer {
+         public void produceResults(Consumer<EncodedImage> consumer, ProducerContext context) {
+           mInputProducer.produceResults(new AddImageTransformMetaDataConsumer(consumer), context);
+         }
        }
-     }
-     ```
+       ```
 
   8. `EncodedMemoryCacheProducer` 
 
@@ -3107,21 +3110,22 @@
      1. `DelegatingConsumer`
 
         * 以下代码示例如何将`Consumer`给包一层
+     
         * 泛型表示这个`DelegateConsumer`的`输入`和`输出`
      
-        ```java
-        public abstract class DelegatingConsumer<I, O> extends BaseConsumer<I> {
-          private final Consumer<O> mConsumer;
-          public DelegatingConsumer(Consumer<O> consumer) {
-            mConsumer = consumer;
+          ```java
+          public abstract class DelegatingConsumer<I, O> extends BaseConsumer<I> {
+            private final Consumer<O> mConsumer;
+            public DelegatingConsumer(Consumer<O> consumer) {
+              mConsumer = consumer;
+            }
+            public Consumer<O> getConsumer() {
+              return mConsumer;
+            }
+            
+            protected void onFailureImpl(Throwable t) { mConsumer.onFailure(t);}
           }
-          public Consumer<O> getConsumer() {
-            return mConsumer;
-          }
-          
-          protected void onFailureImpl(Throwable t) { mConsumer.onFailure(t);}
-        }
-        ```
+          ```
      
      2. `PostprocessorConsumer` -> 将内层`Consumer`给拦截住，处理结束后在通知内层`Consumer`
      
