@@ -115,6 +115,17 @@
   }
   ```
 
+* `sticky event`
+
+  1. 参考链接：[Sticky Events](https://greenrobot.org/eventbus/documentation/configuration/sticky-events/)
+  2. 概念：当使用`EventBus.getDefault().postSticky()`抛出一个事件时，这个事件就是`sticky event`。内存中始终会存储最近抛出的一个`sticky event`
+  3. 作用：一旦注册了EventBus，即`EventBus.getDefault().register(this)`，它`@Subscribe(sticky = true)`的方法就会看是否有这个已经抛出过被存储在内存中的`sticky event`，一旦有则立刻执行`@Subscribe`的方法体
+  4. 关键API
+     * `EventBus.getDefault().postSticky(stickyEvent)`
+     * `@Subscribe(sticky = true)`
+     * `EventBus.getDefault().getStickyEvent(class)`
+     * `EventBus.getDefault().removeStickyEvent(stickyEvent)`
+
 ***
 
 ## LifeCycleOwner
