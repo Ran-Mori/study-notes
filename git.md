@@ -123,3 +123,7 @@
 1. 让想查看的文件有一定的`git diff`
 2. 使用`git diff --name-only`快速查出这个文件的全路径名
 3. 使用`git diff [<options>] <commit>...<commit> [--] [<path>...]`来查看这个文件的diff
+
+### rebase到某个指定的commit
+
+* `git rebase --onto <new_parent_commit_id> <old_parent_commit_id>`
