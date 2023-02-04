@@ -320,6 +320,12 @@ fun performClick(): Boolean {
 * `下一层View`传递给`再下一层View`
 * 都没处理就让`Activity`处理
 
+### onXXX()与XXX()方法
+
+* `onMeasure()、onLayout()、onDraw()` -> 代表这个View如何实现`measure、layout、draw`
+* `measure()、layout()、draw()` -> 手动强项执行(或者系统某处需调用)`measure、layout、draw`
+* 执行`draw()`前请确保`measure()和layout()`执行过
+
 ### 滑动冲突场景
 
 * 场景一 —— 类似于`ViewPager`，一个左右滑，一个上下滑
