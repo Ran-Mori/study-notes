@@ -674,7 +674,7 @@ func do(i interface{}) {
 * 配置环境变量
 
 ```bash
-export PATH=$JAVA_HOME/bin:/Users/bytedance/enviroment/go/bin:$PATH
+export PATH=$JAVA_HOME/bin:/Users/izumisakai/enviroment/go/bin:$PATH
 export GO111MODULE=on
 ```
 
@@ -725,6 +725,217 @@ type Song struct {
 module awemesome/project
 go 1.16
 ```
+
+***
+
+## Runtime
+
+### 是什么
+
+* `java`的`runtime`可以理解成`jvm`
+* `javascript`的`runtime`可以理解成`browser engine or node engine`
+* `runtime`即程序运行的必要环境
+
+### go
+
+* `go sdk`下有一个核心的包叫`runtime`，它即`go`的运行时环境
+* `go`程序代码可以大致分为两个部分。两部分代码没有本质的区别
+  1. 用户的源代码
+  2. `sdk`下的`runtime`包代码
+* 即一个`go二进制`可执行文件既包含了用户代码，也包含了运行时代码。称为`自带运行时`
+
+### 功能
+
+1. 内存分配管理
+2. 垃圾回收
+3. 超强并发能力(协程调度)
+4. 屏蔽系统调用，实现跨平台
+5. `go`语言某些关键字在底层会转换成对`runtime`函数的调用
+
+***
+
+## 编译过程
+
+### `go build -n `
+
+1. 是什么 -> `print the commands but do not run them.`
+2. 注意什么 -> 执行前将编译产物可执行文件删除掉，不然只会执行一个`touch`命令
+
+### 编译命令展示
+
+```shell
+# import config
+packagefile fmt=/Users/izumisakai/Library/Caches/go-build/xxx
+packagefile runtime=/Users/izumisakai/Library/Caches/go-build/xxx
+cd /Users/izumisakai/Code/go/HelloWorld
+/opt/xxx/go/xxx/compile -o $WORK/b001/_pkg_.a ./main.go
+/opt/xxx/go/xxx/buildid -w $WORK/b001/_pkg_.a
+mkdir -p $WORK/b001/exe/
+cd .
+/opt/xxx/go/xxx/link -o $WORK/b001/exe/a.out $WORK/b001/_pkg_.a
+/opt/xxx/go/xxx/buildid -w $WORK/b001/exe/a.out
+mv $WORK/b001/exe/a.out HelloWorld
+```
+
+### 编译命令分析
+1. `import`阶段无论如何都会将`runtime`给`import`进来
+2. 编译命令是`/opt/xxx/go/xxx/compile`，编译的中间产物是`$WORK/b001/_pkg_.a`的`.a`文件
+3. 链接命令是`/opt/xxx/go/xxx/link`，输入文件是`.a`文件，输出文件是`a.out`
+4. 最后将`a.out`重命名为`HelloWorld`
+
+### 编译过程 
+* 就是传统的编译原理过程，中间有一步为了跨平台生成`中间码SSA`
+* 查看中间码 -> `export GOSSAFUNC="main";go build;`
+* 查看机器相关的汇编码 -> `go build -gcflags -S main.go`
+  * `gcflags` -> `arguments to pass on each go tool compile invocation.`
+
+***
+
+## 程序如何运行
+
+### 执行汇编
+
+* 代码位置 -> `runtime/rto0_darwin_arm64.s`，`asm_arm64.s`
+
+* 将argc和argv压栈
+
+  ```assembly
+  TEXT runtime·rt0_go(SB),NOSPLIT|TOPFRAME,$0
+  	// SP = stack; R0 = argc; R1 = argv
+  
+  	SUB	$32, RSP
+  	MOVW	R0, 8(RSP) // argc
+  	MOVD	R1, 16(RSP) // argv
+  ```
+
+* 初始化`g0`协程
+
+  ```assembly
+  // create istack out of the given (operating system) stack.
+  // _cgo_init may update stackguard.
+  MOVD	$runtime·g0(SB), g
+  MOVD	RSP, R7
+  MOVD	$(-64*1024)(R7), R0
+  MOVD	R0, g_stackguard0(g)
+  MOVD	R0, g_stackguard1(g)
+  MOVD	R0, (g_stack+stack_lo)(g)
+  MOVD	R7, (g_stack+stack_hi)(g)
+  ```
+
+
+### 汇编代码的一系列操作
+
+* 运行时检测 -> `BL	runtime·check(SB)`
+* 拷贝argc、argv到go语言里面去 -> BL  runtime·args
+* 调度器初始化 -> `BL  runtime·schedinit(SB)`
+* 创建主协程(第二个协程)(待调度) 来执行`runtime.main()`-> `MOVD  $runtime·mainPC(SB), R0; BL  runtime·newproc(SB)`
+* 将主协程放入调度器等待调度
+* 执行`rumtime.main()` -> `runtime/proc.go`
+
+### runtime.main()的系列操作
+
+* 执行一些初始化 -> `doInit(&runtime_inittask)`
+
+* 开启垃圾回收 -> `gcenable()`
+
+* 找到用户`main()`函数开始执行
+
+  ```go
+  //runtime/proc.go
+  
+  //go:linkname main_main main.main
+  func main_main() //链接的时候main_main会被链接到用户的main方法
+  
+  func main() {
+    fn := main_main 
+  	fn()
+  }
+  ```
+
+***
+
+## 面向对象
+
+### 官方解释
+
+* [yes or no](https://go.dev/doc/faq#Is_Go_an_object-oriented_language)
+
+### 继承
+
+* `go`不支持继承，只支持组合。所谓的继承只是编译器的语法糖
+
+  ```go
+  type People struct {
+  	name string
+  	age  int
+  }
+  
+  type Woman struct {
+  	People   // 这是一个匿名字段
+  	isBeauty bool
+  }
+  
+  func main() {
+  	woman := Woman{}
+  	woman.name = "woman.name" //这是一个语法糖，实际执行的是下面的语句
+  	woman.People.name = "woman.name"
+  
+  	fmt.Printf("hello world\n")
+  }
+  ```
+
+### 接口
+
+* `go`的接口是隐式实现的，而不是显式实现的
+
+  ```go
+  //定义接口
+  type HasLife interface {
+  	isAlive() bool
+  }
+  
+  //定义类
+  type People struct {
+  	name string
+  	age  int
+  }
+  
+  //手动隐式实现这个接口
+  func (p People) isAlive() bool  {
+  	return true
+  }
+  ```
+
+### 总结
+
+* 通过匿名字段，用组合的方式来达到继承的效果
+* 通过隐式的方法实现了传统语言的`interface`
+* 通过以上手段去除了面向对象复杂而冗余的部分，保留了基本的面向对象特性
+
+***
+
+## 包管理
+
+### java的包管理
+
+* `maven`和`gradle`都是很好的包管理方式
+* `java`引入的类型可以不单一
+  * 源码 - 很好理解，依赖源码肯定是没有问题的
+  * 字节码文件 - 即源代码编译的`.class`字节码文件，因为字节码文件是跨平台的，因此一般依赖的`jar`包内就是字节码文件
+
+### 必须依赖源码
+
+* 由于`go`没有`字节码`这种中间码，因此它的包依赖必须是源代码
+
+### go mod
+
+* 将go包与git项目关联起来
+* 版本号就是git项目的tag
+
+### 参考指令
+
+1. `go help mod`
+2. `go help get`
 
 ***
 
