@@ -173,17 +173,6 @@ switch os := runtime.GOOS; os {
 
 ## 第三章 - 基础数据类型
 
-### go的基础数据类型
-
-* `string、int、float、complex`
-* 其中`int`有`8,16,32,64,u8,u16,u32,u64`。`int、uint`位宽取决于机器大小
-* `byte`其实是`uint8`
-* `rune`其实是`int32`
-
-### 强制转换
-
-* `Type(value)`
-
 ### go语言四种类型
 
 * 基础类型
@@ -191,27 +180,61 @@ switch os := runtime.GOOS; os {
 * 引用类型
 * 接口类型
 
-### 等价类型
+### 一些工具方法
 
-* `type rune int32`    `type byte uint8`   
-* 即实际底层类型是一样的
+* 强制转换 -> `Type(value)`
+* 查看字节数 -> `unsafe.Sizeof(bool(false)`
+
+### 基础数据类型
+
+* `bool`
+* `string`
+* `int  int8  int16  int32  int64 uint uint8 uint16 uint32 uint64 uintptr`
+* `float32 float64`
+* `complex64 complex128`
+
+### 布尔
+
+* 长度为1个字节
+
+### 字符串
+
+* 在`runtime/string.go`下的定义
+
+  ```go
+  type stringStruct struct {
+  	str unsafe.Pointer
+  	len int
+  }
+  ```
+
+* 长度 -> `16`字节；编码方式 -> `UTF - 8`；`len`含义 -> **字节数目**而不是**rune**数目
+
+* 因为使用`utf-8`编码，因此涉及字符数组的编码与解码。实现在`unicode/utf8/utf8.go`下
+
+* 字符串支持比较，比较原则就是字符串的字典序
+
+* 不可变性
+
+  * 和`Java`一样，`go`语言中的字符串是不可变的
+  * `s[i:j]`和Java的`substring(i,j)`一样，会重新产生一个字符串
+  * 由于字符串不变，因此某些情况下可以高效地共享底层的内存而不用重新分配，如进行字符串复制和切片的时候
+
+
+### 整数
+
+* 其中`int、uint、uintptr`是自适应机器字长的。`int、uint` + `8,16,32,64`这种是强制写死不适应机器字长
+* `byte // alias for uint8`
+* `rune // alias for int32`
 
 ### 复数
 
 * `complex64`   `complex128` 分别对应32位和64位的 float
 * 复数声明`x := 3 + 4i`，`var x complex128 = complex(3,4)`
 
-### 字符串
-
-* 和Java一样，go语言中的字符串是不可变的
-* 字符串是采用UTF-8进行编码的
-* `len()`函数返回的是字符串的**字节数目**而不是**rune**数目，这点要做区分。如`len("大人") = 6`
-* `s[i:j]`和Java的`substring(i,j)`一样，会重新产生一个字符串
-* 字符串支持比较，比较原则就是字符串的字典序
-* 由于字符串不变，因此某些情况下可以高效地共享底层的内存而不用重新分配，如进行字符串复制和切片的时候
-
 ### Unicode
 
+* `type rune = int32`
 * `rune`对应的是一个`int32`类型，即Unicode每个码点都占4字节，即使是ASCII码都占4字节
 
 ### UTF-8
@@ -235,15 +258,34 @@ switch os := runtime.GOOS; os {
 
 ## 第四章 - 复合数据类型
 
-### Struct
+### struct
 
-```go
-type Song struct {
-Id int
-Name string
-Singer string
-}
-```
+* 示例
+
+  ```go
+  type Song struct {
+    Id int
+    Name string
+    Singer string
+  }
+  ```
+
+* 空结构体
+
+  ```go
+  type Song struct {}
+  ```
+
+  * 在内存中所占的大小是`0`字节
+
+  * `runtime/molloc.go` 
+
+    ```go
+    // base address for all 0-byte allocations
+    var zerobase uintptr
+    ```
+
+  * 作用 -> 节约内存，如`hashset`的`value`就可以是空结构体
 
 ### 数组
 
@@ -258,40 +300,62 @@ var array [2]int //自动初始为零值
 var array = [2]int{1, 2} //手动初始化
 ```
 
-### Slice
+### slice
 
-* 可以理解成Java里面的List
-* Slice有两个重要属性
-  * cap值：代表现在底层数组的实际大小。实际上底层就是一个数组
-  * len值：代表现在实际正在使用的有多少
+* 底层数据结构 -> `runtime/slice.go`
+
+  ```go
+  type slice struct {
+  	array unsafe.Pointer
+  	len   int
+  	cap   int
+  }
+  ```
+
+* 本质 -> 对数组的引用，可以理解成就是一个指针
+
+* 两个重要属性
+  * cap：代表现在底层数组的实际大小。实际上底层就是一个数组
+  * len：代表现在实际正在使用的有多少
+
 * 即使`cap`够但访问范围超过`len`依然是不允许的
+
 * slice是不能进行比较的
-* slice不存储数据，它只是一段数组的引用
+
 * 声明
 
 ```go
+//字面量声明, 本质是先创建一个数组，然后在创建了一个runtime/slice.go下的结构体
+s := []int{1, 2, 3}
+
+
 //截取固定长度数组式声明
 primes := [6]int{2, 3, 5, 7, 11, 13}
 s := primes[1:4]
 
-//使用make声明
-a := make([]int,2,3) //len=2,cap=3
-a[2] = 2//会报错
-a := a[0,3]//把len从2扩成3
-a[2] = 2//不会报错
+//使用make声明，本质调用的是runtime/slice.go#makeslice(et *_type, len, cap int)方法
+a := make([]int, 2, 3) //len=2,cap=3
+a[2] = 2 //会报错
+a := a[0,3] //把len从2扩成3
+a[2] = 2 //不会报错
 ```
 
-* append cap不够会重新分配内存
+* `append`
 
-```go
-old := make([]int,2,2)
-new := append(old,2)
-```
+  ```go
+  old := make([]int, 2, 2)
+  new := append(old, 2)
+  ```
+
+  * `cap`足够时调整一下`len`就可以了
+  * `cap`不够时，原来底层数组不要了，扩大长度重新分配。实现在`runtime/slice.go#growslice()`
+  * slice扩容时因为老的底层数组不要了，涉及数组替换。它是并发不安全的，可能需要上锁
+
 
 * range
 
 ```go
-q := make([]int,2,2)
+q := make([]int, 2, 2)
 for i,v := range q {
   fmt.Println(i,v)
 }
