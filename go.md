@@ -363,10 +363,75 @@ for i,v := range q {
 
 ### map
 
-* 声明：`m := make(map[string]string)`
-* 赋值：`m["izumisakai"] = "So together"`
-* 读值：`elem, ok = m[key]`
-* 删除：`delete(m, key)`
+* 实际实现 -> `runtime/map.go`
+
+* 底层数据结构 -> `runtime/map.go#hmap`
+
+  ```go
+  type hmap struct {
+  	// Note: the format of the hmap is also encoded in cmd/compile/internal/reflectdata/reflect.go.
+  	// Make sure this stays in sync with the compiler's definition.
+  	count     int // # live cells == size of map.  Must be first (used by len() builtin)
+  	flags     uint8
+  	B         uint8  // log_2 of # of buckets (can hold up to loadFactor * 2^B items)
+  	noverflow uint16 // approximate number of overflow buckets; see incrnoverflow for details
+  	hash0     uint32 // hash seed
+  
+  	buckets    unsafe.Pointer // array of 2^B Buckets. may be nil if count==0.
+  	oldbuckets unsafe.Pointer // previous bucket array of half the size, non-nil only when growing
+  	nevacuate  uintptr        // progress counter for evacuation (buckets less than this have been evacuated)
+  
+  	extra *mapextra // optional fields
+  }
+  ```
+
+* 初始化
+
+  ```go
+  //make -> runtime/map.go#makemap()
+  m := make(map[string]struct{}, 10)
+  
+  //字面量
+  m := map[string]struct{} {
+    "a": {},
+    "b": {},
+  }
+  ```
+
+* 读写删
+
+  ```go
+  //读
+  elem, ok = m[key]
+  //写
+  m["izumisakai"] = "So together"
+  //删
+  delete(m, key)
+  ```
+
+* 算法实现差异
+  * `java`中的`HashMap`是用的`桶法`，每个桶后可能是一个链表，甚至可能是红黑树
+  * `go`中的`map`也是用的`桶法`，但每个桶的大小是固定的`8`，当一个桶装不下时它有一个溢出桶的概念
+  * 每个桶还存了8个key的`topHash`，方便在一个桶中找元素时快速找到
+* 访问 -> `elem, ok = m[key]`，给`m`传入一个`key`尝试去读出`elem`
+  1. `key + hmap.hash0` 得到`hashvalue`
+  2. `hashvalue + hmap.B` 得到 `bmap`
+  3. `hashvalue` 得到 `keyTopHashValue`
+  4. `bmap.tophash 中找 keyTopHashValue ` 得到 `index`
+     * 找不到则可能在`溢出桶`里
+     * `溢出桶`都找不到说明根本没有这个`key`
+  5. `bmap.keys[index]` 得到 `value_key`
+  6. `value_key 与 key`进行比较，如果OK则真正的`elem`为`bmap.elems[index]`
+     * 不OK则可能是`topHash`碰撞了，就重复`4`步骤
+* 扩容
+  * 溢出桶太多时 -> 实际就成了`java HashMap`的链表结构，只不过这里的链表的每一个节点是一个桶而不是一个值
+  * 底层实现 -> `runtime/map.go#hashGrow(t *maptype, h *hmap)`
+  * 扩容类型
+    1. 等量扩容 -> 数据不多但是溢出桶太多了(常见于删除case)
+    2. 翻倍扩容 -> 数据太多，溢出桶也多。采用渐进式扩容，不是一次就将所有老桶的数据迁移到所有新桶，而是每次写的时候将一个老桶数据迁移到两个新桶
+* 并发
+  * `map`是并发不安全的，极致追求性能
+  * go语言提供了另外一个`sync/map.go`，它在原生的`map`上包了一层，是并发安全的。它不是读写分离，而是扩容操作与非扩容操作分离
 
 ### json
 
@@ -453,15 +518,54 @@ func main(){
 
 ## 第七章 - 接口
 
-### go接口特点
+### 特点
 
 * 不需要显示地声明实现了某个接口，只需要实现类含有特定的方法就行
 
-* 类似Java里面的`toString()`，go语言有一个接口如下
+  ```go
+  //定义接口
+  type HasLife interface {
+  	isAlive() bool
+  }
+  
+  //定义类
+  type People struct {
+  	name string
+  	age  int
+  }
+  
+  //手动隐式实现这个接口
+  func (p People) isAlive() bool  {
+  	return true
+  }
+  ```
+
+* 类似`java`里面的`toString()`，go语言有一个接口如下
 
   ```go
   type Stringer interface{
       String() string
+  }
+  ```
+
+### 底层实现
+
+* 示例语句 -> `var p HasLife = People {}`
+
+* `p`的实际类型是`runtime/runtime2.go#iface`
+
+  ```go
+  type iface struct {
+  	tab  *itab //存储实现了那些方法
+  	data unsafe.Pointer //真正的实现
+  }
+  
+  type itab struct {
+  	inter *interfacetype
+  	_type *_type
+  	hash  uint32 // copy of _type.hash. Used for type switches.
+  	_     [4]byte
+  	fun   [1]uintptr // variable sized. fun[0]==0 means _type does not implement inter.
   }
   ```
 
