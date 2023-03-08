@@ -96,9 +96,9 @@
 * 太猛了，交换变量直接一步搞定
 * `x, y = y, x`
 
-### 类型
+### 类型重命名
 
-* 基础语法`type 类型名字 底层类型`
+* 基础语法`type 类型新名字 底层类型`
 * 底层类型一般为`struct`，如果不是`struct`则为类型另外取名
 
 ### 包的初始化和依赖
@@ -113,7 +113,7 @@
 * 生命周期是存在的时间段，是一个运行时属性
 * `for`、`if`这种语句在判断时就有一个作用域
 
-### For
+### for
 
 ```go
 sum := 0
@@ -127,7 +127,7 @@ for x > 0 {
 }
 ```
 
-### If
+### if
 
 ```go
 if x < 0 {
@@ -142,7 +142,7 @@ if v := math.Pow(x, n); v < lim {
 }
 ```
 
-### Swich
+### swich
 
 ```go
 switch os := runtime.GOOS; os {
@@ -180,10 +180,14 @@ switch os := runtime.GOOS; os {
 * 引用类型
 * 接口类型
 
-### 一些工具方法
+### 类型转换
 
 * 强制转换 -> `Type(value)`
-* 查看字节数 -> `unsafe.Sizeof(bool(false)`
+* 尝试转换 -> `value.(Type)`
+
+### 查看字节数
+
+* `unsafe.Sizeof(bool(false)`
 
 ### 基础数据类型
 
@@ -232,6 +236,21 @@ switch os := runtime.GOOS; os {
 * `complex64`   `complex128` 分别对应32位和64位的 float
 * 复数声明`x := 3 + 4i`，`var x complex128 = complex(3,4)`
 
+### nil
+
+* 定义 -> `builtin/builtin.go#nil`
+
+  ```go
+  // nil is a predeclared identifier representing the zero value for a
+  // pointer, channel, func, interface, map, or slice type.
+  var nil Type // Type must be a pointer, channel, func, interface, map, or slice type
+  ```
+
+* 含义
+
+  * `nil`本质是一个变量，就是一个普通的变量而已
+  * `nil`的类型实际有`6`种`type`，且是这6种type的`zero value`
+
 ### Unicode
 
 * `type rune = int32`
@@ -276,16 +295,23 @@ switch os := runtime.GOOS; os {
   type Song struct {}
   ```
 
-  * 在内存中所占的大小是`0`字节
+  * 内存大小
 
-  * `runtime/molloc.go` 
+    * 在内存中所占的大小是`0`字节
 
-    ```go
-    // base address for all 0-byte allocations
-    var zerobase uintptr
-    ```
-
-  * 作用 -> 节约内存，如`hashset`的`value`就可以是空结构体
+    * `runtime/molloc.go` 
+  
+      ```go
+      // base address for all 0-byte allocations
+      var zerobase uintptr
+      ```
+  
+    * 作用 -> 节约内存，如`hashset`的`value`就可以是空结构体
+  
+  * 值
+  
+    * 值不可能是`nil`，因为`nil`的6种类型中没有`struct`
+    * 指针也不可能是`nil`，因为它的指针是`zerobase`即`uintptr`
 
 ### 数组
 
@@ -569,11 +595,30 @@ func main(){
   }
   ```
 
+### 实体方法和指针方法
+
+1. 当手动实现`func (p People) isAlive() bool`方法时，编译器会自动生成`func (p *People) isAlive() bool`方法
+2. 但当手动实现`func (p *People) isAlive() bool`方法时，编译器不会自动生成`func (p People) isAlive() bool`方法
+
 ### 空接口
 
-* `interface{}`空接口类型对实现它的类型没有任何要求，因此可以把任何一个类型赋值给空接口
-* 因为每个类都实现了没有任何方法的接口
-* 有那么一点Java的Object内味了
+* 底层类型 -> `runtime/runtime2#eface`
+
+  ```go
+  type eface struct {
+  	_type *_type //这个字段更是简略
+  	data  unsafe.Pointer //这个字段和iface一样
+  }
+  ```
+
+* 任何类型的值都能转成空接口
+
+  * 原理 -> 将传入的值转换成一个`eface`对象，只不过这一步是在编译的时候做的
+
+* 是否为`nil`
+
+  * 当且仅当`type`为`nil`，且`data`为`nil`时，空接口变量才是`nil`
+
 
 ### 接口的值
 
