@@ -720,6 +720,185 @@ func do(i interface{}) {
 * `f()`调用函数f()并等待返回
 * `go f()`创建一个goroutine，调用f()并不等待返回继续执行
 
+### 底层表示
+
+* `runtime/runtime2.go#g`
+
+  ```go
+  type g struct {
+    stack     stack //栈起始地址-结束地址
+    sched     gobuf //有sp和pc，表示目前协程的运行现场
+    atomicstatus atomic.Uint32
+    goid         uint64
+  }
+  
+  type stack struct {
+  	lo uintptr
+  	hi uintptr
+  }
+  ```
+
+### 线程
+
+* 底层结构 - `runtime/runtime2.go#m`
+
+  ```go
+  type m struct {
+    g0      *g //g0协程，操作调度器
+    curg    *g //当前运行的协程
+    mOS //每种操作系统特有的信息
+  }
+  ```
+
+* 协程单线程循环
+
+  1. `runtime/proc.go#schedule()`
+
+     ```go
+     func schedule() {
+       gp, inheritTime, tryWakeP := findRunnable()
+       execute(gp, inheritTime)
+     }
+
+  2. `runtime/proc.go#execute()`
+
+     ```go
+     func execute(gp *g, inheritTime bool) {
+       gogo(&gp.sched)
+     }
+     ```
+
+  3. `runtime/asm_arm64.s#gogo` //平台相关，用汇编实现
+
+     * 将`goexit()`方法插入栈帧
+     * 将`pc`指定到协程的第一行代码
+     * 在协程栈上执行协程
+
+  4. 在协程栈中执行业务方法
+
+  5. `runtime/asm_arm64.x#goexit` 
+
+  6. `runtime/proc.go#goexit1`
+
+     ```go
+     func goexit1() {
+       //传入一个方法指针
+     	mcall(goexit0)
+     }
+     
+     //mcall switches from the g to the g0 stack and invokes fn(g)
+     func mcall(fn func(*g))
+     
+     // goexit continuation on g0.
+     func goexit0(gp *g) {
+       //重新执行步骤1
+       schedule()
+     }
+     ```
+
+### GMP调度模型
+
+* 含义: `G -> 协程`、`M -> 线程`、`P -> `
+
+* 当前问题
+
+  * 多线程调度队列里面的协程时，需要加锁，冲突厉害，影响性能
+
+* 解决思路
+
+  * 每次不从协程队列里面取一个，而是取一堆，这样就能降低锁冲突
+
+* `p`底层结构 -> `runtime/runtime2.go#p`
+
+  ```go
+  type p struct {
+    m    muintptr
+    // Queue of runnable goroutines. Accessed without lock.
+  	runqhead uint32
+  	runqtail uint32
+  	runq     [256]guintptr
+    runnext guintptr
+  }
+  ```
+
+* `schedule()`方法如何找到协程来执行 -> `runtime.proc.go#findRunnable()`内
+* 关系结构
+  * 一个`m`对应一个`p`
+  * 一个`p`对应多个`g`
+* 新建协程 -> `runtime.proc.go#newproc()`
+  * 随机寻找一个`p`
+  * 将新协程放入`p`的`runnext` -> `runtime.proc.go#runqput()`
+  * 若这个`p`的队列满了，则放在全局队列
+  * 思想是新创建的协程先执行
+
+### 协程并发
+
+* 协程饥饿问题
+
+  * 某个`m`上正在执行的`g`需要很久才能执行结束
+  * 而`p`上的某些`g`如网络请求回来需要快速响应，因为正在执行的`g`阻塞而导致无法执行
+
+* 全局饥饿问题
+
+  * `p`上所有的`g`都很耗时，导致全局队列中的`g`得不到执行
+
+* 主动挂起协程
+
+  * 底层位置 -> `runtime/proc.go#gopark()`
+
+    ```go
+    func gopark() {
+      mcall(park_m) //调用mcall则切换栈
+    }
+    func park_m(gp *g) {
+      schedule() //让g0重新调度
+    }
+    ```
+
+  * `time.sleep()`底层就是这个原理
+
+* 系统调用完成时
+
+  * 在系统调用完成时会重新调度
+  * `runtime/proc.go#exitsyscall()`
+
+* `runtime/stubs.go#morestack()`
+
+  * 编译器会在`g`中的每个函数调用前插入代码执行这个函数
+
+    ```assembly
+    //编译器插入代码
+    0x00e8 00232 (main.go:25)  CALL    runtime.morestack_noctxt(SB)
+    0x00ec 00236 (main.go:25)  PCDATA  $0, $-1
+    0x00ec 00236 (main.go:25)  JMP     0
+    ```
+
+  * 本意：在执行一个函数前检查协程栈空间是否足够
+
+  * 标记抢占
+
+    * 系统监控到某一个`g`运行超过`10ms`，会将`g`的某一个字段置成某个值
+
+  * 这个函数的实现里面有一个逻辑
+
+    * 判断`g`的某个字段是否为某个特定值
+    * 如果是，则保存现场，切换栈，调用`schedule`
+
+* 基于信号的抢占式调度
+
+  * 线程注册信号处理函数`runtime/signal_unix.go/doSigPreempt()`
+  * `gc`时发送这个信号
+  * 收到这个信号后调用`doSigPreempt()`，然后调用到`schedule`完成调度
+
+### 协程太多
+
+* 结果：`g`太多会耗尽系统资源，最后`panic`，类似于`sof`
+* 处理方案
+  * 优化业务逻辑 - 不说了
+  * 利用`channel`缓冲区 - 推荐
+  * 协程池 - 别用
+  * 调整系统资源 - 说了等于白说
+
 ### channel
 
 * 可以让一个goroutine通过channel给另一个goroutine发送消息
