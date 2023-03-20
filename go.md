@@ -976,11 +976,143 @@ func do(i interface{}) {
 
 ## 第九章 - 基于共享变量的并发
 
+### atomic.AddInt32
+
+* 实现位置 - `runtime/intenal/atomic/atomic_arm.s#·Xaddint32`
+
+* 汇编原理
+
+  ```assembly
+  TEXT ·Xadd64(SB),NOSPLIT,$-4-20
+  	MOVB	runtime·goarm(SB), R11
+  	CMP	$7, R11 #核心实现
+  	BLT	2(PC)
+  	JMP	armXadd64<>(SB)
+  	JMP	·goXadd64(SB)
+  ```
+
+### semaphore
+
+* 底层结构 - `runtime/sema.go#semaRoot`
+
+  ```go
+  type semaRoot struct {
+  	lock  mutex
+  	treap *sudog        // 每一个sudog都指向了一个协程
+  	nwait atomic.Uint32 // Number of waiters. Read w/o the lock.
+  }
+  
+  type sudog struct {
+    g *g 
+    next *sudog
+  	prev *sudog
+  	elem unsafe.Pointer
+    //……
+  }
+  ```
+
+* `uint32 > 0`时信号`+1`与`-1`
+
+  ```go
+  // -1
+  func semacquire(addr *uint32) {
+  	semacquire1(addr, false, 0, 0, waitReasonSemacquire)
+  }	
+  
+  func semacquire1(addr *uint32) {
+    if cansemacquire(addr) {
+  		return
+  	}
+  }
+  
+  func cansemacquire(addr *uint32) bool {
+  	for {
+  		v := atomic.Load(addr) //原子load
+  		if v == 0 {
+  			return false
+  		}
+  		if atomic.Cas(addr, v, v-1) { //cas减1
+  			return true
+  		}
+  	}
+  }
+  
+  //+1
+  func semrelease1(addr *uint32, handoff bool, skipframes int) {
+  	root := semtable.rootFor(addr)
+    atomic.Xadd(addr, 1) //直接 +1
+  }
+  ```
+
+* `uint32 < 0`时
+
+  ```go
+  func semacquire1(addr *uint32) {
+    // Harder case:
+  	//	increment waiter count
+  	//	try cansemacquire one more time, return if succeeded
+  	//	enqueue itself as a waiter
+  	//	sleep
+  	//	(waiter descriptor is dequeued by signaler)
+    root.queue(addr, s, lifo) //加入到等待队列
+    goparkunlock(&root.lock, reason, traceEvGoBlockSync, 4+skipframes) //休眠
+  }
+  
+  func semrelease1(addr *uint32) {
+    s, t0 := root.dequeue(addr) //取出来
+    readyWithTime(s, 5+skipframes) //里面会调用goready
+  }
+  ```
+
+* 总结
+  1. 大于`0`时就是普通的信号量
+  2. 等于`0`时就是普通的等待队列(实际是树)
+
 ### sync.Mutex
 
-* 就是Java里面的锁
-* 只不过这个锁是不可重入的，和Java稍微有些不一样
-* 特点是无论读和写都会上锁和释放锁
+* 底层结构
+
+  ```go
+  type Mutex struct {
+  	state int32
+  	sema  uint32
+  }
+  ```
+
+  * `state`
+    * `0 - 28` - 排队等待个数
+    * `29` - 饥饿标志位
+    * `30` - 唤醒标志位
+    * `31` - 上锁标志位
+
+* 特点
+
+  * 就是`Java`里面的锁
+  * 只不过这个锁是不可重入的，和`Java`稍微有些不一样
+  * 特点是无论读和写都会上锁和释放锁
+
+* 普通加锁
+
+  * 过程
+    * 尝试`CAS`上锁
+    * 尝试自旋几次
+    * 放到`semaphore`的队列里面
+
+  * 代码位置 -> `mutex#Lock()`
+  * 可能导致问题 - `锁饥饿`
+    * 即已经等待很久从等待队列释放出来的协程依旧要和外面刚来在自旋的协程竞争，而且很可能竞争不过
+
+* 饥饿模式
+
+  * 标志位 - `Mutex#state`的第29位
+  * 进入条件 - 某个协程等待锁时间超过`1ms`
+  * 表现
+    * 新来的协程不自旋
+    * 被唤醒的协程直接获得锁
+
+  * 退出
+    * `semaphore`队列清空
+
 
 ### sync.RWMutex
 
