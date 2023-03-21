@@ -1116,12 +1116,45 @@ func do(i interface{}) {
 
 ### sync.RWMutex
 
-* 读时不上锁，写时才上锁
+* 底层结构
 
-### goroutine和线程
+  ```go
+  type RWMutex struct {
+  	w           Mutex
+  	writerSem   uint32
+  	readerSem   uint32
+  	readerCount atomic.Int32
+  	readerWait  atomic.Int32 
+  }
+  ```
 
-* 动态栈：goroutine的栈大小是可以动态变化的，因此可以创建成千上万的goroutine
-* 调度：goroutine的调度类似于协程调度
+* 实现
+
+  * 一个读队列，一个写队列
+  * 无论读还是写都需要上锁，只不过上的锁不一样而已
+  * 当且仅当没上写锁时才能上读锁，已上读锁可以再上读锁
+  * 当且仅当没上读锁与写锁时才能上写锁
+
+
+### sync.WaitGroup
+
+* 底层结构
+
+  ```go
+  type WaitGroup struct {
+  	noCopy noCopy
+  	state atomic.Uint64 // high 32 bits are counter, low 32 bits are waiter count.
+  	sema  uint32 //等待执行结束后被唤醒的g队列
+  }
+  ```
+
+### 锁拷贝
+
+* 不要去拷贝锁，可能导致死锁问题
+
+### race竞争检测
+
+* 可以用它来检测本来应该上锁但没上锁的情况
 
 ### GOMAXPROCS
 
