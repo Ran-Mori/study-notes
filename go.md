@@ -901,76 +901,140 @@ func do(i interface{}) {
 
 ### channel
 
-* 可以让一个goroutine通过channel给另一个goroutine发送消息
-* 创建：`ch := make(char 发送的类型, size)`
-* 发送：`ch <- x` ，接收：`x = <- ch`  ，关闭`close(channel)`
+* 作用：可以让一个`goroutine`通过`channel`给另一个`goroutine`发送消息
 
-### 不带缓存的channel
+* 操作
 
-* 无缓存channel(即size默认为0的channel)的发送操作会使自身陷入阻塞状态，直到被接收方成功接收才会继续执行
-* 如果接收着接收无缓存的channel，也会同样陷入阻塞状态
-* 有那么一点同步阻塞内味了，实际就是一次同步操作
+  1. 创建：`ch := make(char 发送的类型, size)`
+  2. 发送：`ch <- x` 
+  3. 接收：`x = <- ch` 
+  4. 关闭`close(channel)`
 
-### Happen before原则
+* 缓冲
+
+  1. 不带缓冲 -> `ch := make(char) or ch := make(char, 0)`
+  2. 带缓冲 -> `ch := make(char, 1)`
+
+* 不带缓冲
+
+  * 不带缓冲时，发送操作会使`g`进入阻塞挂起状态，直到有接收方接收时`g`才会继续执行
+
+* 底层结构 -> `runtime#hchan`
+
+  ```go
+  type hchan struct {
+  	qcount   uint           // total data in the queue
+  	dataqsiz uint           // size of the circular queue
+  	buf      unsafe.Pointer // points to an array of dataqsiz elements
+  	elemsize uint16
+  	closed   uint32
+  	elemtype *_type // element type
+  	sendx    uint   // send index
+  	recvx    uint   // receive index
+  	recvq    waitq  // list of recv waiters
+  	sendq    waitq  // list of send waiters
+  	lock mutex
+  }
+  ```
+
+  1. 缓存区
+     * 用的是`环形队列`
+     * 优势：环形队列不用频繁分配和释放内存，可以降低`GC`的压力达到更高的性能
+  2. 发送队列
+     * 用的链表实现
+  3. 接收队列
+     * 同发送队列
+  4. `mutex`
+     * 访问`chan`之前必须获得锁
+     * 即进入队列和操作数据那很小一段时间是锁的，其他时间都不锁
+  5. 状态值
+     * 标志是否关闭
+
+* 发送数据
+
+  * 语法糖：编译器会将`<-`转换成对应的函数`chansend1()、chanrecv1()`
+  * 三种情况
+    1. 直接发送 -> 接收队列里面已有等待的`g`，直接取`g`出来，赋值然后唤醒
+    2. 有缓存 -> 直接放入环形队列
+    3. 阻塞 -> 把自己放入发送队列
+
+* 非阻塞chanel
+
+  * 使用
+
+    ```go
+    select {
+      case 1 <- c1:
+      	//...
+      case c2 >- 2:
+      	//...
+      default:
+      	//...
+    }
+    ```
+
+
+### 共享内存与通信
+
+1. 通过共享内存来通信
+
+   * 代码示例
+
+     ```go
+     func printHello(p *int) {
+     	for true {
+     		if *p == 1 {
+     			fmt.Println("hello")
+     			break
+     		}
+     	}
+     }
+     
+     func main() {
+     	i := 0
+     	go printHello(&i)
+     	time.Sleep(time.Second)
+     	i = 1
+     	time.Sleep(time.Second)
+     }
+     ```
+
+   * 上述代码通过共享`p`的指针来达到通信的目的
+
+2. 通过通信来共享内存
+
+   * 代码示例
+
+     ```go
+     func printHello(c chan int) {
+     	if <-c == 1 {
+     		fmt.Println("hello")
+     	}
+     }
+     
+     func main() {
+     	c := make(chan int)
+     	go printHello(c)
+     	time.Sleep(time.Second)
+     	c <- 1
+     	time.Sleep(time.Second)
+     }
+     ```
+
+   * 优势
+
+     1. 共享内存来通信会频繁读内存，很可能会造成`g`读同一段内存而冲突
+     2. 更高级的抽象，提高可读性和可维护性
+     3. 更容易解耦，增强拓展性和可维护性
+
+### happen before原则
 
 * 通常说的X时间要在Y事件之前发生，不是说的X事件一定比Y事件先发生，而是指必须等X事件完成后才能进行B事件
 * 即开始时间的先后没有关系，我们只看衔接的先后顺序
 
-### 管道
-
-* 将多个channel串联起来就形成了管道
-
-### 单方向channel
-
-* `chan<- type`只发送不接收
-* `<-chan type`只接收不发送
-* 将双向的channel赋值给单向的channel会做隐式的类型转换，而倒过来赋值则可能会报错
-
-### 带缓存的channel
-
-* 创建：`var ch := make(chan int,3)`，其内含一个元素队列
-* 真的有消息队列内味了，发送操作就是向队尾插入元素，接收操作就是从队头取元素
-* `cap(channel)`返回的是元素队列的大小，`len(channel)`返回的是元素队列中含有多少个消息
-* 当队列满了继续发送时会进入阻塞状态，当队列空了继续读入也会陷入阻塞状态
-* 应用举例：并发地从三个源处获取信息，信息返回存放在channel中，且channel缓存设置成3，最后只从缓存中读取一次并做最后的返回，这样就能获取最先返回的内容，且慢的也不会被阻塞
-
 ### goroutine泄露
 
 * 某goroutine因为没人接收或等待读入而永远卡住，泄露的goroutine不会被自动回收，会对系统造成很大的风险
-
-### select多路复用
-
-* select语句使用
-
-  ```go
-  select{
-      case <-ch :
-      //...
-      case x := <-ch2
-      //...
-  }
-  ```
-
-* 整体结构类似于switch - case语句
-
-* select会等待case中有一个然后去执行，当case条件满足时就去执行其中一个case。
-
-* 一个没有任何case的select语句会永远阻塞在那里
-
-* 当多个case同时满足时会随机选择一个进行执行
-
-* 举例
-
-  ```go
-  ch := make(chan int, 1)
-  for i := 0;i < 10;i++{
-      select {
-          case ch <- i:
-      case x := <-ch:
-          fmt.Println(x)
-      }
-  }
-  ```
 
 ***
 
