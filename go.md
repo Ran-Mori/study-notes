@@ -1290,6 +1290,70 @@ func do(i interface{}) {
 
 ***
 
+## 高并发应用 - TCP网络编程
+
+### 预期分层
+
+1. g - 协程
+2. GMP调度 - 协程调度
+3. Go网络层 
+   * `Network Poller` - 每个操作系统的实现不一样
+   * 多路复用抽象层 - 用于屏蔽不同操作系统的IO多路复用实现
+4. IO多路复用(epoll、kqueue、IOCP) - 操作系统对IO多路复用的实现
+5. socket - 操作系统对网络连接的抽象
+
+### 预期
+
+1. 在操作系统层使用IO多路复用，在应用程序层使用阻塞式IO
+2. 一个`socket`给一个`g`处理，且是阻塞式处理
+3. 当阻塞时就挂起`g`不进行调度，不阻塞时通知`g`恢复调度
+
+### 抽象多路复用层
+
+* 实现 -> `runtime#netpoll.go`
+
+  ```go
+  // Integrated network poller (platform-independent part).
+  ```
+
+* 关键类型
+
+  * `runtime#pollDesc` -> 将`g`与`socket抽象`成一个对象
+
+    ```go
+    type pollDesc struct {
+      fd   uintptr //socket文件描述符
+      rg atomic.Uintptr //读g
+    	wg atomic.Uintptr //写g
+    }
+    ```
+
+  * `runtime#pollCache` -> 带一个锁的链表头
+
+    ```go
+    type pollCache struct {
+    	lock  mutex
+    	first *pollDesc
+    }
+    ```
+
+* 关键方法
+
+  * `runtime#netpollinit()` -> 新建多路复用器
+  * `runtime#netpollopen()` -> 插入监听事件
+  * `runtime#netpoll()` -> 返回就绪事件列表
+
+### net poller
+
+* 循环调用
+  * `g0`协程调用`runtime#gcStart()`方法会调用到`runtime#netpoll()`，因此一直会去查询就绪事件列表并返回
+
+### `net package` -> `net poller` -> `os`
+
+* 研究清楚三者之间的关系
+
+***
+
 ## 建立Go项目
 
 * 配置环境变量
