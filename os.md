@@ -158,13 +158,9 @@ wait(0);
 wait(0);
 ```
 
-
-
-
-
 ***
 
-## Operating system interfaces
+## operating system interfaces
 
 ### what os does
 
@@ -254,7 +250,7 @@ if(fork() == 0) {
 
 ***
 
-## Operating system organization
+## operating system organization
 
 ### requirements
 
@@ -335,19 +331,21 @@ if(fork() == 0) {
 
 ## Traps and system calls
 
-* three kinds of event
-  * system call
-  * an exception
-  * device interrupt
+### three kinds of event
+
+* system call
+* an exception
+* device interrupt
 
 
 ## Interrupts and device drivers
 
-* functions of driver
-  * configures the device hardware
-  * tells the device to perform operations
-  * handles the resulting interrupts
-  * interacts with processes that may be waiting for I/O from the device
+### functions of driver
+
+* configures the device hardware
+* tells the device to perform operations
+* handles the resulting interrupts
+* interacts with processes that may be waiting for I/O from the device
 
 ***
 
@@ -372,3 +370,68 @@ reference [NebulorDang/xv6-lab-2021](https://github.com/NebulorDang/xv6-lab-2021
 
 1. recursive `fork`.
 2. write many into one end of a pipe, then read many from the other end of a pipe.
+
+***
+
+## tcp/ip(v4)
+
+### what is?
+
+* They are part of the main [protocols](https://en.wikipedia.org/wiki/Communications_protocol) of the [Internet protocol suite](https://en.wikipedia.org/wiki/Internet_protocol_suite)
+* They are a group of interfaces in fact.
+
+### what relation?
+
+* OS implements tcp/ip. 
+* TCP/IP software usually resides in the operating system(kernel code).
+
+***
+
+## socket
+
+### reference
+
+* [wiki network socket](https://en.wikipedia.org/wiki/Network_socket)
+* [wike berkeley sockets](https://en.wikipedia.org/wiki/Berkeley_sockets)
+
+### diffrent meanings
+
+* network/internet socket - it is a software structure within a network node of a computer network that serves as an endpoint for sending and receiving data across the network.
+* socket descriptor - it is a handle created by the network protocol stack api for each socket(internet socket) created by an application. In Unix-like operating systems, this descriptor is a type of file descriptor.
+* socket addresses - it is is the triad of transport protocol, IP address, and port number. Transport protocol usually is tcp, but it doesn't have to.
+* socket api - The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Internet socket APIs are usually based on the Berkeley sockets standard.
+
+### diffrent types
+
+* datagram sockets - Connectionless sockets, which use User Datagram Protocol(UDP).
+* stream sockets - Connection-oriented sockets, which use TCP, SCTP or DCCP. 
+* raw sockets - Allow direct sending and receiving of IP packets without any protocol-specific transport layer formatting. 
+
+### what relation?
+
+* OS has implemented the netword protocol stack, it offer a set of socket api, usually Berkeley sockets api. 
+
+### AF_UNIX vs AF_INET
+
+* reference
+  * [example to explain unix domain socket - AF_INET vs AF_UNIX](https://stackoverflow.com/questions/21032562/example-to-explain-unix-domain-socket-af-inet-vs-af-unix)
+  * [wiki Unix domain socket](https://en.wikipedia.org/wiki/Unix_domain_socket)
+* what is?
+  * It is a `socket address familiy` defined in [socket.h](https://github.com/openbsd/src/blob/master/sys/sys/socket.h)
+* AF_UNIX
+  * It is a data communications endpoint for exchanging data between processes executing on the **same** host operating system. 
+  * The API for Unix domain sockets is similar to that of an Internet socket, but rather than using an underlying network protocol, all communication occurs entirely within the operating system kernel.
+  * The Unix domain socket facility is a standard component of [POSIX](https://en.wikipedia.org/wiki/POSIX) [operating systems](https://en.wikipedia.org/wiki/Operating_system).
+* AF_NET
+  * AF_INET sockets sit at the top of a full TCP/IP stack. 
+
+### Berkeley sockets
+
+* what is? 
+  *  it is an application programming interface(API) for Internet sockets and Unix domain sockets, used for inter-process communication. 
+  * It is commonly implemented as a library of linkable modules.
+* The Berkeley sockets API represents network socket as a file descriptor (file handle) in the Unix philosophy that provides a common interface for input and output to streams of data.
+* [socket.h](https://github.com/openbsd/src/blob/master/sys/sys/socket.h)
+
+***
+
