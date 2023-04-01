@@ -398,7 +398,7 @@ reference [NebulorDang/xv6-lab-2021](https://github.com/NebulorDang/xv6-lab-2021
 
 * network/internet socket - it is a software structure within a network node of a computer network that serves as an endpoint for sending and receiving data across the network.
 * socket descriptor - it is a handle created by the network protocol stack api for each socket(internet socket) created by an application. In Unix-like operating systems, this descriptor is a type of file descriptor.
-* socket addresses - it is is the triad of transport protocol, IP address, and port number. Transport protocol usually is tcp, but it doesn't have to.
+* socket addresses - it is is the triad of transport protocol, IP address, and port number. Transport protocol usually is tcp, but it doesn't have to, for example udp instead.
 * socket api - The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Internet socket APIs are usually based on the Berkeley sockets standard.
 
 ### diffrent types
@@ -432,6 +432,3 @@ reference [NebulorDang/xv6-lab-2021](https://github.com/NebulorDang/xv6-lab-2021
   * It is commonly implemented as a library of linkable modules.
 * The Berkeley sockets API represents network socket as a file descriptor (file handle) in the Unix philosophy that provides a common interface for input and output to streams of data.
 * [socket.h](https://github.com/openbsd/src/blob/master/sys/sys/socket.h)
-
-***
-
