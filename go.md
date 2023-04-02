@@ -1292,15 +1292,16 @@ func do(i interface{}) {
 
 ## 高并发应用 - TCP网络编程
 
-### 预期分层
+### 分层
 
 1. g - 协程
 2. GMP调度 - 协程调度
-3. Go网络层 
-   * `Network Poller` - 每个操作系统的实现不一样
-   * 多路复用抽象层 - 用于屏蔽不同操作系统的IO多路复用实现
-4. IO多路复用(epoll、kqueue、IOCP) - 操作系统对IO多路复用的实现
-5. socket - 操作系统对网络连接的抽象
+3. goroutine-per-connect code style
+4. net 包
+5. `Network Poller` - 每个操作系统的实现不一样
+6. 多路复用抽象层 - 用于屏蔽不同操作系统的IO多路复用实现
+7. IO多路复用(epoll、kqueue、IOCP) - 操作系统对IO多路复用的实现
+8. socket - 操作系统对网络连接的抽象
 
 ### 预期
 
@@ -1322,9 +1323,10 @@ func do(i interface{}) {
 
     ```go
     type pollDesc struct {
+      link *pollDesc // 链表结构，表头是pollCache
       fd   uintptr //socket文件描述符
-      rg atomic.Uintptr //读g
-    	wg atomic.Uintptr //写g
+      rg atomic.Uintptr // pdReady, pdWait, G waiting for read or pdNil
+    	wg atomic.Uintptr // pdReady, pdWait, G waiting for write or pdNil
     }
     ```
 
