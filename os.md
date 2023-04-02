@@ -425,10 +425,63 @@ reference [NebulorDang/xv6-lab-2021](https://github.com/NebulorDang/xv6-lab-2021
 * AF_NET
   * AF_INET sockets sit at the top of a full TCP/IP stack. 
 
-### Berkeley sockets
+## Berkeley sockets api
 
-* what is? 
-  *  it is an application programming interface(API) for Internet sockets and Unix domain sockets, used for inter-process communication. 
-  * It is commonly implemented as a library of linkable modules.
+### what is? 
+
+*  it is an application programming interface(API) for Internet sockets and Unix domain sockets, used for inter-process communication. 
+* It is commonly implemented as a library of linkable modules.
+
+### feature
+
 * The Berkeley sockets API represents network socket as a file descriptor (file handle) in the Unix philosophy that provides a common interface for input and output to streams of data.
-* [socket.h](https://github.com/openbsd/src/blob/master/sys/sys/socket.h)
+
+
+### defination - [socket.h](https://github.com/openbsd/src/blob/master/sys/sys/socket.h)
+
+```c++
+/* Types */
+#define	SOCK_STREAM	1		/* stream socket */
+#define	SOCK_DGRAM	2		/* datagram socket */
+#define	SOCK_RAW	3		/* raw-protocol interface */
+#define	SOCK_RDM	4		/* reliably-delivered message */
+#endif
+
+#ifndef _TIMEVAL_DECLARED
+#define _TIMEVAL_DECLARED
+struct timeval {
+	time_t		tv_sec;		/* seconds */
+	suseconds_t	tv_usec;	/* and microseconds */
+};
+#endif
+
+/*
+ * Address families.
+ */
+#define	AF_UNSPEC	0		/* unspecified */
+#define	AF_UNIX		1		/* local to host */
+#define	AF_LOCAL	AF_UNIX		/* draft POSIX compatibility */
+#define	AF_INET		2		/* internetwork: UDP, TCP, etc. */
+
+struct sockaddr {
+	__uint8_t    sa_len;		/* total length */
+	sa_family_t sa_family;		/* address family */
+	char	    sa_data[14];	/* actually longer; address value */
+};
+
+int	socket(int, int, int);
+int	bind(int, const struct sockaddr *, socklen_t);
+int	listen(int, int);
+int	accept(int, struct sockaddr *, socklen_t *);
+int	connect(int, const struct sockaddr *, socklen_t);
+```
+
+### purpose of each api
+
+* nonblocking api
+  * `socket()` - This function is used to create a new socket. It does not block and returns a file descriptor for the socket.
+  * `bind()` - This function is used to bind a socket to a specific address and port. It does not block and returns immediately after it is called.
+* blocking api
+  * `listen()` - This function is used to set up a socket to listen for incoming client connections. It puts the socket in a passive listener state and blocks until a connection is established.
+  * `accept()` - This function is used to accept an incoming client connection on a server socket. It blocks until a client connection is established and returns a new socket object to handle the communication with the client.
+  * `connect()` - This function is used to establish a connection to a remote server. It blocks until the connection is established or an error occurs.
