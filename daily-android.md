@@ -3060,6 +3060,23 @@
      }
      ```
 
+  6. 不同的中间物意义
+
+    1. `PooledByteBufferOutputStream` - 这是网络流
+    2. `EncodeImage` 
+       * it is implemented a lightweight wrapper around an encoded byte stream.
+       * Encoded image data is a compressed representation of an image that has been prepared for storage or transmission. 
+       * Encoded images are generally smaller in size than decoded images because they have been compressed to reduce their file size. 
+       * it cannot be directly displayed on a screen without first being decoded.
+       * it takes up very little memory compared to the decoded image data. This allows Fresco to load and cache multiple images at once without using excessive memory.
+    3. `DecodeImage`
+       * Decoded image data  is the uncompressed representation of an image that can be directly displayed on a screen.
+       * Decoded images are generally larger in size than their encoded counterparts because they contain all of the image data necessary for display, such as pixel values and color information.
+       * Decoding an encoded image involves unpacking the compressed data and reconstructing the original image.
+       * The process of decoding an encoded image typically involves reading the encoded image data from disk or network, decompressing the data, and constructing a DecodedImage object that represents the resulting bitmap or other format suitable for display.
+    4. `Bitmap`
+       * DecodedImage is a higher-level abstraction used by Fresco to manipulate and manage the image data, while Bitmap is a lower-level representation of the actual pixel data that can be displayed on a screen.
+
 * 不同level drawable显示原理
 
   * `DraweeView`始终都只设置了一个`Drawable`
@@ -3085,9 +3102,9 @@
       super.setImageDrawable(drawable);
     }
     ```
-  
+
   * `ImageView#Drawable` = `getTopLevelDrawable()` = `RootDrawable` = `FadeDrawable`
-  
+
     ```java
     public class GenericDraweeHierarchy {
       private final RootDrawable mTopLevelDrawable;
@@ -3101,9 +3118,9 @@
       }
     }
     ```
-  
+
   * `FadeDrawble`原理
-  
+
     ```java
     //一个drawable容器
     private final Drawable[] mLayers;
@@ -3169,12 +3186,12 @@
       }
     }
     ```
-  
+
   * 总结
-  
+
     1. 只有一个`RootDrawable`，但这个`RootDrawable`包装了`FadeDrawable`，`FadeDrawable`是一个`Drawable`数组容器
     2. 显示不同的层是通过设置`alpha`来控制`draw`实现的
-  
+
 * `PostProcessor`原理
 
   1. `new`一个 `PostprocessorProducer`，并将`BaseProducer`传进去当作下一个`inputProducer`
