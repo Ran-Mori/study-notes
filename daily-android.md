@@ -2657,7 +2657,7 @@
 
   * `DraweeHierachy`
 
-    * ``Draweable`的容器，从`BACKGROUND -> OVERLAY`一共包含7层`Drawable`
+    * `Draweable`的容器，从`BACKGROUND -> OVERLAY`一共包含7层`Drawable`
 
       ```java
       public class GenericDraweeHierarchy {
@@ -2805,27 +2805,27 @@
 
   2. `DataSource`获取、首个`Producer`获取并注入`DataSource`
 
-    ```java
-    //AbstractDraweeController
-    protected void submitRequest() {
-      //非常核心的一行，去获取dataSource
-    	mDataSource = getDataSource();
-    }
-    
-    //从AbstractDraweeController#getDataSource()开始调用，会调到ImagePipeline#fetchDecodedImage()
-    //ImagePipeline
-    public DataSource<CloseableReference<CloseableImage>> fetchDecodedImage() {
-      //首个Producer获取，一般是BitmapMemoryCacheProducer
-      Producer<CloseableReference<CloseableImage>> producerSequence =
-              mProducerSequenceFactory.getDecodedImageProducerSequence(imageRequest);
-      return submitFetchRequest(producerSequence, ...)
-    }
-    
-    private <T> DataSource<CloseableReference<T>> submitFetchRequest() {
-      //将首个Producer给传进去，new一个CloseableProducerToDataSourceAdapter
-      return CloseableProducerToDataSourceAdapter.create(producerSequence, settableProducerContext);
-    }
-    ```
+     ```java
+     //AbstractDraweeController
+     protected void submitRequest() {
+       //非常核心的一行，去获取dataSource
+     	mDataSource = getDataSource();
+     }
+     
+     //从AbstractDraweeController#getDataSource()开始调用，会调到ImagePipeline#fetchDecodedImage()
+     //ImagePipeline
+     public DataSource<CloseableReference<CloseableImage>> fetchDecodedImage() {
+       //首个Producer获取，一般是BitmapMemoryCacheProducer
+       Producer<CloseableReference<CloseableImage>> producerSequence =
+               mProducerSequenceFactory.getDecodedImageProducerSequence(imageRequest);
+       return submitFetchRequest(producerSequence, ...)
+     }
+     
+     private <T> DataSource<CloseableReference<T>> submitFetchRequest() {
+       //将首个Producer给传进去，new一个CloseableProducerToDataSourceAdapter
+       return CloseableProducerToDataSourceAdapter.create(producerSequence, settableProducerContext);
+     }
+     ```
 
   3. 首个`Producer`开始执行`produceResults`，并注册`Consumer`
 
@@ -3060,6 +3060,121 @@
      }
      ```
 
+* 不同level drawable显示原理
+
+  * `DraweeView`始终都只设置了一个`Drawable`
+
+    ```java
+    public void setHierarchy(DH hierarchy) {
+      mDraweeHolder.setHierarchy(hierarchy);
+      //设置drawable
+      super.setImageDrawable(mDraweeHolder.getTopLevelDrawable());
+    }
+    
+    public void setController(@Nullable DraweeController draweeController) {
+      mDraweeHolder.setController(draweeController);
+      //设置drawable
+      super.setImageDrawable(mDraweeHolder.getTopLevelDrawable());
+    }
+    
+    @Deprecated
+    public void setImageDrawable(@Nullable Drawable drawable) {
+      init(getContext());
+      mDraweeHolder.setController(null);
+      //过期的方式，别去用
+      super.setImageDrawable(drawable);
+    }
+    ```
+  
+  * `ImageView#Drawable` = `getTopLevelDrawable()` = `RootDrawable` = `FadeDrawable`
+  
+    ```java
+    public class GenericDraweeHierarchy {
+      private final RootDrawable mTopLevelDrawable;
+      
+      GenericDraweeHierarchy() {
+        mTopLevelDrawable = new RootDrawable(mFadeDrawable); //将fadeDrawable给包了一层
+      }
+      
+      public Drawable getTopLevelDrawable() {
+        return mTopLevelDrawable; //对外暴露的方法
+      }
+    }
+    ```
+  
+  * `FadeDrawble`原理
+  
+    ```java
+    //一个drawable容器
+    private final Drawable[] mLayers;
+    //动画时间
+    int mDurationMs;
+    //每个level(index)的透明度
+    int[] mAlphas;
+    //Determines whether to fade-out a layer to zero opacity (false) or to fade-in to the full opacity (true)
+    boolean[] mIsLayerOn;
+    //The index of the layer that contains the actual image 
+    private final int mActualImageLayer;
+    
+    public FadeDrawable(Drawable[] layers, int actualImageLayer) {
+      //赋一个值
+      mLayers = layers;
+      //初始化每一层的alpha
+      mAlphas = new int[layers.length];
+      //把真正显示的层给设置好
+      mActualImageLayer = actualImageLayer;
+    }
+    
+    //设置某一层的drawable可见
+    public void fadeInLayer(int index) {
+      mTransitionState = TRANSITION_STARTING; //设置drawing的state
+      mIsLayerOn[index] = true; //将isOn设置成true
+      invalidateSelf(); //请求redraw
+    }
+    
+    //原理同上
+    public void fadeOutLayer(int index) {
+      mTransitionState = TRANSITION_STARTING;
+      mIsLayerOn[index] = false;
+      invalidateSelf();
+    }
+    
+    //专门只显示某一层
+    public void fadeToLayer(int index) {
+      mTransitionState = TRANSITION_STARTING;
+      Arrays.fill(mIsLayerOn, false);
+      mIsLayerOn[index] = true;
+      invalidateSelf();
+    }
+    
+    //核心的draw
+    public void draw(Canvas canvas) {
+      switch (mTransitionState) {
+        case TRANSITION_RUNNING:
+          done = updateAlphas(ratio); //核心语句，draw时更新alpha
+          //更新状态
+          mTransitionState = done ? TRANSITION_NONE : TRANSITION_RUNNING;
+          break;
+      }
+      for (int i = 0; i < mLayers.length; i++) {
+        //上面alpha数组更新好后，遍历更新每一层drawable的alpha
+        drawDrawableWithAlpha(canvas, mLayers[i], (int) Math.ceil(mAlphas[i] * mAlpha / 255.0));
+      }
+    }
+    
+    private boolean updateAlphas(float ratio) {
+      for (int i = 0; i < mLayers.length; i++) {
+        //更新数组内的alpha
+        mAlphas[i] = (int) (mStartAlphas[i] + dir * 255 * ratio);
+      }
+    }
+    ```
+  
+  * 总结
+  
+    1. 只有一个`RootDrawable`，但这个`RootDrawable`包装了`FadeDrawable`，`FadeDrawable`是一个`Drawable`数组容器
+    2. 显示不同的层是通过设置`alpha`来控制`draw`实现的
+  
 * `PostProcessor`原理
 
   1. `new`一个 `PostprocessorProducer`，并将`BaseProducer`传进去当作下一个`inputProducer`
