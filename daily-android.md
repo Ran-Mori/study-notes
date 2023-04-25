@@ -2417,17 +2417,6 @@
   }
   ```
 
-* ConstrainLayout属性
-
-  * layout_constraintHorizontal_bias
-    * 设左右约束布局分别为`left`和`rigth`
-    * `bias` = `left` / `(left + right)`
-
-  * layout_constraintHorizontal_chainStyle
-    * `spread`：左边界、中间、右边界平分所有空间
-    * `spread_inside`: 只有中间的平分
-    * `packed`:左边界、右边界平分。中间全部聚拢
-
 * FrameLayout
 
   * `xml`中最上面的是栈底，最下面最后写的是栈顶
