@@ -899,23 +899,64 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ***
 
-## Declarative and Imperative
+## declarative imperative reactive
 
-* 编程范式
-  * 声明式
-    * 函数式
-    * 约束式
-    * 响应式
-    * ……
-  * 过程式
-    * 面向对象
-    * 面向过程
+* relation between them
   
-* 定义
+  1. declarative programming
+  
+     1. functional programming
+  
+     2. reactive programming 
+  
+     3. ……
+  
+  2. imperative programming
+  
+     1. object-oriented programming
+  
+     2. procedural programming
+  
+* definition
 
-  * Declarative programming is a paradigm describing **WHAT** the program does, without explicitly specifying its control flow.
-* Imperative programming is a paradigm describing **HOW** the program should do something by explicitly specifying each instruction (or statement) step by step, which mutate the program's state.
-  * Reactive programning is declarative programing paradigm concerned with **data stream** and **the propagation of change**. 
+  * short definition 
+
+    * Declarative programming is a paradigm describing **WHAT** the program does, it expresses the logic of a computation without describing its control flow
+    * Imperative programming is a paradigm describing **HOW** the program should do something by explicitly specifying each instruction (or statement) step by step, which mutate the program's state.
+    * Reactive programming is a style of programming that focuses on asynchronous data streams and the propagation of changes. Reactive programming involves modeling data and events using streams and using functional programming concepts to process and react to them. 
+
+  * explaination of definition
+
+    * Declarative programming is like giving orders to a robot. You tell the robot what you want it to do, and it figures out how to do it on its own. In programming terms, this means you specify what you want the program to accomplish, but you don't specify how it should be done. The program figures out the details on its own.
+    * Imperative programming is like giving orders to a human. You tell the human exactly what to do, step by step. In programming terms, this means you specify exactly how the program should accomplish a task, using a series of commands or instructions.
+    * In reactive programming, data streams flow between components and are processed in real-time as they arrive. Reactive programming facilitates loose coupling between components, making it easier to build scalable and resilient systems. Reactive programming is often used in event-driven systems where events trigger reactions, such as web applications that require real-time updates.
+
+  * example of definition
+
+    * SQL is a declarative programming language. This query is declarative because you are specifying what data you want to retrieve, but you are not specifying how to retrieve it. The SQL engine figures out how to execute the query and retrieve the data from the database. In contrast, an imperative programming language like Java or C++ would require you to write code that explicitly retrieves the data from the database, using a series of commands or instructions. This would be more verbose and less intuitive than the declarative SQL query.
+
+      ```sql
+      SELECT name, salary
+      FROM employees
+      WHERE job_title = 'Manager';
+      ```
+
+* advantages/disadvantages
+
+  * advantages of declarative programming
+    1. more concise and easier to read.
+    2. more efficient  in in certain situations. This is because the program can optimize the execution of the code based on the desired outcome, rather than following a strict set of instructions.
+    3. more modular and reusable.This is because the code is organized around the desired outcome, rather than a specific set of instructions.
+  * disadvantages of declarative programming
+    1. Steep Learning Curve.  It can be difficult to learn since it requires a different mindset compared to traditional imperative programming.
+    2. Limited Control. it doesn't provide the same level of control as imperative programming. With declarative programming, you must trust the compiler or interpreter to determine how the program should be executed.
+    3. Difficult to Debug. Since programs are written as a sequence of logical constraints, identifying and fixing errors can be challenging.
+    4. Performance Issues. Since the compiler or interpreter has to determine how the program should be executed, it may not optimize the code properly, leading to slower execution times.
+    5. Limited Tool Support. it is more difficult to find tools and libraries, and limit the available resources for developers.
+
+* declarative launguage
+
+  1. SQL、Haskell、HTML、CSS
 
 * 副作用
 
@@ -945,3 +986,4 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 使用`monad`做一层封装
 
 ***
+
