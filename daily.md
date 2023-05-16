@@ -432,22 +432,56 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ***
 
-## CAS机制
+## CAS
 
-* 处理器操作的原子性
+* basic
 
-  * 处理器实现了从内存中读取或者写入一个字节是原子性的
+  * three values
+    * current memory value - V
+    * expected current memory value - A
+    * final set memory value - B
+  * action 
+    * set memory value to `B` only when `V == A`
 
-* CAS
+* why thread-safe?
 
-  * 三个值
-    * 内存当前值V
-    * 内存预期值A
-    * 内存欲更新为的值B
-  * 行为
-    * 当且仅当`V == A`时，才向内存中写入`B`/s
+  * compare operation - compare V and A
+  * swap operation - set memory value to be B from V
+  * `compare` operation and `swap` operation are a whole. `compare, swap` is a atomic operation and it can't be divided into two oprerations like compare operation and swap operation.
 
-* 示例
+* How to implement?
+
+  * hardware - In x86 processors, the CPU offers several atomic instruction sets for managing shared memory, such as Compare-and-Exchange (CMPXCHG) and Atomic-Exchange (XCHG). These instructions are used to implement the CAS operation.
+
+  * C++ language - The C++ atomic library provides an abstraction to use CMPXCHG and Atomic-Exchange instructions using a unified interface across different platforms
+
+  * java language - The java calls CAS api offered by C++ library
+
+    ```java
+    /**
+     * Atomically updates Java variable to x if it is currently holding expected.
+     * This operation has memory semantics of a volatile read and write. Corresponds to C11 atomic_compare_exchange_strong.
+     * Returns: true if successful
+     */
+    public final native boolean compareAndSetInt(Object o, long offset, int expected, int x);
+    ```
+
+  * application - Top application calls CAS api offered by java library.
+
+    ```java
+    // how to implement Semaphore
+    final int nonfairTryAcquireShared(int acquires) {
+      for (;;) {
+        int available = getState();
+        int remaining = available - acquires;
+        if (remaining < 0 ||
+          compareAndSetState(available, remaining))
+          return remaining;
+      }
+    }
+    ```
+
+* example
 
   ```java
   int A = 1;
@@ -458,8 +492,47 @@ object SubServiceImpl:ISubService, PushCallBack {
   } while(!this.compareAndSwapInt(A,V,B); //V==A时更新内存
   ```
 
-* 原子性保证
-  * 操作内存时使用到了处理器的特殊指令，该指令操作的内存区域会加锁，导致其他线程无法同时访问这一部分内存，从而保证了原子性
+  ```c++
+  #include <iostream>
+  #include <atomic>
+  #include <vector>
+  #include <thread>
+  
+  std::atomic<int> counter(0); // create an atomic counter with initial value of 0
+  
+  void increment_counter() {
+      for (int i = 0; i < 100; ++i) {
+          int expected = counter; // get the current value of the counter
+          while (!counter.compare_exchange_weak(expected, expected + 1)); // atomically increment the counter using compare_and_swap; keep retrying until successful, use a spin-lock
+      }
+  }
+  
+  int main() {
+      std::vector<std::thread> threads;
+  
+      // create 10 threads to increment the counter concurrently
+      for (int i = 0; i < 10; ++i) {
+          threads.push_back(std::thread(increment_counter));
+      }
+  
+      // wait for the threads to finish
+      for (std::thread& thread : threads) {
+          thread.join();
+      }
+  
+      std::cout << "Counter value: " << counter << "\n"; // the output will be 10 * 100 = 1000
+  
+      return 0;
+  }
+  ```
+
+  ```c++
+  bool compare_exchange_weak(T& expected, T desired,
+                              std::memory_order success,
+                              std::memory_order failure) noexcept;
+  
+  Atomically compares the `object representation (until C++20)` `value representation (since C++20)` of *this with that of expected, and if those are bitwise-equal, replaces the former with desired (performs read-modify-write operation). Otherwise, loads the actual value stored in *this into expected (performs load operation).
+  ```
 
 ***
 
@@ -987,3 +1060,60 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ***
 
+## CAS
+
+* why thread-safe?
+
+  *  `compare` operation and `swap` operation are a whole. `compare, swap` is a atomic operation and it can't be divided into two oprerations like compare operation and swap operation.
+
+* How to implement?
+
+  * hardware - In x86 processors, the CPU offers several atomic instruction sets for managing shared memory, such as Compare-and-Exchange (CMPXCHG) and Atomic-Exchange (XCHG). These instructions are used to implement the CAS operation.
+  * language - The C++ atomic library provides an abstraction to use CMPXCHG and Atomic-Exchange instructions using a unified interface across different platforms
+  * application - Top application calls CAS api offered by C++ library.
+
+* example
+
+  ```c++
+  #include <iostream>
+  #include <atomic>
+  #include <vector>
+  #include <thread>
+  
+  std::atomic<int> counter(0); // create an atomic counter with initial value of 0
+  
+  void increment_counter() {
+      for (int i = 0; i < 100; ++i) {
+          int expected = counter; // get the current value of the counter
+          while (!counter.compare_exchange_weak(expected, expected + 1)); // atomically increment the counter using compare_and_swap; keep retrying until successful, use a spin-lock
+      }
+  }
+  
+  int main() {
+      std::vector<std::thread> threads;
+  
+      // create 10 threads to increment the counter concurrently
+      for (int i = 0; i < 10; ++i) {
+          threads.push_back(std::thread(increment_counter));
+      }
+  
+      // wait for the threads to finish
+      for (std::thread& thread : threads) {
+          thread.join();
+      }
+  
+      std::cout << "Counter value: " << counter << "\n"; // the output will be 10 * 100 = 1000
+  
+      return 0;
+  }
+  ```
+
+  ```c++
+  bool compare_exchange_weak(T& expected, T desired,
+                              std::memory_order success,
+                              std::memory_order failure) noexcept;
+  
+  Atomically compares the `object representation (until C++20)` `value representation (since C++20)` of *this with that of expected, and if those are bitwise-equal, replaces the former with desired (performs read-modify-write operation). Otherwise, loads the actual value stored in *this into expected (performs load operation).
+  ```
+
+  
