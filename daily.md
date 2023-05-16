@@ -915,7 +915,7 @@ object SubServiceImpl:ISubService, PushCallBack {
   
      1. object-oriented programming
   
-     2. procedural programming
+     2. procedural-oriented programming
   
 * definition
 
