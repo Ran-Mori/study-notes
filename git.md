@@ -127,3 +127,8 @@
 ### rebase到某个指定的commit
 
 * `git rebase --onto <new_parent_commit_id> <old_parent_commit_id>`
+
+### 查看某个文件的所有历史commit
+
+* `git log --follow -- <file>`
+  * The `--follow` option is used to track the file across renames
