@@ -262,13 +262,16 @@
   * 特点
     * 半双工。如果想数据双向传输，就需要打开两个管道
     * 容量有限制，可能会读阻塞或写阻塞
-    * 消息需要在内核内存和用户内存间复制两次
+    * 消息需要在内核内存和用户内存间复制**两**次
   * 分类
     * 匿名管道
       * 几乎只能用于`Linux`的父子进程，即配合`fork`使用
       * 即父进程创建一个管道，通过`fork`创建出一个子进程。由于父子进程的`文件符表`共享，即父子进程都知道`pipe_fd`。此时父进程关闭管道的`读端`，子进程关闭管道的`写端`，这样父子进程就能实现`IPC`了
     * 实名管道
       * 实名管道的存在就是为了解决匿名管道的不足，匿名管道几乎就只能用在`fork`的父子进程共享这种情况，因为`pipe_fd`是未知的。即只要让这个管道有个可以访问的方式，就能够实现任意进程的`IPC`了，这就是实名管道
+  * how it works?
+    1. When a sender writes data to a pipe, the kernel copies the data from the sender's address space to the shared-memory buffer.
+    2. When a receiver reads data from the pipe, the kernel copies the data from the shared-memory buffer to the receiver's address space.
 * 信号
   * 定义
     * 这里的信号量指的是异常控制流的那个信号量，而不是同步访问临界区的那个信号量
