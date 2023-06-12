@@ -2647,3 +2647,149 @@
 * see this link [ViewOverlay: When, How and for What Purpose?](http://old.flavienlaurent.com/blog/2013/08/14/viewoverlay-when-how-and-for-what-purpose/)
 
 ***
+
+## Parcel
+
+* what is ?
+
+  * A `Parcel` is essentially a flattened buffer of bytes that contains a serialized version of Java objects and primitive types. It is used for marshalling and unmarshalling data across process boundaries, which is necessary for Inter-Process Communication (IPC) in Android.
+
+* Parcel and Bundle
+
+  * A `Parcel` is used for IPC between different processes.
+  * A `Bundle` is used for passing data between different components within a single process.
+  * Bundle implements `Parcelable` interface, so itself can be transfered across processed by `Parcel#writeBundle()`
+
+* How to IPC
+
+  * Parcel object will finally be copied to kernel driver space (`/dev/binder`).
+  * use `ioctl()` system call to read and write for `/dev/binder`
+
+* supported types
+
+  * Binder object
+
+    ```java
+    public final void writeStrongBinder(IBinder val) {
+      nativeWriteStrongBinder(mNativePtr, val);
+    }
+    ```
+
+  * primitive data types
+
+  * Parcelables which implement `Parcelable` interface
+
+* use case
+
+  * `protected boolean onTransact(int code, @NonNull Parcel data, @Nullable Parcel reply, int flags)`
+
+***
+
+## ProcessState
+
+* both exits
+
+  * there is a `ProcessState.java` class in Android Java framework
+  * there is also a `ProcessState.cpp` class in Android Native Development Kit
+
+* ProcessState.java
+
+  * It is used by the Java runtime environment to track the memory usage of Java processes on the Android platform. It provides an interface for monitoring the memory usage of a Java process, determining when it is under memory pressure, and making decisions about which components of the process should be prioritized or deprioritized when memory is scarce. The Java `ProcessState` class is not intended to be used directly by applications, but rather is used by the Android system and its various components and services, such as the ActivityManagerService
+
+* ProcessState.cpp
+
+  * It is used by the Android Native runtime environment to track the memory usage of native C and C++ processes on the Android platform. It provides a low-level interface for managing the memory usage of native processes, including tracking the memory usage of individual components of a process, such as activity stacks and services. The C++ `ProcessState` class is also not intended to be used directly by applications, but is used extensively by the Android system and its various components and services.
+
+* Binder
+
+  * `ProcessState` is responsible for initializing and managing the `Binder` IPC mechanism within a process.
+  * When a process starts, `ProcessState` creates a new instance of the `ProcessState` class, which is responsible for managing the memory usage of the process, as well as initializing and managing the `Binder` mechanism.
+  * The `ProcessState` class opens the `/dev/binder` device.
+  * When a process needs to communicate with another process using a `Binder`, it uses the `ProcessState` class to initialize the `Binder` mechanism and open a channel to the remote process through the `/dev/binder` device.
+
+* code
+
+  ```cpp
+  ProcessState::ProcessState()
+      : mDriverFD(open_driver()) //打开 binder 设备
+      , mVMStart(MAP_FAILED) //初始化为 MAP_FAILED，映射成功后会变更
+      , mThreadCountLock(PTHREAD_MUTEX_INITIALIZER)
+      , mThreadCountDecrement(PTHREAD_COND_INITIALIZER)
+      , mExecutingThreadsCount(0)
+      , mMaxThreads(DEFAULT_MAX_BINDER_THREADS) //binder 线程最大数量
+      , mStarvationStartTimeMs(0)
+      , mManagesContexts(false)
+      , mBinderContextCheckFunc(NULL)
+      , mBinderContextUserData(NULL)
+      , mThreadPoolStarted(false)
+      , mThreadPoolSeq(1){
+         if (mDriverFD >= 0) { //已经成功打开 binder 驱动设备
+             // 将应用进程一块虚拟内存空间与 binder 驱动映射，在此内存块上进行数据通信
+             mVMStart = mmap(0, BINDER_VM_SIZE, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, mDriverFD, 0);
+             if (mVMStart == MAP_FAILED) { //映射失败处理
+                 ALOGE("Using /dev/binder failed: unable to mmap transaction memory.\n");
+                 close(mDriverFD);
+                 mDriverFD = -1;
+             }
+         }
+  }
+  ```
+
+***
+
+## IPCThreadState
+
+* what is?
+
+  * `IPCThreadState` is a low-level system class that is used to manage the `Binder` IPC mechanism for a thread. It provides an interface for communicating with the `Binder` kernel driver and is primarily used by system-level background threads and services.
+
+* how it works?
+
+  * `IPCThreadState` is a system-level class in the Android OS framework that is responsible for managing the `Binder` IPC mechanism for a thread.
+  * When a new thread is created by the system, an instance of `IPCThreadState` is automatically created for that thread, which is used to manage all `Binder` communication on that thread.
+  * `IPCThreadState` provides an interface for receiving incoming `Binder` transactions and dispatching them to the appropriate handler threads or services.
+  * `IPCThreadState` is used by various system-level components and services, such as the `ActivityManagerService`, `PackageManagerService`, and `PowerManagerService`, to communicate with each other using the `Binder` mechanism.
+  * `IPCThreadState` is an internal system class and is not intended to be used directly by applications.
+
+* features
+
+  * It is in Android Native Development Kit.
+
+* code
+
+  ```java
+  // 真正的transact执行的地方
+  status_t IPCThreadState::transact(int32_t handle,
+                                    uint32_t code, const Parcel& data,
+                                    Parcel* reply, uint32_t flags){
+      //将数据打包塞到 mOut 里
+      err = writeTransactionData(BC_TRANSACTION, flags, handle, code, data, NULL);
+      err = waitForResponse(&fakeReply);
+      return err;
+  }
+  
+  status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult){
+      uint32_t cmd;
+      int32_t err;
+      while (1) {
+        	//执行ioctl
+          cmd = (uint32_t)mIn.readInt32(); //拿到 binder 驱动发过来的命令
+          switch (cmd) {
+              //处理命令
+              case BR_TRANSACTION_COMPLETE:{...}
+              case BR_DEAD_REPLY:{...}
+              case BR_FAILED_REPLY:{...}
+              case BR_ACQUIRE_RESULT:{...}
+              case BR_REPLY:{...}
+              default:
+                  //其他命令在 executeCommand 方法中处理
+                  err = executeCommand(cmd);
+              }
+      }
+      return err;
+  }
+  ```
+
+  
+
+  
