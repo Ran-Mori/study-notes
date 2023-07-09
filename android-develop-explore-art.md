@@ -2,42 +2,118 @@
 
 ## 第一章
 
-### onPause()和onResume()执行顺序
+### 生命周期
 
-* `ActivityA.onPause()`先执行，`ActivityB.onResume()`后执行
-* 这是源码决定的
-* 因此`onPause()`中不能执行重量操作，因为这样会影响到下一个`Activity`的启动速度
+* `onStart()` 和 `onResume()` 的区别
 
-### 异常情况
+  1. onStart() -> It is called when the activity becomes visible to the user, but it may not have the input focus. It is typically called after the `onCreate()` method has completed execution. This method is often used to initialize components that are required for the activity to be visible to the user.
+  2. onResume() -> It is called when the activity starts interacting with the user. It is called after `onStart()` and it indicates that the activity is now in the foreground and has the user's input focus. This is the point where the activity is considered active and the user can start interacting with it, such as entering text or tapping on buttons.
 
-* 资源相关的配置文件发生改变
-* 系统内存不足
+* A启动B，`A#onPause()`和`B#onResume()`谁先执行
 
-### 资源配置改变
+  * 日志
 
-* 横竖屏切换有可能加载不同的 **图片** 资源文件
+    ```bash
+    IzumiSakai: MainActivity onCreate
+    IzumiSakai: MainActivity onStart
+    IzumiSakai: MainActivity onResume
+    # Main跳Second
+    IzumiSakai: MainActivity onPause
+    IzumiSakai: SecondActivity onCreate
+    IzumiSakai: SecondActivity onStart
+    IzumiSakai: SecondActivity onResume
+    IzumiSakai: MainActivity onStop
+    # Second返回Main
+    IzumiSakai: SecondActivity onPause
+    IzumiSakai: MainActivity onStart
+    IzumiSakai: MainActivity onResume
+    IzumiSakai: SecondActivity onStop
+    IzumiSakai: SecondActivity onDestroy
+    ```
+
+  * 分析
+
+    * 先执行`A#onPause()`，因为`onResume()`代表已经可以和用户交互，此Activity已在前台，只有放弃这些才能让下一个Activity具有这些特性
+    * `B#onResume()`执行完后才执行`A#onStop()`，这样的调度更有利于`B`快速启动
+    * 按下返回键同理
+
+  * 原因
+
+    * 核心的原因还是调度代码就是这样写的
+
+  * 结论
+
+    * `onPause()`中不能执行重量操作，因为这样会影响到下一个`Activity`的启动速度；重量耗时操作放到`onStop()`中进行
 
 ### onSaveInstanceState()
 
-* 异常情况销毁才会调用
-* 正常退出是不会调用的
+* 谁的方法 -> Activity&View
 
-### View数据保存和恢复
+* 调用时机 - 异常退出，如配置改变，内存压力大被回收
 
-* 异常退出系统会自动保存和恢复一定的View数据
-* 如文本框用户输入的数据、LIstView滚动位置
-* 保存那些数据取决于每个View的`onSaveInstane()、onRestoreInstanceState()`方法的实现
-* 保存的逻辑是从`Activity`一步步委托
+* 配套成对方法 -> `onRestoreInstanceState(Bundle)`
 
-### 恢复位置
+* Activity的实现
 
-* 一般都放在`onCreate()`中判断不为null进行恢复
-* 但有时候恢复放在`onRestoreInstanceState()`更方便
+  ```java
+  protected void onSaveInstanceState(@NonNull Bundle outState) {
+    // 通过window，从根节点遍历整棵View树，调用View#onSaveInstanceState()
+    outState.putBundle(WINDOW_HIERARCHY_TAG, mWindow.saveHierarchyState());
+  	// 保存Fragment的状态
+    Parcelable p = mFragments.saveAllState();
+    getAutofillClientController().onSaveInstanceState(outState);
+    dispatchActivitySaveInstanceState(outState);
+  }
+  ```
 
-### 系统资源不足被异常退出
+* 特点
 
-* 如果一个进程中没有任何四大组件运行，那么这个进程很容易被杀死
-* 因此后台的耗时任务不能直接挂在后台，最好绑定一个`Service`，这样才不会被杀死
+  * View只保存有`id`的，因为恢复的时候要用id做key
+  * 在`onStop()`后进行
+
+* View#onSaveInstanceState()
+
+  * 系统已自动保存了一些内容，如果觉得不够可以复写新增
+  * for example -> the current cursor position in a text view (but usually not the text itself since that is stored in a content provider or other persistent storage), the currently selected item in a list view
+
+
+### 活动优先级
+
+* 优先级
+  * 前台Activity最高
+  * 可见但非前台，比如`onPause()`后Activity 中弹出了一个对话框，导致Activity可见但是位 于后台无法和用户直接交互
+  * 后台，onStop()的优先级最低
+* 作用
+  * 系统资源不足时，会按照优先级回收Activity或其他四大组件
+* 经验
+  * 如果一个进程中没有任何四大组件运行，那么这个进程很容易被杀死
+  * 因此后台的耗时任务不能直接挂在后台，最好绑定一个`Service`，这样才不会被杀死
+
+### 启动模式
+
+* standard
+
+  * 无论什么情况，都新建一个`Activity`
+  * 谁启动了这个Activity，那这个Activity就在启动它的Activity的栈中
+
+* singleTop
+
+  * 和standard差不多，有且仅在栈顶重复启动时不会新建
+
+  * 栈顶启动同一个，会调用`onNewIntent()`方法
+
+  * 日志
+
+    ```bash
+    # 栈顶startActivity()
+    IzumiSakai: MainActivity onPause
+    IzumiSakai: MainActivity onNewIntent
+    IzumiSakai: MainActivity onResume
+    ```
+
+* singleTask
+
+* singleInstance
 
 ### 活动栈和任务栈
 
