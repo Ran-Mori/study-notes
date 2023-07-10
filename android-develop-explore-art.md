@@ -91,29 +91,88 @@
 
 ### 启动模式
 
-* standard
+* taskAffinity
 
-  * 无论什么情况，都新建一个`Activity`
-  * 谁启动了这个Activity，那这个Activity就在启动它的Activity的栈中
+  * 怎么用
 
-* singleTop
-
-  * 和standard差不多，有且仅在栈顶重复启动时不会新建
-
-  * 栈顶启动同一个，会调用`onNewIntent()`方法
-
-  * 日志
-
-    ```bash
-    # 栈顶startActivity()
-    IzumiSakai: MainActivity onPause
-    IzumiSakai: MainActivity onNewIntent
-    IzumiSakai: MainActivity onResume
+    ```xml
+    <activity
+        android:name=".SecondActivity"
+        android:taskAffinity="com.example.task1"
+        android:exported="false" />
     ```
 
-* singleTask
+  * 作用
 
-* singleInstance
+    1. 指定一个Activity启动的任务栈
+    2. 配合`singleTask` 和 `singleInstance`使用
+
+  * 特点
+
+    1. 如果不指定，一个应用所有的Activity的taskAffinity是一样的，就是应用包名
+    2. 如果要自己指定taskAffinity，那一定不能是包名，不然等于没有指定
+
+* 四种模式
+
+  * standard
+
+    * 无论什么情况，都新建一个`Activity`
+    * 谁启动了这个Activity，那这个Activity就在启动它的Activity的栈中
+
+  * singleTop
+
+    * 和standard差不多，有且仅在栈顶重复启动时不会新建
+
+    * 栈顶启动同一个，会调用`onNewIntent()`方法
+
+    * 日志
+
+      ```java
+      # 栈顶startActivity()
+      IzumiSakai: MainActivity onPause
+      IzumiSakai: MainActivity onNewIntent
+      IzumiSakai: MainActivity onResume
+      ```
+
+  * singleTask
+
+    * 具有singleTop的所有属性
+    * 当启动Activity  A时，系统首先会寻找是否存在A想要的任务栈，如果不存在，就重新创建一 个任务栈，然后创建A的实例后把A放到栈中。如果存在A 所需的任务栈，这时要看A 是否在栈中有实例存在，如果有实例存在， 那么系统就会把 A 上面的Activity全部出栈，让A为栈顶，并调用它的onNewIntent()方法，如果实例不存在，就创建A的实例并把A压入栈中。
+
+  * singleInstance
+
+    * 具有singleTask的所有属性
+    * 具有此种模式的Activity只能单独地位于一个任务栈中
+
+* `adb shell dump activity activities`
+
+  * 输出示例
+
+    ```java
+    // 一个Task，Task的名字是com.example.task1
+    * Task{ type=standard com.example.task1 }
+        topResumedActivity=ActivityRecord{com.activity/.SecondActivity} 
+        * Hist  #0: ActivityRecord{com.activity/.SecondActivity}
+    			packageName=com.activity
+          launchedFromPackage=com.activity // 由谁启动
+        	Intent { flg=0x10000000 cmp=com.activity/.SecondActivity }
+    			taskAffinity=com.example.task1 // 指定了taskAffinity
+    // 另一个Task，名字是com.activity
+    * Task{ type=standard com.activity }
+        mLastPausedActivity: ActivityRecord{ com.activity/.MainActivity }
+      	* Hist  #0: ActivityRecord com.activity/.MainActivity }
+    			packageName=com.activity
+          launchedFromPackage=com.google.android.apps.nexuslauncher // 由launcher启动
+          taskAffinity=com.activity //默认taskAffinity，和包名一样
+    // launcher对应Task，type为home
+    * Task{ type=home }
+    	mLastPausedActivity: ActivityRecord{ com.google.android.apps.nexuslauncher/.NexusLauncherActivity }
+    	* Hist  #0: ActivityRecord{ com.google.android.apps.nexuslauncher/.NexusLauncherActivity }
+    ```
+
+  * 解读
+
+    * 一个三个Task，前面两个是应用自定义的，第三个是默认`Launcher`
 
 ### 活动栈和任务栈
 
