@@ -174,22 +174,37 @@
 
     * 一个三个Task，前面两个是应用自定义的，第三个是默认`Launcher`
 
-### 活动栈和任务栈
+* 几个类
 
-* `ActivityStack`只有一个，用`ActivityRecord`记录对应的`Activity`信息
-* `ActivityTask`有很多个，用`TaskRecord`记录对应的`Activity`信息
-* 一个应用一般就是一个任务栈，`taskAffinity`一般就是app的包名
+  * `ActivityRecord` -> It represents an instance of an activity in the Android system.
 
-### SingleTask
+    ```java
+    final class ActivityRecord {
+      ActivityInfo info;
+    }
+    ```
 
-* 系统会创建新任务，并实例化新任务的根 Activity。
-* 但是，如果另外的任务中已存在该 Activity 的实例，则系统会通过调用其 `onNewIntent()` 方法将 intent 转送到该现有实例，而不是创建新实例。
-* Activity 一次只能有一个实例存在。
+  * `TaskRecord` -> It represents the details of a specific task and maintains information about the activities associated with it.
 
-### SingleInstance
+    ```java
+    final class TaskRecord {
+      ActivityStack stack; // 持有Stack变量
+      ArrayList<ActivityRecord> mActivities;
+    }
+    ```
 
-* 系统不会将任何其他 Activity 启动到包含该实例的任务中
-* 该 Activity 始终是其任务唯一的成员；由该 Activity 启动的任何 Activity 都会在其他的任务中打开
+  * `ActivityTask` -> It represents a collection of activities that are related to a specific task.
+
+    ```java
+    final class ActivityStack {
+      ArrayList<TaskRecord> mTaskHistory; // 一个Stack可以对应多个Task
+    }
+
+* 任务栈
+
+  * 一个应用一般就是一个任务栈，`taskAffinity`一般就是app的包名
+  * 一个应用也可以多个任务栈，当多个任务栈时，向上滑动查看后台任务时可以发现一个应用有多张应用卡片
+
 
 ***
 
