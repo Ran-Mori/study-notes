@@ -206,6 +206,45 @@
   * 一个应用也可以多个任务栈，当多个任务栈时，向上滑动查看后台任务时可以发现一个应用有多张应用卡片
 
 
+### Intent匹配
+
+* 声明过滤规则
+
+  * 示例
+
+  ```xml
+  <activity
+    android:name=".MainActivity"
+    android:exported="true">
+    <intent-filter>
+      <action android:name="android.intent.action.MAIN" />
+      <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+    
+    <intent-filter>
+      <action android:name="xxx.action" />
+      <category android:name="xxx.category" />
+      <data android:mimeType="audio/mpeg" android:scheme="https"/>
+    </intent-filter>
+  </activity>
+  ```
+
+  * 特点
+    1. 一个四大组件可以定义多个`intent-filter`，一个Intent 只要能匹配任何一组intent-filter即可成功启动对应的四大组件
+    2. 每个`intent-filter`可以设置`action, category, data`
+    3. data由两部分组成，mimetype和uri
+
+* 匹配规则
+
+  * action
+    * 如果intent-filter的action不为空，则Intent必须有action才能匹配成功 
+    * 一个Intent中的action必须能和intent-filter的某一个action匹配上就算成功
+  * category
+    * 一个Intent不设置category，系统自动加上`category.DEFAULT`
+    * Intent的所有category必须包含于某条intent-filter的category才算成功
+  * data
+    * 和action一样
+
 ***
 
 ## 第二章
