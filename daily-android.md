@@ -2660,6 +2660,47 @@
   * A `Bundle` is used for passing data between different components within a single process.
   * Bundle implements `Parcelable` interface, so itself can be transfered across processed by `Parcel#writeBundle()`
 
+* code
+
+  * `User.java`
+
+    ```kotlin
+    class User: Parcelable {
+      private var Long uid;
+    	private var String userName;
+      private var Boolean isMale;
+    
+      override fun describeContents(): Int = 0
+    
+      override fun writeToParcel(out: Parcel, flags: Int) {
+      	out.writeLong(uid) // 写入Parcel
+        out.writeString(userName)
+        out.writeBoolean(isMale)
+      }
+    
+      companion object CREATOR: Parcelable.Creator<User?> {
+      	override fun createFromParcel(in: Parcel): User? {
+          // 从Parcel读取
+          return User().apply {
+          	uid = in.readLong()
+            userName = in.readString()
+            isMale = in.readBoolean()
+          }
+      	}
+    
+      	override fun newArray(size: Int): Array<User?> = arrayOfNulls(size)
+     	}
+    }
+    ```
+
+  * subclass
+
+    ```java
+    public final class Bitmap implements Parcelable
+    public class Intent implements Parcelable
+    public final class Bundle implements Parcelable
+    ```
+
 * How to IPC
 
   * Parcel object will finally be copied to kernel driver space (`/dev/binder`).

@@ -249,97 +249,168 @@
 
 ## 第二章
 
-### windows进程间通信
+### 简介
 
-* 剪贴板
-* 管道
-* 邮槽
+* 单应用但多进程的原因
 
-### 单应用多进程情况
+  1. 某模块因为各种原因必须要运行在单独的进程，比如widget
 
-* 某模块因为各种原因必须要运行在单独的进程
-* 申请更多的内存
+  2. 申请更多的内存，因为一个进程能申请的内存是有上限的
 
-### 如何开启多进程
+### 单应用多进程
 
-* `AndroidMenifest.xml`中声明
+* 如何开启多进程
 
-```xml
-<activity
-    android:name = ""
-    android:process =":remote" />
-```
+  * 在`AndroidMenifest.xml`中声明
 
-* 有且仅有这一种方法，不支持运行时动态设置
+    ```xml
+    <activity
+        android:name = ""
+        android:process =":remote" />
+    ```
 
-### 进程命名
+  * 有且仅有这一种方法，不支持运行时动态设置
 
-* `:remote`：实际进程名为`包名:remote`
-* 带有`:`的是私有进程，不带`:`的是公有进程
-* 公有进程可以通过`ShareUID`方式共享
+  * 如果不指定`android:process`，则进程名默认为包名
 
-### 进程-应用-虚拟机关系
 
-* 一个`process`对应一个`Application`对应一个`Virtual Machine`
-* 因此静态变量、单例模式、线程同步机制会因为多进程而全部失效
+* 进程命名
 
-### SP
+  * `:remote`：实际进程名为`包名:remote`
 
-* SP底层实际上是通过修改`xml`文件来实现数据共享
+  * 带有`:`的是私有进程，不带`:`的是公有进程
 
-### IPC
+  * 公有进程可以通过`ShareUID`方式共享
 
-* Bundle
-* 文件共享。总体可行，但要适当同步控制并发
-* SP。在内存有缓存策略，并发多进程容易拿到脏数据
-* Messenger。对AIDL的一个封装，方便使用
-* Binder
-* ContentProvider
-* Socket
 
-### Serializable
+* 进程-应用-虚拟机关系
 
-* 是一个空接口
-* 通过`ObjectOutputStream`和`ObjectInputStream`来实现序列化
-* 静态成员不属于对象不参与序列化
-* `transient`标记的也不参与序列化
+  * 一个`process`对应一个`Application`对应一个`Virtual Machine`
 
-### serialVersionUID
+    ```java
+    IzumiSakai: 133263004 MyApplication onCreate, process = com.activity
+    IzumiSakai: 21957488 MyApplication onCreate, process = com.activity:remote
+    ```
 
-* 最好加上，虽然不加也可以
-* 如果类中定义有就用定义的，如果没有就用类的`hashCode`
-* 在序列化时会将此值存入序列化文件；在反序列化时会将文件的值和对象类的值进行比较，如果不一样就序列化失败
-* 因此建议最好加上这个值
+  * 带来的问题
+    1. 静态成员、单例模式完全失效
+    2. 线程同步机制完全实现
+    3. SP的可靠性下降
+    4. Application会多次创建
 
-### Parcelable接口
-
-* 用于`Android`的序列化和反序列化
-* 比较复杂，里面待实现方法和变量很多
-* 有很多实现类可以直接用，如`Intent、Bundle、Bitmap`，集合也可以序列化，但要求集合内的元素都可序列化
-
-### 两者对比
-
-* S简单但开销大，P复杂但开销小
-* Android建议使用P
 
 ### Binder
 
-* 实现了`IBinder`接口
-* 虚拟的物理设备，设备驱动是`/dev/binder`
-* 是连接`Manager`和`Service`的桥梁
-* 是客户端、服务端进行通信的媒介
+* 对象的不一致性
 
-### Binder核心
+  * Binder跨进程通过Parcel传输对象始终都是序列化与反序列，因此两边的对象不是同一个对象
 
-* `boolean onTransact(int code, Parcel data, Parcel reply, int flags)`
-* `boolean transact(int code, Parcel data, Parcel reply, int flags)`
+    ```java
+    class User: Parcelable {
+      private var Long uid;
+    	private var String userName;
+      private var Boolean isMale;
+    
+      override fun describeContents(): Int = 0
+    
+      override fun writeToParcel(out: Parcel, flags: Int) {
+      	out.writeLong(uid) // 写入Parcel
+        out.writeString(userName)
+        out.writeBoolean(isMale)
+      }
+    
+      companion object CREATOR: Parcelable.Creator<User?> {
+      	override fun createFromParcel(in: Parcel): User? {
+          // 从Parcel读取 new队形
+          return User().apply {
+          	uid = in.readLong()
+            userName = in.readString()
+            isMale = in.readBoolean()
+          }
+      	}
+    
+      	override fun newArray(size: Int): Array<User?> = arrayOfNulls(size)
+     	}
+    }
+    ```
 
-### binder连接池
+  * 因此从客户端向服务端注册进入`Listener`，由于对象不同，客户端这边解注册了，但服务端由于对象不同，不会解注册
 
-* `Service`资源宝贵，且会显示在前台，不能随便多创建
-* 因此服务端只有一个Service，不同的AIDL都要转发到这个Service中去
-* 服务端有一个`queryBinder()`接口，能将不同的AIDL映射到对应的Binder
-* 然后不同的binder都绑定相同的Service
+    ```java
+    package com.ryg.chapter2.aidl;
+    import com.ryg.chapter2adi.lBook;
+    
+    // 这个IOnNewBookArrivedListener本身就是一个aidl
+    interface IOnNewBookArrivedListener {
+    	void onNewBookArrived (in Book newBook);
+    }
+    ```
+
+    ```java
+    // 客户端尝试解注册
+    private IBookManager memoteBookManager;
+    
+    private IOnNewBookArrivedListener mOnNewBookArrivedListener= new IOnNewBookArrivedListener.Stub () {
+      // 实现省略
+    }
+    
+    Override
+    protected void onDestroy () {
+      // 解注册
+      mRemoteBookManager.unregisterListener(mOnNewBookArrivedListener);
+    }
+    ```
+
+    ```java
+    // 服务端解注册实现
+    private CopyyOnWriteArrayList<IOnNewBookArrivedListener> mListeners = new CopyOnWriteArrayList<IOnNewBookArrivedListener>();
+    
+    @Override
+    public void unregisterListener(IOnNewBookArrivedListener listener) {
+    	mListeners.remove(listener); // 这个listener和上面的mOnNewBookArrivedListener不是一个对象，因为listener是反序列化new出来的
+    }
+    ```
+
+  * 解决方案 - 使用`RemoteCallbackList`
+
+    ```java
+    public class RemoteCallbackList<E extends IInterface> {
+      ArrayMap<IBinder, Callback> mCallbacks
+                = new ArrayMap<IBinder, Callback>();
+    }
+    ```
+
+    * 实现原理，用`IBinder`作为key，`IOnNewBookArrivedListener`本身是一个`aidl`
+
+    * 只需要服务端做改动
+
+      ```java
+      // 服务端解注册实现
+      private RemoteCallbackList<IOnNewBookArrivedListener> mListeners = new RemoteCallbackList<IOnNewBookArrivedListener>();
+      
+      @Override
+      public void unregisterListener(IOnNewBookArrivedListener listener) {
+      	mListeners.remove(listener);
+      }
+      ```
+
+* binder死亡
+
+  * binder服务端进程可能会杀死，客户端可以注册一个`DeathRecipient`回调
+
+* binder验证
+
+  * 一个Service不希望所有的客户端都能访问，可以给它设置一个验证
+  * 可以通过在`AndroidManifest.xml`中给service加`android:permission`做限制
+  * 也可以在`onTransact()`方法中进行包名等其他验证
+
+* Binder连接池
+
+  * 一个Binder对应一个Service会导致Service太多，Service作为四大组件之一，不能数量太多
+  * 因此服务端对外只暴露一个Service，这个Service对应的Binder有一个`queryBinder(String name)`的方法，由它作为中间桥梁去获取Binder
+  * 这就是`ServiceManager`思想
+
+### ContentProvider
 
 ***
 
