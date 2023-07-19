@@ -1102,17 +1102,6 @@
 
   * [Android全面解析之Window机制](https://juejin.cn/post/6888688477714841608)
 
-* window概述
-
-  * `window`是一个抽象概念
-  * `window`是`view`的载体
-  * `view`是`window`的表现
-
-* view树
-
-  * 一个`window`就是一颗`view`树
-  * 一颗`view`树就是一个`window`
-
 * Dialog
 
   * 通过`windowManager`添加的`view`，与当前的`Activity`毫无关系
@@ -1187,7 +1176,7 @@
   * `ViewRootImpl`向下传递
 
   ```java
-  //ViewRootImpl.ViewPostImeInputStage
+  //ViewRootImpl#ViewPostImeInputStage
   final class ViewPostImeInputStage extends InputStage {
     @Override
     protected int onProcess(QueuedInputEvent q) {
@@ -1195,7 +1184,8 @@
       return processPointerEvent(q);
     }
   }
-  //ViewRootImpl.processPointerEvent()
+  
+  //ViewRootImpl#processPointerEvent()
   private int processPointerEvent(QueuedInputEvent q) {
     final MotionEvent event = (MotionEvent)q.mEvent;
     //调用dispatchPointerEvent()
@@ -1203,7 +1193,7 @@
     return handled ? FINISH_HANDLED : FORWARD;
   }
   
-  //View.dispatchPointerEvent(),且ViewGroup未重写此方法
+  //View#dispatchPointerEvent()，且ViewGroup未重写此方法
   public final boolean dispatchPointerEvent(MotionEvent event) {
     if (event.isTouchEvent()) {
       //调用dispatchTouchEvent()
@@ -1221,7 +1211,7 @@
   ```java
   public class DecorView extends FrameLayout {
    	public boolean dispatchTouchEvent(MotionEvent ev) {
-      final Window.Callback cb = mWindow.getCallback();
+      final Window.Callback cb = mWindow.getCallback(); // 这个callback实际是Activity
       return cb != null && !mWindow.isDestroyed() && mFeatureId < 0
               ? cb.dispatchTouchEvent(ev) : super.dispatchTouchEvent(ev);
   	} 
@@ -1270,6 +1260,7 @@
   
     final void attach(Window window) {
       mWindow = new PhoneWindow(this, window, activityConfigCallback);
+      mWindow.setCallback(this); // 把自己设置为callback
     }
   }
   ```
