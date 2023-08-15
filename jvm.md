@@ -2538,17 +2538,49 @@
 
 * 目的
   * 原来4条指令的分派规则完全固化在虚拟机内部，如何把查找方法的决定权从虚拟机转接到用户手中，让用户有更高的自由度就是`invokedynamic`的目的
+
 * 参数变化
   * 原来4条指令的参数是`CONSTANT_Methodref_info`
   * 现在是`CONSTANT_InvokeDynamic_info`
     * 引导方法`Bootstrap Method`
     * 方法类型`Method Type`
     * 名称
+
 * 执行过程
   * 引导方法有固定名称，返回值规定是`java.lang.invoke.CallSite`对象，此对象代表了真正要执行目标方法的引用
   * 根据`CONSTANT_InvokeDynamic_info`提供的信息，JVM找到并且执行引导方法，从而获得一个`CallSite`对象，然后引导到最终要执行的方法上面去
+
 * 好处
   * `lambda`表达式和`接口默认实现`用到了`invokedynamic`
+  * The use of `invokedynamic` for lambda expressions provides several benefits. It allows for efficient implementation of lambda expressions by dynamically linking them to method handles at runtime, avoiding the need for generating additional classes for each lambda expression. It also enables better runtime performance by deferring the binding and invocation of lambda expressions until runtime.
+
+* 示例
+
+  ```java
+  import java.lang.invoke.*;
+  
+  public class DynamicMethodExample {
+    public static void main(String[] args) throws Throwable {
+      MethodHandles.Lookup lookup = MethodHandles.lookup();
+      CallSite callSite = createCallSite(lookup);
+      MethodHandle methodHandle = callSite.dynamicInvoker();
+      String result = (String) methodHandle.invokeExact();
+      System.out.println(result);
+    }
+  
+    private static CallSite createCallSite(MethodHandles.Lookup lookup) throws Throwable {
+      MethodType methodType = MethodType.methodType(String.class);
+      MethodHandle targetMethod = lookup.findStatic(DynamicMethodExample.class, "helloWorld", methodType);
+      return new ConstantCallSite(targetMethod);
+    }
+  
+    public static String helloWorld() {
+      return "Hello, world!";
+    }
+  }
+  ```
+
+  
 
 ### 解释执行
 
@@ -2676,9 +2708,10 @@
       private IConsumer consumer;
   
       public ConsumerProxy(){};
+    
       //构造方法传入真正被代理的对象
       public ConsumerProxy(IConsumer consumer){
-          this.consumer=consumer;
+          this.consumer = consumer;
       }
   
       /*
@@ -2719,7 +2752,7 @@
 
 * 核心
 
-  * `Proxy.newProxyInstance`会调用到磁层，会使用字节码生成技术来生成字节码
+  * `Proxy.newProxyInstance`会调用到底层，会使用字节码生成技术来生成字节码
 
 ### Spring动态代理
 
