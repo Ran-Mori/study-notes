@@ -73,3 +73,49 @@
 
 ### 状态码
 
+* 200 - 299成功
+
+  * 202 Accepted - 请求已被接受，但服务器还未对其执行任何动作。
+
+  * 204 No Content - 只有first line和header，无body。常见于post请求
+
+  * 206 Partial Content - 成功执行一个部分或Range请求。必须包含Content-Range, Date, ETag, Content-Location等header
+
+    ``` http
+    HTTP/1.1 206 Partial Content
+    ETag: "a1778cfae31830a659a49e1e433ae1f7"
+    Content-Range: bytes 0-2538306/2538307
+    ETag: "a1778cfae31830a659a49e1e433ae1f7"
+    ```
+
+* 300 -399重定向
+
+  * 301 - Move Permanently
+
+  * 302- Moved Temporarily
+
+    ```http
+    HTTP/1.1 302 Moved Temporarily
+    Location: https://50d17fc3613a967045b95ade6aa1c2cf.free.com
+    ```
+
+  * 304 - Not Modified. 客户端的缓存依旧有效，可以继续用
+
+  * 305 - Use Proxy. 用来说明必须通过一个代理来访问资源;代理的位置由 Location 首部给出。
+
+* 400 - 499客户端错误
+
+  * 400 - Bad Request. 服务端告知客户端它发送了一个错误的请求
+  * 401 - Unauthorized. 
+  * 403 - Forbidden. 请求被服务端拒绝了
+  * 404 - Not Found. 服务器无法找到所请求的Url.
+  * 405 - Method Not Allowed
+  * 406 - Not Acceptable. 服务器没有与客户端可接受的URL相匹配的资源
+
+* 500 - 599 服务端错误
+
+  * 500 - Internal Server Error. 服务器遇到一个妨碍它为请求提供服务的错误
+  * 502 - Bad Getway. 作为代理或网关使用的服务器从请求响应链的下一条链路上收到了 一条伪响应(比如，它无法连接到其父网关)
+
+  
+
