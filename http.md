@@ -127,11 +127,22 @@
 * 400 - 499客户端错误
 
   * 400 - Bad Request. 服务端告知客户端它发送了一个错误的请求
+
   * 401 - Unauthorized. 
+
   * 403 - Forbidden. 请求被服务端拒绝了
+
   * 404 - Not Found. 服务器无法找到所请求的Url.
+
   * 405 - Method Not Allowed
+
   * 406 - Not Acceptable. 服务器没有与客户端可接受的URL相匹配的资源
+
+  * 407 - Proxy Authorization Required. 访问此代理需要证书
+
+    ```http
+    HTTP/1.0 407 Proxy Authorization Required
+    Proxy-Authenticate: Basic realm="Secure Stuff"
 
 * 500 - 599 服务端错误
 
@@ -220,5 +231,51 @@
 8. 匿名访问
    * 代理删除客户端IP，From，Referer，Cookie
 
+### 代理部署
 
+1. 部署在本地网络的出口，控制和过滤所有出口流量
+2. 部署在ISP访问入口点上，用来当缓存
+3. 反向代理部署在网络边缘，假装当服务器
+4. 网络交换代理，部署在因特网交换点上，当路由器的缓存
+
+### 代理获取流量
+
+* 修改客户端 - 浏览器客户端预留了设置，用户可以手动设置代理，设置后流量就不会自动直接流向目的服务器，而是流向代理
+* 修改网络 - 在客户端毫不知情的情况下，监视流量交换及路由的物理设备，进行拦截，这种代理被称为拦截代理
+* 修改DNS命名空间 - 直接改DNS查询的返回
+* 修改web服务器 - 返回305重定向强制让客户端访问代理服务器
+
+### URI解析
+
+* 没有代理时，请求的URL是域名，会通过DNS进行查找，如果输入`google`来查询DNS返回错误，浏览器一般会自动拓展，再一次输入`www.google.com`进行DNS查询返回正确结果
+* 但设置了显示代理时，请求的URL显示设置了IP地址如`http://127.0.0.1:7080`，这个时候就不会通过DNS查询，也就没有了浏览器自动拼接的这个feature
+
+### Via header
+
+* 行为：报文每经过一个节点，都必须将这个节点条件到`Via`的尾部
+
+* 示例：
+
+  ```http
+  Via: 1.1 proxy-62.irenes-isp.net, 1.0 cache.joes-hardware.com
+  ```
+
+* Via会记录网关的协议转换
+
+  ```http
+  Via: FTP/1.0 proxy.irenes-isp.net (Traffic-Server/5.0.1-17882 [cMs f ])
+  ```
+
+* server应该添加自己到Server首部，不能修改Via首部
+
+  ```http
+  Server: Apache/1.3.14 (Unix) PHP/4.0.4
+
+* Via也需要注意隐私，比如防火墙后面的网络结构有代理，但防火墙后的网络结构应该对客户端透明
+
+### other
+
+* `Max-Forwards` header 限制了最大的代理转发次数
+
+***
 
