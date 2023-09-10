@@ -279,3 +279,164 @@
 
 ***
 
+## 缓存
+
+### 解决的问题
+
+1. 冗余的数据传输 - 同一个内容传很多遍
+2. 带宽瓶颈
+3. 瞬间拥塞 - 大量访问同一个资源
+4. 距离延迟 - 近的地方访问快，远的地方访问慢
+
+### 方式
+
+1. 缓存命中 - 客户端 -> 读缓存 -> 客户端
+2. 缓存不命中 - 客户端 -> 读缓存 -> 服务端 -> 写缓存 -> 客户端
+3. 缓存再验证命中(304 status_code) - 客户端 -> 服务器 -> 读缓存 -> 客户端
+
+### 命中率
+
+1. 缓存命中率 - 以文档来做统计，容易受文档大小而影响准确性
+2. 字节命中率 - 用流量来做统计，更精确
+
+### 类型
+
+1. 私有缓存 - 仅供单个用户使用，比如浏览器内的缓存
+2. 公有缓存 - 一般是代理缓存服务器
+3. 网状缓存 - 动态决策，更加复杂
+
+### 处理步骤
+
+1. 接收 - 从网络中读取抵达的请求报文
+2. 解析 - 对请求报文进行解析，提取URL和各种首部
+3. 查询 - 查询是否有缓存，如果没有，就从服务端请求，然后存入缓存
+4. 新鲜度检测 - 查看缓存是否足够新，如果不够新，就询问服务器是否有更新
+5. 创建响应 - 304响应或者200响应
+
+### 文档新鲜
+
+* Expires和Cache-Control
+
+  * Expires是http1.0的，Cache-Control: max-age是http1.1的
+
+  * 它们两个本质上做的事是一模一样的
+
+  * Cache-Control使用的是相对时间，而不是计算机本地的绝对时间，更准确，因此倾向于使用它
+
+  * Cache-Control
+
+    * max-age 值定义了文档的最大使用期——从第一次生成文档到文档不再新 鲜、无法使用为止，最大的合法生存时间(以秒为单位)
+
+    ```http
+    HTTP/1.0 200 OK
+    Cache-Control: max-age = 484200
+    ```
+
+  * Expires
+
+    * 指定一个绝对的过期时间，如果过期时间已经过了，就说明文档不再新鲜了
+
+      ```http
+      HTTP/1.1 200 OK
+      Expires: Fri, 05 Jul 2002, 05:00:00 GMT
+      ```
+
+* 再验证
+
+  * 只有不再新鲜了才会再验证，如果依旧新鲜，则不会请求服务端再验证
+
+* If-Modified-Since
+
+  * send a request
+
+    ```http
+    Get http://www.cn.bing.com HTTP/1.0
+    If-Modified-Since: Sat, 29 Jun 2002, 14:30:00 GMT
+    ```
+
+  * get 304 response
+
+    ```http
+    HTTP/1.0 304 Not-Modified
+    Date: Wed, 03 Jul 2002, 19:18:23 GMT
+    Expires: Fri, 05 Jul 2002, 14:30:00 GMT // return Expires
+
+  * get 200 response
+
+    ```http
+    HTTP/1.0 200 OK
+    Date: Fri, 05 Jul 2002, 17:54:40 GMT
+    Content-type: text/plain
+    Content-length: 124
+    Expires: Mon, 09 Sep 2002, 05:00:00 GMT // return Expires
+    
+    All exterior house paint on sale through
+    Labor Day. Just another reason for you
+    to shop this summer at Joe's Hardware!
+    ```
+
+* If-None-Match
+
+  * why need this instead of If-Modified-Since
+
+    1. 周期性写入内容，但最初和最终是一样的
+    2. 文档被修改了，但修改内容无关紧要
+    3. 有些服务器无法准确判断文档最后的修改时间
+    4. 以秒为单位不能应付亚秒的情况，即1s内文件内容发生变更
+
+  * ETag - 可能包含文档序列号或版本号，或者文档内容的校验或者其他信息
+
+  * send a request
+
+    ```http
+    GET /announce.html HTTP/1.0
+    If-None-Match: "v2.6"
+    ```
+
+  * get 304 response
+
+    ```http
+    HTTP/1.0 304 Not Modified
+    Date: Wed, 03 Jul 2002, 19:18:23 GMT
+    ETag: "v2.6" // return etag
+    Expires: Fri, 05 Jul 2002, 05:00:00 GMT
+    ```
+
+* 与原则
+
+  * 当客户端请求同时带上`If-Modified-Since`和`ETag`标签时
+  * 当且仅当两个条件都满足时，server才能返回304 response
+
+
+### 控制缓存
+
+* 响应Cache-Control: no - store
+  * 禁止缓存
+* 响应Cache-Control: no - cache
+  * 实际是可以把缓存存储在本地的，只是在与原始服 务器进行新鲜度再验证之前，缓存不能将其提供给客户端使用。
+  * 这个首部使用 do-not-serve-from-cache-without-revalidation 这个名字会更恰当一些
+* 响应Cache-Control: max-age = 3600
+  * 从服务器将文档传来之时起，可以认为此文档处于新鲜的秒数
+* 响应Expires
+  * 不推荐使用，不同的设备时钟可能设置不同，更推荐使用过期秒数而不是绝对时刻
+* 响应Cache-Control: must-revalidate
+  * 即使文档现在处于新鲜状态，但依旧要进行再验证
+* 请求Cache-Control:max-age = 3600
+  * 缓存无法返回缓存时间长于 3600 秒的文档。
+* 请求Cache-Control: no-cache
+  * 除非文档进行了再验证，否则客户端不会接受缓存
+* 请求Cache-Control: only-if-cached
+  * 只有当缓存中有副本存在时，客户端才会获取一份副本
+
+### 缓存与广告
+
+* 现状：如果广告是按照请求服务器次数计费的话，设计得足够好的缓存会让服务器根本收不到请求
+* 解决方式
+  1. 响应上加上no-cache，强制要求再验证
+  2. 重写广告的url
+  3. 使用缓存，但缓存服务器要告诉广告方有多少命中
+
+***
+
+
+
