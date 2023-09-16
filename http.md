@@ -438,5 +438,46 @@
 
 ***
 
+## 集成点
 
+### 网关
+
+* 描述： `<客户端协议>/<服务端协议>`，如`HTTP/NNTP`
+* 两侧
+  1. 服务端网关: 通过HTTP与客户端通信，通过其他协议与服务端通信
+  2. 客户端网关: 通过其他协议与客户端通信，通过HTTP协议与服务端通信
+
+### 隧道
+
+* 作用: 通过http发送非http流量。这样就能绕过只允许web流量通过的防火墙
+
+* The CONNECT method requests that the recipient establish a tunnel to the destination origin server identified by the request-target and, if successful, thereafter restrict its behavior to blind forwarding of packets, in both directions, until the tunnel is closed.
+
+* [http_tunnel wike](https://en.wikipedia.org/wiki/HTTP_tunnel); [rfc7231](https://datatracker.ietf.org/doc/html/rfc7231#section-4.3.6)
+
+* Connect请求
+
+  ```http
+  Connect ome.netscape.com:443 HTTP/1.0
+  ```
+
+  ```http
+  HTTP/1.0 200 Connection Established
+  ```
+
+* 为什么存在？ - 如果只有客户端和服务端两个通信端点，则完全可以不需要建立隧道。因为客户端和服务端都实现了`http, tls`协议，它们已经完全可以做到网络栈信息自上而写，自下而上传输。但网络中通常包含很多的代理和中间节点，代理节点不可能解密tls，不然数据就不安全了，因此代理唯一能够做的事情就是在更底层的协议中将`tcp`流量直接转发。相当于代理不需要管上层的http和tls
+
+### https
+
+* TLS (Transport Layer Security) operates between the TCP (Transmission Control Protocol) layer and the HTTP (Hypertext Transfer Protocol) layer in the network stack.
+* On the client side, the data is passed from the HTTP layer to the TLS layer, while on the server side, the data is passed from the TLS layer to the HTTP layer.
+* TLS is the successor and evolution of SSL. TLS was developed as a replacement for SSL to address security vulnerabilities and improve upon its functionality.
+
+### 中继
+
+* 中继(relay)是没有完全遵循http规范的简单http代理。
+* Http很复杂，所以实现基本的代理功能对流量进行盲转发，而且不执行任何首部和方法逻辑，有时是很有用的。盲中继很容易实现，所以有时会提供简单的过滤、诊断或内容转换功能。
+* 中继由于对`Connection: keep-alive`进行盲转发可能会导致很多问题。
+
+***
 
