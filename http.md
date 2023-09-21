@@ -481,3 +481,68 @@
 
 ***
 
+## Cookie
+
+### 个性化接触
+
+* 目的
+  1. 个性化的问候
+  2. 有的放矢的推荐
+  3. 管理信息的存档
+  4. 记录会话
+* 方式
+  1. HTTP首部
+  2. IP地址追踪
+  3. 用户登录，用认证来识别用户
+  4. 在URL中嵌入识别技术
+
+### HTTP首部
+
+* From -> 用户的邮件地址
+* Reffer -> 用户从那个页面跳转过来的
+* Authorization -> 用户名和密码
+* Cookie -> Cookie
+* X-Forwarded-For -> 客户端的ip地址，因为有代理，因此这个代表源客户端的ip地址
+
+### fat url
+
+* 动态url，在url中包含用户的特定信息
+* 缺点
+  1. url丑陋
+  2. 无法共享url，因为包含个人信息
+  3. 破坏缓存
+  4. 服务器负担加重
+  5. 非持久
+
+### Cookie
+
+* 是识别用户，实现持久会话的最好方式
+
+* 分类
+
+  * 会话cookie - 存在内存中，离开浏览器就会删除。设置了Discard，或者没有设置Expires或Max-Age就是会话cookie
+  * 持久cookie - 存在磁盘中，离开浏览器也不会删除
+
+* 示例
+
+  ```http
+  HTTP/1.0 200 OK
+  Set-Cookie: csrf_session_id=563b2d84281ea5cd70c901502e9348e8;gateway_sid=5f1bab6ac77d8a39b265c8602d4ea930;tech=tech-user
+  ```
+
+  ```http
+  GET https://www.cn.bing.com HTTP/1.0
+  Cookie: csrf_session_id=563b2d84281ea5cd70c901502e9348e8; gateway_sid=5f1bab6ac77d8a39b265c8602d4ea930;tech=tech-user
+  ```
+
+* 规范
+
+  * Set-Cookie: name=value [; expires=date] [; path=path] [; domain=domain] [; secure]
+  * Cookie: name1=value1 [; name2=value2] ...
+
+* 缓存
+
+  * `Cache-Control:no-cache="Set-Cookie"`，除了Set-Cookie外的首部是可以缓存的
+  * 服务端收到带有cookie的请求时，这次的相应就是私有的，一般情况下不建议进行缓存了
+
+***
