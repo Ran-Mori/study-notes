@@ -546,3 +546,124 @@
   * 服务端收到带有cookie的请求时，这次的相应就是私有的，一般情况下不建议进行缓存了
 
 ***
+
+## 基本认证机制
+
+### 过程示意
+
+```http
+GET /family/jeff.jpg HTTP/1.0
+```
+
+```http
+HTTP/1.0 401 Authorization Required 
+WWW-Authenticate: Basic realm="Family"
+```
+
+```http
+GET /family/jeff.jpg HTTP/1.0 
+Authorization: Basic YnJpYW4tdG90dHk6T3ch
+```
+
+```http
+HTTP/1.0 200 OK 
+Content-type: image/jpeg ...<image data included>
+```
+
+### 缺陷
+
+1. 通过网络发送用户名和密码，且编解码方式简单
+2. 及时破解很难，也能拦截获取，以后每次重复发送
+3. 假冒服务器非常容易
+
+***
+
+## 安全的Http
+
+### 基本要求
+
+1. 服务器认证。客户端知道它在与真正的服务器进行通话
+2. 客户端认证。服务器知道它在与真正的客户端进行通过
+3. 完整性。数据不会被修改
+4. 加密。不能明文传输
+5. 效率。算法运行要足够快
+6. 普适性。基本上所有的客户端和服务端都要支持
+
+### 对称加密
+
+* 加密密钥和解密密钥是同一个
+* 服务器端会维持N个解密密钥，较为复杂
+* 常见算法：DES、Triple-DES、RC2 和 RC4
+
+### 非对称密钥
+
+* 加密密钥(公钥)有很多个，但解密密钥(私钥)只有一个
+* 服务端只用维持一个解密密钥即可
+* 公开密钥非对称加密要满足知道下面信息后，依旧无法破解
+  1. 公钥
+  2. 一段密文
+  3. 一段明文，和这段明文对应的密文
+
+### https
+
+* TLS自身不会去检验服务器证书，证书的检验是浏览器做的
+* TLS只是一个协议，OpenSSL是它的一个开源实现
+
+***
+
+## 实体和编码
+
+### 报文和实体
+
+* 描述报文的首部
+  * Content-Location -> 一个备用位置，请求时可通过它获得对象
+  * Content-Range -> 如果这是部分实体，这个首部说明它是整体的哪个部分
+  * Content-MD5 -> 实体主体内容的校验和
+  * Allow -> 该资源所允许的各种请求方法，例如，GET 和 HEAD
+
+* 多部分表格提交
+
+  ```http
+  POST /upload HTTP/1.1
+  Host: example.com
+  Content-Type: multipart/form-data; boundary=---------------------------1234567890
+  
+  -----------------------------1234567890
+  Content-Disposition: form-data; name="name"
+  
+  John Doe
+  -----------------------------1234567890
+  Content-Disposition: form-data; name="file"; filename="example.jpg"
+  Content-Type: image/jpeg
+  
+  (Binary file data here)
+  -----------------------------1234567890--
+  ```
+
+### 范围请求
+
+* 示例
+
+  ```http
+  GET /bigfile.html HTTP/1
+  ```
+
+  ```http
+  HTTP/1.1 200 0k // 200 说明这时候还不是部分请求
+  Content-type: text/html 
+  Content-length: 65327
+  Accept-ranges: bytes // 表示服务端支持range请求
+  ```
+
+  ```http
+  GET /bigfile.html HTTP.1.1  
+  Range: bytes=20224- // 客户端请求20224字节之后的内容
+  ```
+
+  ```http
+  HTTP/1.1 206 partial // 206部分返回说明是部分请求
+  Content-Range: bytes=20224- //返回的内容是20224之后
+  Accept-ranges: bytes
+  ```
+
+  
