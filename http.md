@@ -2,8 +2,6 @@
 
 ## URL与资源
 
-### URL
-
 * 通用格式
 
   ```
@@ -26,25 +24,6 @@
   ```
 
   * server don't use the frag value, but browser uses it to scroll to the specific position
-
-### 字符
-
-* url字符集 - `ASCII`
-
-* 转义
-
-  ```
-  https://www.google.com?surl=https%3A%2F%2Fcn.bing.com
-  ```
-
-  * [HTML URL Encoding Reference](https://www.w3schools.com/tags/ref_urlencode.ASP)
-    * space -> `%20`
-    * & -> `%26`
-
-* 字符限制
-
-  * 保留字符在用于保留用途之外时，要在URL中对其进行编码
-  * `%, /, ., ? ……`
 
 
 ***
@@ -666,4 +645,58 @@ Content-type: image/jpeg ...<image data included>
   Accept-ranges: bytes
   ```
 
-  
+
+***
+
+## 国际化
+
+### 字符集和编码
+
+* Content-Type
+
+  ```hit
+  Content-Type: text/html; charset=utf-8
+  ```
+
+  * 客户端(浏览器)将使用`utf-8`编码格式，将http文本二进制内容转换成人能看懂的内容
+
+### 字符编码方案
+
+* 固定宽度 - 如ASCII、iso-8859家族
+* 可变宽度(无模态) - 如utf-8
+* 可变宽度(有模态) - 如iso-2000-jp，它有几个转义序列，可以切换不同的字符集
+
+### language tag
+
+* 标准语言
+  * 英语 -> en
+  * 汉语 -> zh
+  * 韩语 -> ko
+* 变种方言
+  * 美式英语 -> en-US
+  * 台湾汉语 -> zh-TW
+
+### URI字符集合
+
+* 限制
+
+  * URI中允许且仅允许出现ASCII字符
+
+* ASCII字符分类
+
+  1. 未保留字符 - [A-Za-z0-9] | "-" | "_" | "." | "!" | "~" | "*" | " ' " | "(" | ")"
+     * 随便用
+  2. 保留字符 - ";" | "/" | "?" | ":" | "@" | "&" | "=" | "" | "$" | ","
+     * 都有特殊含义，不能随便用。在用于保留用途之外时，要在URL中对其进行编码
+  3. 转义字符 - "%" <HEX> <HEX>
+     * 用于转义
+
+* 转义
+
+  ```
+  https://www.google.com?surl=https%3A%2F%2Fcn.bing.com
+  ```
+
+  * [HTML URL Encoding Reference](https://www.w3schools.com/tags/ref_urlencode.ASP)
+    * space -> `%20`
+    * & -> `%26`
