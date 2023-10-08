@@ -421,3 +421,28 @@ int main() {
   * less systerm call, less context switch
 
 ***
+
+## Protocol Buffers
+
+### reference
+
+* [protocal buffer - wiki](https://en.wikipedia.org/wiki/Protocol_Buffers)
+
+### what is
+
+* it is a free and open-source cross-platform data format used to serialize structured data. 
+* It is useful in developing programs that communicate with each other over a network or for storing data.
+
+### example
+
+```protobuf
+syntax = "proto3";
+
+message Person {
+  string name = 1;
+  int32 age = 2;
+  repeated string hobbies = 3;
+}
+```
+
+***
