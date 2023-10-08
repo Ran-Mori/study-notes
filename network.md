@@ -1,4 +1,4 @@
-# Network-Programming
+# Network
 
 ## Introduction
 
@@ -373,5 +373,51 @@ int main() {
 * It differs both from *poll* and *select* in such a way that it keeps the information about the currently monitored descriptors and associated events inside the kernel, and exports the API to add/remove/modify those.
 * `poll()` uses a linear list to manage the file descriptors, while `epoll()` uses a scalable data structure based on a red-black tree. 
 * `poll()` blocks the calling thread until an event occurs on one of the monitored file descriptors, while `epoll()` uses an event-driven model and can be used in either blocking or non-blocking mode.
+
+***
+
+## QUIC
+
+### reference
+
+* [QUIC - wiki](https://en.wikipedia.org/wiki/QUIC)
+
+### what is 
+
+* It is is a general-purpose transport layer network protocol.
+
+### network stack
+
+* traditional tcp
+  * http - user space
+  * tls - user space
+  * tcp - kernel space
+* QUIC
+  * http - user space
+  * quic - user space
+    * tls - user space, and it is included in quic
+  * udp - kernel space
+
+### disadv of tcp
+
+* head of line
+  * TCP will see any error on a connection as a blocking operation, stopping further transfers until the error is resolved or the connection is considered failed.
+  * If a single connection is being used to send multiple streams of data, as is the case in the HTTP/2 protocol, all of these streams are blocked although only one of them might have a problem. 
+* many handshakes
+  * tcp deliberately contains little understanding of the data it transmits.
+  * if use tls, first we should make tcp handshakes, then make tls handshakes. So the latency may be too long.
+
+### characteristics
+
+* goal
+  * QUIC aims to be nearly equivalent to a TCP connection but with much-reduced latency.
+* simple setup
+  * reduce handshake times
+* use udp instead of tcp
+  * it seperately implements loss recovery. and it is more efficient than tcp
+  * it seperately implements congess control.
+* improve performance during network-switching events.
+* user space
+  * less systerm call, less context switch
 
 ***
