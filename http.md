@@ -700,3 +700,23 @@ Content-type: image/jpeg ...<image data included>
   * [HTML URL Encoding Reference](https://www.w3schools.com/tags/ref_urlencode.ASP)
     * space -> `%20`
     * & -> `%26`
+
+***
+
+## 内容协商
+
+### 协商方式
+
+1. 客户端驱动协商
+   * 需要两次请求才能获取最终的内容
+   * 每一个choice的URL不同，可能为`/english`、`/chinese`
+   * 两种方式。一个html文档内有多个不同版本的URL，一个300 Multiple Choices的响应用户自己选。但两种方式的体验都不好
+2. 服务端驱动协商
+   * 内容协商首部集 - Accept-XXX
+   * 内容协商质量值 - `Accept-Language: en;q=0.5, fr;q=0.0, nl;q=1.0, tr;q=0.0`
+3. 代理驱动协商
+   * Vary首部。server返回带有Vary首部，代理缓存这个response，当客户端下次请求时，当且仅当Vary首部与请求首部匹配时才用缓存
+   * `Vary: User-Agent, Cookie`
+
+### 转码
+
