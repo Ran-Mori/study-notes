@@ -132,3 +132,12 @@
 
 * `git log --follow -- <file>`
   * The `--follow` option is used to track the file across renames
+
+### filter log
+
+* `git log --diff-filter=<type> --summary`
+  * type can be Added (`A`), Copied (`C`), Deleted (`D`), Modified (`M`), Renamed (`R`)
+
+### delete all commit history of a file
+
+* `git filter-branch --force --index-filter "git rm -r --cached --ignore-unmatch <your-file-path>" --prune-empty --tag-name-filter cat -- --all`
