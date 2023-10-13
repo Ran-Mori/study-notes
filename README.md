@@ -1,59 +1,58 @@
-# various-kinds-learning
+# study-notes
 A repository for storing various kinds of study notes.
 
 
 
-## [CSAPP-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/csapp.md)
 
-## [understand-the-jvm](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/jvm.md)
+## [android-develop-explore-art](https://github.com/IzumiSakai-zy/study-notes/blob/main/android-develop-explore-art.md)
 
-## [first-line-of-code-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/first-line-of-code.md)
+## [company-learning](https://github.com/IzumiSakai-zy/study-notes/blob/main/company-learning.md)
 
-## [art-of-developing-and-exploring-android-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/android-develop-explore-art.md)
+## [cpp-primer](https://github.com/IzumiSakai-zy/study-notes/blob/main/cpp-primer.md)
 
-## [c++-primer-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/cpp-primer.md)
+## [csapp](https://github.com/IzumiSakai-zy/study-notes/blob/main/csapp.md)
 
-## [zen-of-design-patterns-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/design-patterns.md)
+## [daily-android](https://github.com/IzumiSakai-zy/study-notes/blob/main/daily-android.md)
 
-## [daily-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/daily.md)
+## [daily](https://github.com/IzumiSakai-zy/study-notes/blob/main/daily.md)
 
-## [daily-android-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/daily-android.md)
+## [design-and-analysis-of-algorithms](https://github.com/IzumiSakai-zy/study-notes/blob/main/design-and-analysis-of-algorithms.md)
 
-## [java-framework](https://github.com/IzumiSakai-zy/various-kinds-learning/tree/master/java-framework)
+## [design-patterns](https://github.com/IzumiSakai-zy/study-notes/blob/main/design-patterns.md)
 
-## [OS](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/os.md)
+## [digital-image-processing](https://github.com/IzumiSakai-zy/study-notes/blob/main/digital-image-processins.md)
 
-## [network](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/network.md)
+## [docker](https://github.com/IzumiSakai-zy/study-notes/blob/main/docker.md)
 
-## [http](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/http.md)
+## [first-line-of-code](https://github.com/IzumiSakai-zy/study-notes/blob/main/first-line-of-code.md)
 
-## [server](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/server.md)
+## [git](https://github.com/IzumiSakai-zy/study-notes/blob/main/git.md)
 
-## [learning-in-company-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/company-learning.md)
+## [go](https://github.com/IzumiSakai-zy/study-notes/blob/main/go.md)
 
-## [design-and-analysis-of-algorithms-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/design-and-analysis-of-algorithms.md)
+## [http](https://github.com/IzumiSakai-zy/study-notes/blob/main/http.md)
 
-## [golang-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/go.md)
+## [human-computer-interaction](https://github.com/IzumiSakai-zy/study-notes/blob/main/human-computer-interaction.md)
 
-## [kotlin-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/kotlin.md)
+## [java-script](https://github.com/IzumiSakai-zy/study-notes/blob/main/java-script.md)
 
-## [digital-image-processing-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/digital-image-processing.md)
+## [jvm](https://github.com/IzumiSakai-zy/study-notes/blob/main/jvm.md)
 
-## [javascript-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/java-script.md)
+## [kotlin](https://github.com/IzumiSakai-zy/study-notes/blob/main/kotlin.md)
 
-## [principles-of-compiler-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/priciples-of-compiler.md)
+## [leet-code](https://github.com/IzumiSakai-zy/study-notes/blob/main/leet-code.md)
 
-## [leetcode-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/leet-code.md)
+## [linux](https://github.com/IzumiSakai-zy/study-notes/blob/main/linux.md)
 
-## [HCI-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/human-computer-interaction.md)
+## [network](https://github.com/IzumiSakai-zy/study-notes/blob/main/network.md)
 
-## [redis-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/redis.md)
+## [os](https://github.com/IzumiSakai-zy/study-notes/blob/main/os.md)
 
-## [docker-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/docker.md)
+## [principles-of-compiler](https://github.com/IzumiSakai-zy/study-notes/blob/main/priciples-of-compiler.md)
 
-## [git-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/git.md)
+## [redis](https://github.com/IzumiSakai-zy/study-notes/blob/main/redis.md)
 
-## [linux-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/linux.md)
+## [server](https://github.com/IzumiSakai-zy/study-notes/blob/main/server.md)
 
-## [vue-notes](https://github.com/IzumiSakai-zy/various-kinds-learning/blob/master/vue.md)
+## [vue](https://github.com/IzumiSakai-zy/study-notes/blob/main/vue.md)
 
