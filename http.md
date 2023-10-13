@@ -718,5 +718,5 @@ Content-type: image/jpeg ...<image data included>
    * Vary首部。server返回带有Vary首部，代理缓存这个response，当客户端下次请求时，当且仅当Vary首部与请求首部匹配时才用缓存
    * `Vary: User-Agent, Cookie`
 
-### 转码
+***
 
