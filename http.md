@@ -720,3 +720,34 @@ Content-type: image/jpeg ...<image data included>
 
 ***
 
+## 重定向与负载均衡
+
+### http重定向
+
+* 请求与响应示例
+
+  ```http
+  GET /hammers.html HTTP/1.0
+  Host: www.joes-hardware.com
+  User-Agent: Mozilla/4.51 [en] (X11; U; IRIX 6.2 IP22)
+  ```
+
+  ```http
+  HTTP/1.0 302 Redirect
+  Server: Stronghold/2.4.2 Apache/1.3.6
+  Location: http://161.58.228.45/hammers.html
+  ```
+
+* 缺点
+
+  * 有两次请求
+
+### DNS重定向
+
+* DNS这一层来做负载均衡
+* 缺点
+  1. 可能会受DNS缓存影响
+* 算法
+  1. 负载均衡算法
+  2. 邻接路由算法
+  3. 故障屏蔽算法

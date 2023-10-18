@@ -52,9 +52,8 @@
 
 * `int link(char *file1, char *file2)`
 
-* creates another file system name referring to the same inode as an exist-
+* creates another file system name referring to the same inode as an existing file.
 
-  ing file.
 
 ### unlink
 

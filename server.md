@@ -30,7 +30,7 @@
 ### how it work?
 
 1. save a object together with its relevant metadata and a custom identifier into a flat data environment known as a storage pool. 
-2. se the unique identifier and the metadata to find the object you need
+2. use the unique identifier and the metadata to find the object you need.
 
 ### features
 
