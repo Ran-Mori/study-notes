@@ -141,3 +141,12 @@
 ### delete all commit history of a file
 
 * `git filter-branch --force --index-filter "git rm -r --cached --ignore-unmatch <your-file-path>" --prune-empty --tag-name-filter cat -- --all`
+
+### save commit history of only a file
+
+* `git filter-branch --index-filter 'git rm -rf --cached --ignore-unmatch $(git ls-files | grep -v "<your-file-path>")' --prune-empty`
+
+### add a repo to another repo
+
+1. `git remote add another-repo ../another-repo`
+2. `git fetch another-repo`
