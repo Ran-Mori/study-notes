@@ -6,8 +6,6 @@ A repository for storing various kinds of study notes.
 
 ## [android-develop-explore-art](https://github.com/IzumiSakai-zy/study-notes/blob/main/android-develop-explore-art.md)
 
-## [company-learning](https://github.com/IzumiSakai-zy/study-notes/blob/main/company-learning.md)
-
 ## [cpp-primer](https://github.com/IzumiSakai-zy/study-notes/blob/main/cpp-primer.md)
 
 ## [csapp](https://github.com/IzumiSakai-zy/study-notes/blob/main/csapp.md)
