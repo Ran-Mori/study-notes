@@ -200,7 +200,7 @@ wait(0);
   * The main loop reads a line of input from the user
   * Then it calls fork, which creates a copy of the shell process.
   * The parent calls wait, while the child runs the command.
-  * child runs exec, I fexec succeeds then the child will execute instructions from the new program.
+  * child runs exec, if exec succeeds then the child will execute instructions from the new program.
   * At some point new program will call exit, which will cause the parent to return from wait in main.
 
 ### file descriptor
