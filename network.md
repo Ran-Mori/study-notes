@@ -413,12 +413,17 @@ int main() {
   * QUIC aims to be nearly equivalent to a TCP connection but with much-reduced latency.
 * simple setup
   * reduce handshake times
+  * 0RTT - As tls is a part of quic in user space, you only need one RTT when you make a quic connection. Even further, you can carry message on the request connnecion, then it will be 0 RTT.
 * use udp instead of tcp
   * it seperately implements loss recovery. and it is more efficient than tcp
   * it seperately implements congess control.
 * improve performance during network-switching events.
+  * tcp identities a connection by two ip adresses and two ports, so you'll fell a bad network when switch between wifi and cellular as it needs to reconnect.
+  * quic uses connection id to identify a connection. It will reuse some context such as tls secret key to reconnect, then you will not fell a bad network.
+
 * user space
   * less systerm call, less context switch
+  * you can choose any congestion control and overtime resend algorithms you like
 
 ***
 
