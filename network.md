@@ -451,3 +451,67 @@ message Person {
 ```
 
 ***
+
+## DNS
+
+### under protocal
+
+* UDP
+
+### search order
+
+* host file、client local cache、Local DNS(set default by ISP)、DNS server cache、higher level DNS server
+
+### record types
+
+* A - an IPv4 address
+* AAAA - an IPv^ address
+* CNAME - it points a hostname to another hostname.
+
+***
+
+## DNS hijacking
+
+### reference
+
+* [what-are-dns-spoofing-dns-hijacking-dns-cache-poisoning](https://www.infoblox.com/dns-security-resource-center/what-are-dns-spoofing-dns-hijacking-dns-cache-poisoning/)
+* [dns-hijacking](https://en.wikipedia.org/wiki/DNS_hijacking)
+* [DNS Hijacking of Great Firewall of China](https://www.gfwvpn.com/dns-hijacking-of-great-firewall-of-china/)
+
+### what it?
+
+* DNS Spoofing - It is a DNS attack that changes DNS records returned to a querier.
+* DNS Hijacking - It refers to any attack that tricks the end user into thinking he or she is communicating with a legitimate domain name when in reality it is communicating with a domain name or IP address that the attacker has set up. 
+* DNS Cache Poisoning - It is a DNS attack targeting caching name servers.
+
+### ways to hijacking
+
+* captive portal - When you use a pay-for-use wife, the hotspot service captures all DNS queries, and regardless of what was asked, it returns the IP address of the payment server so the user can purchase WiFi access.
+* changing DNS server - The attacker could change the user’s DNS setting, so instead of using 8.8.8.8, it uses the IP address of a DNS server under the attacker’s control.
+
+### How default DNS is set?
+
+* By default, router uses DNS servers set up by your internet service provider. All the devices on your network use your router’s DNS server.
+
+### DNS quick answer
+
+* The DNS server use UDP 53 port to answer the request from user's computer.
+* The client computer will accept the first DNS reply from remote if its data format is correct and ignore other replies.
+* When you request 8.8.8.8, This request is detected and GFW returns an error IP to your computer immediately, your computer will accept this reply and ignore other replies (the real reply). 
+
+### How to avoid?
+
+* Use trusted DNS servers, such as Google DNS servers(8.8.8.8).
+* Use VPN & Google DNS together. In this way, your DNS request will be encrypted and can't be detected by GFW.
+* Modify the local host file to ensure the hijacked Domain Name will be resolved locally.
+
+***
+
+## content delivery network
+
+### with DNS
+
+* it depends on the DNS CNAME record type.
+
+***
+
