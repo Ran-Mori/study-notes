@@ -678,3 +678,48 @@ message Person {
 
 ***
 
+## http range request
+
+### reference
+
+* [HTTP range requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests)
+
+### check if supprot
+
+* request
+
+  ```bash
+  curl -i https://i.imgur.com/z4d4kWk.jpg
+  ```
+
+* response
+
+  ```bash
+  HTTP/2 200 
+  content-type: image/jpeg
+  cache-control: public, max-age=31536000
+  accept-ranges: bytes # bytes means support range request
+  content-length: 146515
+  ```
+
+### make range request
+
+* request
+
+  ```bash
+  curl -i \
+  	-H "Range: bytes=0-1023" \ # mean request [0, 1023], total 1024 bytes
+  	https://i.imgur.com/z4d4kWk.jpg
+  ```
+
+* response
+
+  ```bash
+  HTTP/2 206 
+  content-type: image/jpeg
+  accept-ranges: bytes # mean supprot range request
+  content-range: bytes 0-1023/146515 
+  content-length: 1024
+  ```
+
+***
