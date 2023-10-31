@@ -820,3 +820,45 @@ Content-type: image/jpeg ...<image data included>
 * 优化策略
   * 分片加速 - 同一个下载任务让多个tcp连接并行进行，由于拥塞控制存在，很可能一个tcp连接窗口数下降，另外一个tcp连接就迅速增加窗口，尽量跑满带宽。
   * 限速 - 下载速度不是越快越好，比如游戏时带宽全被下载占据了。可以用tcp的HOL现状，控制接收端不读取数据来达到限速目的。
+
+***
+
+## Chunk
+
+### reference
+
+* [oracle - http chunking](https://www.oracle.com/technical-resources/articles/javame/chunking.html)
+* [stack over flow - transfer-encoding-chunked](https://stackoverflow.com/questions/19907628/transfer-encoding-chunked)
+* [wiki-chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)
+
+### feature
+
+1.   only available in http1.1, not supported in http2.0 which provides its own mechanisms for data streaming 
+
+### example
+
+```json
+C\r\n
+Some data... // first
+11\r\n
+Some more data... // second
+0\r\n // end
+```
+
+***
+
+## 分片下载/上传
+
+### 上传
+
+* 前端将一个大文件分为多个，并发一起上传
+* 从服务端获取信息，那一片失败了就重新传那一片
+* 上传完毕后通知服务端进行合并
+
+### 下载
+
+* server支持range请求
+* 客户端并发多段range下载，那里失败了就设置range从那里继续
+* 这样就实现了断点续传
+
+***
