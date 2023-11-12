@@ -279,7 +279,7 @@ if(fork() == 0) {
   * advantages
     *  the entire operating system runs with full hardware privilege.
     * it is convenient because the OS designer doesn’t have to decide which part of the operating system doesn’t need full hardware privilege.
-    * it is easier for different parts of the op- erating system to cooperate.
+    * it is easier for different parts of the operating system to cooperate.
   * disadvantages
     * the interfaces between different parts of the operating system are often complex
     * a mistake is fatal, because an error in supervisor mode will often cause the kernel to fail.

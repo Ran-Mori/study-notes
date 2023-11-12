@@ -100,11 +100,17 @@
     
     private void postToSubscription(Subscription subscription, Object event, boolean isMainThread) {
       switch (subscription.subscriberMethod.threadMode) {
-          //区分注解threadMode
-          case MAIN:
-          	//将事件处理传递给invokeSubscriber
-          	invokeSubscriber(subscription, event);
-          	break;
+        //区分注解threadMode
+        case POSTING:
+          invokeSubscriber(subscription, event);
+          break;
+        case MAIN:
+          //将事件处理传递给invokeSubscriber
+          invokeSubscriber(subscription, event);
+          break;
+        case ASYNC:
+          asyncPoster.enqueue(subscription, event);
+          break;
       }
     }
     
