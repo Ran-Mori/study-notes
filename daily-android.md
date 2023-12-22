@@ -1104,82 +1104,32 @@
 
 ## 事件分发
 
-* window链接
+* 硬件产生触动
 
-  * [Android全面解析之Window机制](https://juejin.cn/post/6888688477714841608)
+* 触动传递给`InputManagerService`
 
-* Dialog
-
-  * 通过`windowManager`添加的`view`，与当前的`Activity`毫无关系
-  * 它是另一个`window`，另一个`view`树
-
-* type属性
-
-  * 决定`window`即`view`树的深度信息，越高越靠前
-  * 系统弹窗、Toast的type值就很高
-
-* 添加window
-
-  * 示例代码
+* `InputeManagerService`通过`WindowManagerService`将触动传给对应的`window`
 
   ```java
-  //在Activity中执行下列代码
-  Button button = new Button(this);
-  WindowManager.LayoutParams windowParams = new WindowManager.LayoutParams();
-  // 这里对windowParam进行初始化
-  windowParam.addFlags...
-  // 获得应用PhoneWindow的WindowManager对象进行添加window
-  getWindowManager.addView(button, windowParams);
-  ```
-
-  * `WindowManagerGloabal.addView()`最终执行
-
-  ```java
-  public void addView(...) {
-    //在此新建了一个ViewRootImpl
-    root = new ViewRootImpl(view.getContext(), display);
-    view.setLayoutParams(wparams);
-    mViews.add(view);
-    mRoots.add(root);
-    mParams.add(wparams);
-  
-    ...
-  
-    root.setView()
+  public class WindowManagerService extends IWindowManager.Stub {
+    final InputManagerService mInputManager;
   }
   ```
 
-  * `WindowManagerGloabal`是一个全局单例对象，管理所有`window`
-  * `ViewRootImpl.setView()`会调用`WMS`去创建`window`
-
-* 事件产生及传递
-
-  * 硬件产生触动
-
-  * 触动传递给`InputManagerService`
-
-  * `InputeManagerService`通过`WindowManagerService`将触动传给对应的`window`
-
-  * `window`将触动传送给对应的`ViewRootImpl`
-  
-  * `ViewRootImpl`将触动封装成`MotionEvent`对象，传递给下层`View`
-  
-* 事件传递
-
-  * `ViewRootImpl`
+* `window`将触动传送给对应的`ViewRootImpl`
 
   ```java
-  class ViewRootImpl {
-    View mView;
-    public void setView(View view, ...) {
-      if (mView == null) {
-        mView = view;
-      }
+  public final class ViewRootImpl {
+  	WindowInputEventReceiver mInputEventReceiver;
+    public void setView(View view, WindowManager.LayoutParams attrs) {
+      InputChannel inputChannel = new InputChannel();
+      mWindowSession.addToDisplayAsUser(mWindow, inputChannel); // 添加Window进WMS通过传入inputChannel建立关联
+      mInputEventReceiver = new WindowInputEventReceiver(inputChannel, Looper.myLooper()); //事件传递到mInputEventReceiver
     }
   }
   ```
 
-  * `ViewRootImpl`向下传递
+* `ViewRootImpl`将触动封装成`MotionEvent`对象，传递给下层`View`
 
   ```java
   //ViewRootImpl#ViewPostImeInputStage
@@ -1210,9 +1160,11 @@
   }
   ```
 
-  * 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`，奇怪的是`DecorView`对`dispatchTouchEvent`进行了重写
-  * 如果不为`DecorView`，则直接顶层`ViewGroup.dispatchTouchEvent(ev)`
-  * `DecorView.dispatchTouchEvent()`
+* 应用布局界面和`Dialog`最顶层的`ViewGroup`为`DecorView`，奇怪的是`DecorView`对`dispatchTouchEvent`进行了重写
+
+* 如果不为`DecorView`，则直接顶层`ViewGroup.dispatchTouchEvent(ev)`
+
+* `DecorView.dispatchTouchEvent()`
 
   ```java
   public class DecorView extends FrameLayout {
@@ -1224,7 +1176,7 @@
   }
   ```
 
-  * `Window.Callback`
+* `Window.Callback`
 
   ```java
   public interface Callback { 
@@ -1232,24 +1184,20 @@
   }
   ```
 
-  * `Activity`定义
+* `Activity/Dialog`定义
 
   ```java
   public class Activity implements Window.Callback {
     ...
   }
-  ```
-
-  * `Dialog`定义
-
-  ```java
   public class Dialog implements Window.Callback {
     ...
   }
   ```
 
-  * 当`Window.Callback cb = mWindow.getCallback(); cb != null`时，事件传递给了`Activity`或者`Dialog`
-  * 当`Window.Callback cb = mWindow.getCallback(); cb == null`时，事件传递给`super.dispatchTouchEvent(ev)`，即`DecorView`的父类`ViewGroup`
+* 当`Window.Callback cb = mWindow.getCallback(); cb != null`时，事件传递给了`Activity`或者`Dialog`
+
+* 当`Window.Callback cb = mWindow.getCallback(); cb == null`时，事件传递给`super.dispatchTouchEvent(ev)`，即`DecorView`的父类`ViewGroup`
 
 * DecorView叛徒
 
@@ -1338,10 +1286,6 @@
 * 结论
 
   * 兜兜绕绕一圈，即使`ViewRootImpl.mView is DecorView `事件交给了`Activity`，但最终又绕回了`DecorView的父类ViewGroup.dispatchTouchEvent()`
-
-* 注意
-
-  * `ViewRootImpl`不是一个`View`，它有一个`View mView`成员变量
 
 ***
 
