@@ -86,6 +86,11 @@
     * Interprocess communication (Example4.c)
 * what is for
   * map or unmap files or `devices` into memory.
+* mmap vs read
+  * mmap reduces the memory copy between kernel space and user space. As read needs a buffer in kernel space and then copies it to user space.
+  * mmap is good for large size file
+  * mmap is good for IPC 
+
 
 ***
 
