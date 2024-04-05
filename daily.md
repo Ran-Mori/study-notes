@@ -553,7 +553,7 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ***
 
-## Cmake
+## cmake
 
 * 概念
 
@@ -572,8 +572,15 @@ object SubServiceImpl:ISubService, PushCallBack {
   * 经常使用的两个命令
 
     ```cmake
-    cmake -S . -B build
-    cmake --build build
+    cmake -S . -B ./build
+    # -S <path-to-source> = Explicitly specify a source directory.
+    # -B <path-to-build>  = Explicitly specify a build directory.
+    cmake --build ./build
+    # --build <dir> = Build a CMake-generated project binary tree.
+    # path = the path to be built
+    cmake --install ./build
+    # --install <dir> = Install a CMake-generated project binary tree.
+    # path = the path to be installed
     ```
 
 * 语法
