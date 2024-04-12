@@ -76,9 +76,13 @@
 
 * 链接阶段
 
-  * main程序调用了**每个C编译器都提供的标准C库中print()函数**
-  * print() 函数存在于一个**print.o**的可重定位目标程序中
-  * 链接器要将**print.o和main.o**两个**可重定位目标程序**合并
+  * static link
+    * main程序调用了**每个C编译器都提供的标准C库中print()函数**
+    * print() 函数存在于一个**print.o**的可重定位目标程序中
+    * 链接器要将**print.o和main.o**两个**可重定位目标程序**合并
+  * dynamic link
+    * In dynamic linking, we copy the names of the external libraries into our final executable as unresolved symbols. We do the actual linking of these unresolved symbols only at runtime.
+    * When encountering an unresolved symbol, we query RAM for it. If the corresponding library isn’t loaded, the operating system loads it in the memory. So, **the operating system performs dynamic linking for us by resolving each external symbol on the first muss.** As a result, we load only a single copy of a library in memory and all processes use it.
   * 最后得到一个**main.out或main**文件
   * 这是一个可执行文件
 
