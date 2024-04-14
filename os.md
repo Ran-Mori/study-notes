@@ -76,19 +76,33 @@
   * addr - The starting address for the new mapping is specified
   * fd - This is the file descriptor which has to be mapped.
   * offset - This is offset from where the file mapping started. In simple terms, the mapping connects to (offset) to (offset+length-1)  bytes for the file open on filedes descriptor.
-* url
+* references
   * [Linux manual page](https://man7.org/linux/man-pages/man2/mmap.2.html)
   * [When should I use mmap for file access](https://stackoverflow.com/questions/258091/when-should-i-use-mmap-for-file-access)
   * [How to use mmap function in C language?](https://linuxhint.com/using_mmap_function_linux/)
-    * Memory allocation (Example1.c)
-    * Reading file (Example2.c)
-    * Writing file (Example3.c)
-    * Interprocess communication (Example4.c)
 * what is for
   * map or unmap files or `devices` into memory.
+* features
+  * the returned memory address is virtual memory address in user space.
+  * the physical memory is in kernel space and is managed by kernel.
+
+* ipc
+  * The process writes data to the memory address within the shared memory region that it has mapped.
+  * The modified data resides in the process's user space memory.
+  * The kernel tracks the modifications made to the shared memory pages.
+  * When necessary (e.g., during a synchronization operation or when a process accesses the shared memory region), the kernel copies the modified pages from the process's memory to the actual shared memory region.
+  * The changes made by the writing process are immediately visible to all other processes that have mapped the same shared memory region.
+
 * mmap vs read
-  * mmap reduces the memory copy between kernel space and user space. As read needs a buffer in kernel space and then copies it to user space.
-  * mmap is good for large size file
+  * mmap reduces the memory copy times between kernel space and user space. As the file is loaded into kernel space from disk and then is loaded into user space from kernel space, so there are two times of memory copy when using read.
+    * The process invokes the `read` system call, specifying the file descriptor and the buffer in its own user space where it wants to store the data.
+    * The kernel receives the `read` system call and checks the validity of the file descriptor.
+    * The kernel allocates a buffer in the kernel space to temporarily hold the data being read.
+    * The kernel reads data from the source (e.g., a file, a socket, or a pipe) into the kernel buffer.
+    * Once the data is in the kernel buffer, the kernel copies it to the destination buffer provided by the process in user space.
+    * The kernel returns the number of bytes read to the process.
+    * The process can then access and utilize the data from its own user space buffer.
+  * mmap is good for large size file, especially when the size of file is greater than the kernel buffer.
   * mmap is good for IPC 
 
 
