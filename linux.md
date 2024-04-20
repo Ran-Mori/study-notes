@@ -406,3 +406,70 @@
     * 无性能损失，因为链接和就和普通的内核代码一样了
 
 ***
+
+## dlopen
+
+### what
+
+* it is not a system call.
+* It's a function provided by the C library, specifically from the `libdl` library.
+
+### signature
+
+``` c
+#include <dlfcn.h>
+
+void *dlopen(const char *filename, int flags);
+int dlclose(void *handle);
+```
+
+### how it works
+
+1. `dlopen` uses internal system calls(`open`) to open the library file on disk.
+2. It then uses system calls like `mmap` to map the library's contents into the memory space of your program.
+3. `dlopen` resolves symbols (function names) within the library and returns a handle to the loaded library.
+
+### example
+
+```c
+#include <stdio.h>
+#include <dlfcn.h>
+
+// Function prototype to match the expected function from the library
+int add(int a, int b);
+
+int main() {
+  void* handle;
+  char* error;
+
+  // Path to the library (replace "mylib.so" with your actual library filename)
+  const char* lib_path = "mylib.so";
+
+  // Load the dynamic library
+  handle = dlopen(lib_path, RTLD_LAZY);
+  if (!handle) {
+    error = dlerror();
+    fprintf(stderr, "Error loading library: %s\n", error);
+    return 1;
+  }
+
+  // Get the function pointer using dlsym
+  add = (int(*)(int, int))dlsym(handle, "add");
+  if (!add) {
+    error = dlerror();
+    fprintf(stderr, "Error getting function pointer: %s\n", error);
+    dlclose(handle); // Close the library even on error
+    return 1;
+  }
+
+  // Call the function from the loaded library
+  int result = add(5, 3);
+  printf("Result: %d\n", result);
+
+  // Close the library when finished
+  dlclose(handle);
+
+  return 0;
+}
+```
+
