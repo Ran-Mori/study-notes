@@ -2772,6 +2772,20 @@
   }
   ```
 
-  
 
-  
+***
+
+## SPI
+
+* what is? - Service provider interface(SPI) is an API intended to be implemented or extended by a third party. It can be used to enable framework extension and replaceable components
+* how to implement it
+  1. use an annotation to mark a class as interface, and then use annother annotation to mark a class as implementation.
+  2. collect mapping relationships between them when compiling, it may involve annotation processing and asm
+  3. register all mapping information to a data center.
+  4. try get an implemention from data cener with an interface `class::java` at runtime.
+* features
+  * there is a cache when calling `findService` method, so it doesn't create impl instances all the time, but it may lead to memory leaking.
+  * it doesn't need reflection to create an implementation class at runtime, as the implementation is in the host. while retrofit generates the impl class at runtime with asm.
+  * it firstly needs to load a plugin when it tries to find a service impl which is in a plugin.
+
+***
