@@ -723,3 +723,20 @@ message Person {
   ```
 
 ***
+
+## network address translation
+
+### reference
+
+* [wiki](https://en.wikipedia.org/wiki/Network_address_translation)
+* [简单几步实现内网穿透](https://sspai.com/post/73283)
+* [nat-traversal](https://www.netmaker.io/resources/nat-traversal)
+* [Carrier-grade NAT](https://en.wikipedia.org/wiki/Carrier-grade_NAT)
+* [tailscale](https://github.com/tailscale/tailscale)
+
+### features
+
+* NAT is almost been referred as NAPT by default.
+* In most cases, a router owns a public IP. But there is alao a shortage of ipv4 addresses, so ISP owns a public ip, each router owns a private ip, and then each device owns a private ip (relative to the router). So you can't get a public ip address after installing the broadband. And this is `CGT`
+
+***
