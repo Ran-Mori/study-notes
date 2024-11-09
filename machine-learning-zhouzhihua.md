@@ -127,10 +127,60 @@
 
 ***
 
+## model evaluation and selection
+
+### excerpt
+
+1. 有多种因素可能导致过拟合, 其中最常见的情况是由于学习能力过于强大, 以至于把训练样本所包含的不太一般的特性都学到了。
+2. 很多学习器是为测试样本产生一个实值或概率预测，然后将这个预测值与一个分类阈值(threshold)进行比较，若大于阈值则分为正类，否则为反类.
+
+### 查准率与查全率
+
+* 是什么
+
+  |          | 预测正例 | 预测反例 |
+  | -------- | -------- | -------- |
+  | 真实正例 | TP       | FN       |
+  | 真实反例 | FP       | TN       |
+
+  > 查准率P = TP / (TP + FP)
+  >
+  > 查全率R = TP / (TP + FN)
+
+* 现状：查准率和查全率是一对矛盾的度量. 一般来说，查准率高时，查全率往往偏低；而查全率高时，查准率往往偏低。
+
+### 代价敏感错误率
+
+* 是什么？
+  * 不同类型的错误所造成的后果不同.
+* example
+  * 在医疗诊断中，错误地把患者诊断为健康人与错误地把健康人诊断为患者, 看起来都是犯了 “一次错误”，但后者的影响是增加了进一步检查的麻烦，前者的后果却可能是丧失了拯救生命的最佳时机。
+  * 门禁系统错误地把可通行人员拦在门外，将使得用户体验不佳,但错误地把陌生人放进门内，则会造成严重的安全事故。
+  * 
+
+***
+
+## P versus NP
+
+### what is?
+
+* **P**: The general class of questions that some algorithm can answer in polynomial.
+* **NP**: For some questions, there is no known way to find an answer quickly, but if provided with an answer, it can be verified quickly. The class of questions where an answer can be *verified* in polynomial time is NP, standing for "nondeterministic polynomial time".
+* **NP-Complete**: the set of all problems `X` in NP for which it is possible to reduce any other NP problem `Y` to `X` in polynomial time.
+* Informally: it asks whether every problem whose solution can be quickly verified can also be quickly solved.
+
+### feature 
+
+1. all P problems are NP problems.
+2. but if all NP problems are P problems?
+3. If we can at least solve one NP-Complete problem, then we can solve all NP problems.
+4. there are even harder problems than NP-Complete.
+
+### example
+
+* 解一个数独很难，它是一个NP问题。但给定一个数独的答案，去验证它是否是正确的很简单，验证数独答案只事一个P问题。
+* 机器学习面临的问题通常是NP难甚至更难，而有效的学习算法必然是在多项式时间内运行完成，若可彻底避免过拟合，则通过经验差最小化就能获最优解，这就意味着我们构造性地证明了 “P=NP”； 因此，只要相信 “P != NP” ，过拟合就不可避免。
+
+
+
 ## todo
-
-1. 符号机器学习？统计机器学习？ 深度机器学习？问下chatgpt
-
-
-
-#### 
