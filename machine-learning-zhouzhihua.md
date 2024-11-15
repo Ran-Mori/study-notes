@@ -180,6 +180,139 @@
 
 * 解一个数独很难，它是一个NP问题。但给定一个数独的答案，去验证它是否是正确的很简单，验证数独答案只事一个P问题。
 * 机器学习面临的问题通常是NP难甚至更难，而有效的学习算法必然是在多项式时间内运行完成，若可彻底避免过拟合，则通过经验差最小化就能获最优解，这就意味着我们构造性地证明了 “P=NP”； 因此，只要相信 “P != NP” ，过拟合就不可避免。
+* NP-Complete：数独问题，蛋白质结构问题
+
+***
+
+## linear model
+
+### excerpt
+
+1. 许多功能更为强大的非线性模型可在线性模型的基础上通过引入层级结构或高维映射而得。此外，由于w直观表达了各属性在预测中的重要性，因此线性模型有很好的可解释性。
+
+2. 广义线性模型"(generalized linear model)
+   $$
+   y = g^{-1}(w^Tx + b)
+   $$
+   * 其中`g^(-1) = ln()`时为对数线性回归
+
+3. 对数几率函数。可用于分类
+   $$
+   y = \frac{1}{1 + e^{-x}}
+   $$
+   * 将对数几率函数作为`g^(-1)`代入得
+   	$$
+   	y = \frac{1}{1 + e^{-(w^tx + b)}}
+   	$$
+
+
+***
+
+## decision tree
+
+### excerpt
+
+1. 一棵决策树包含一个根结点、若干个内部结点和若干个叶结点；叶结点对应于决策结果，其他每个结点则对应于一个属性测试；
+2. 决策树学习的目的是为了产生一棵泛化能力强，即处理未见示例能力强的决策树。
+
+### how
+
+* 决策树算法的核心是如何产生划分，其中一种方式是计算`信息增益`(informationi gain)。其核心思想即在众多的属性中，计算哪一种属性对最终结果产生的影响更大，优先选择影响最大的属性作为划分。
+
+  ```bash
+  # 下面这种划分说明根据训练集数据，Is Adult属性的信息增益最大
+  					[Is Adult?] 
+            /         \
+         Yes           No
+        /               \
+  [Is Genre Drama?]   [Is Genre Animation?]
+        |                 |
+     Enjoy            Enjoy
+  ```
+
+### overfit
+
+* 决策树算法也可能会过拟合，剪枝(pruning)是一种剪枝算法，至于咋剪就有点复杂了，这里不再赘述。
+* 怎么判断剪枝后的效果更好性能提升呢？可以预留一部分训练集的数据作为测试集来验证。
+
+### continuous value
+
+* 上述的算法只适合处理离散值，遇到连续值有点棘手。
+* 可以采用二分法，将连续值离散化来处理。
+
+***
+
+## neural network
+
+### excerpt
+
+1. M-P神经元模型模型中，神经元接收到来自几个其他神经元传递过来的输入信号，这些输入信号通过带权重的连接(connection)进行传递，神经元接收到的总输入值将与神经元的阈值进行比较，然后通过“激活函数”(activation function)处理以产生神经元的输出。
+
+### M-P neuron model
+
+#### what
+
+* it  is a binary computational model that mimics how biological neurons process information.
+
+#### components
+
+1. Input Signals (x1, x2, …, xn):
+2. Weights (w1, w2, …, wn):
+3. Summation Function: computes a weighted sum of the inputs:
+4. Threshold (θ): it determines whether the neuron will “fire” (activate) or not. If the weighted sum S exceeds the threshold (S >= θ), the neuron outputs 1; otherwise, it outputs 0.
+5. Output (y): 1 or 0.
+
+#### limitations
+
+1. 输入必须转换为线性数组
+2. 输出只能是1 or 0
+3. The model does not have a learning algorithm, so weights and thresholds must be predefined.
+
+### gradient descent
+
+#### process
+
+1. 选一个模型。那目的实际就是去找w和b的值
+   $$
+   y_{\text{pred}} = w \cdot x + b
+   $$
+   
+2. 定义好loss function。这里选择用均方差Mean Squared Error
+   $$
+   L(w, b) = \frac{1}{N} \sum_{i=1}^N \left( y_i - (w \cdot x_i + b) \right)^2
+   $$
+   
+3. 随机初始化参数，定义一个学习率
+   $$
+   w = 0.1, b = 0.5, 学习率(\eta) = 0.01
+   $$
+
+4. loss function中其实有两个变量分别是w和b。现在分别对w和b进行求导
+   $$
+   \frac{\partial L}{\partial w} = -\frac{2}{N} \sum_{i=1}^N x_i \cdot \left( y_i - (w \cdot x_i + b) \right)
+   $$
+
+   $$
+   \frac{\partial L}{\partial b} = -\frac{2}{N} \sum_{i=1}^N \left( y_i - (w \cdot x_i + b) \right)
+   $$
+
+   
+
+5. 我们的目标是让loss function的函数值尽量小，怎么样才能更小呢？就是w和b朝着斜率的方向去变换。变换的量是`学习率*求导值`
+   $$
+   w \leftarrow w - \eta \cdot \frac{\partial L}{\partial w}
+   $$
+
+   $$
+   b \leftarrow b - \eta \cdot \frac{\partial L}{\partial b}
+   $$
+
+6. 通常当loss fuction小于某个threshold时训练停止；或达到最大的迭代次数时训练停止；当然还有一些其他的停止情况
+
+#### learning rate
+
+* A small learning rate means smaller updates to the model parameters, leading to **slower convergence** but potentially more accurate results.
+* A large learning rate means bigger updates, which can speed up training but risks **overshooting** the optimal solution or even diverging.
 
 
 
