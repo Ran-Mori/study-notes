@@ -196,7 +196,7 @@
    $$
    * 其中`g^(-1) = ln()`时为对数线性回归
 
-3. 对数几率函数。可用于分类
+3. 对数几率函数。可用于分类，因为其输出固定在(0, 1)之间
    $$
    y = \frac{1}{1 + e^{-x}}
    $$
@@ -313,6 +313,25 @@
 
 * A small learning rate means smaller updates to the model parameters, leading to **slower convergence** but potentially more accurate results.
 * A large learning rate means bigger updates, which can speed up training but risks **overshooting** the optimal solution or even diverging.
+
+### CNN
+
+#### components?
+
+1. Convolutional Layer: 不同的filter去寻找不同的特征
+2. Pooling Layer: 分辨率降低并不影响一个物体的识别
+3. Fully Connected Layer
+4. Softmax: 将输出聚在一个范围内
+
+#### process
+
+* Input: a 32 * 32 * 3 image of a dog.
+* Convolution Layer: Apply 10 filters of size 3 * 3 * 3, Outputs 30 * 30 * 10 feature maps.
+* Pooling Layer: Apply 2 * 2 max pooling, Outputs 15 * 15 * 10.
+*  Convolution Layer: Apply 20 filters of size 3 * 3 * 10, Outputs 13 * 13 * 10 feature maps.
+* Fully Connected Layer: Flatten to a vector of size 3380 (from 13 * 13 * 20). output  A probability distribution (e.g., [0.95 ({dog}), 0.05 ({cat})]).
+
+
 
 
 
