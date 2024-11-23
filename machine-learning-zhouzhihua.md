@@ -316,6 +316,11 @@
 
 ### CNN
 
+#### what is?
+
+* Convolutional Neural Networks
+* 卷积神经网络
+
 #### components?
 
 1. Convolutional Layer: 不同的filter去寻找不同的特征
@@ -331,8 +336,41 @@
 *  Convolution Layer: Apply 20 filters of size 3 * 3 * 10, Outputs 13 * 13 * 10 feature maps.
 * Fully Connected Layer: Flatten to a vector of size 3380 (from 13 * 13 * 20). output  A probability distribution (e.g., [0.95 ({dog}), 0.05 ({cat})]).
 
+***
 
+## KNN
 
+### what is?
 
+* K Nearest Neighbor algorithm
 
-## todo
+### feature
+
+1. it is a kind of lazy training algorithm 
+
+### how
+
+1. choose K
+
+   * A small K might be too sensitive to noise, while a large K can smooth over complex patterns.
+
+2. Calculate Distances
+
+   * Euclidean Distance
+     $$
+     d = \sqrt{\sum_{i=1}^n (x_i - y_i)^2}
+     $$
+
+   * Manhattan Distance
+     $$
+     d = \sum_{i=1}^n |x_i - y_i|
+     $$
+
+3. Sort the training points by their distance to the new point and select the K closest ones.
+
+4. output
+
+   1. For classification: Use majority voting among the K neighbors.
+   2. For regression: Take the mean (or weighted mean) of the neighbors’ values.
+
+***
