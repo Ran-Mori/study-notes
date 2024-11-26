@@ -314,26 +314,63 @@
 * A small learning rate means smaller updates to the model parameters, leading to **slower convergence** but potentially more accurate results.
 * A large learning rate means bigger updates, which can speed up training but risks **overshooting** the optimal solution or even diverging.
 
-### CNN
+***
 
-#### what is?
+## CNN
 
-* Convolutional Neural Networks
-* 卷积神经网络
+### what is?
 
-#### components?
+* Convolutional Neural Networks 卷积神经网络
+
+### components
 
 1. Convolutional Layer: 不同的filter去寻找不同的特征
 2. Pooling Layer: 分辨率降低并不影响一个物体的识别
 3. Fully Connected Layer
 4. Softmax: 将输出聚在一个范围内
 
-#### process
+### 拉直
+
+* 图像是一个100 * 100 * 3的tensor，怎样才能让它作为CNN的输入呢？
+* 直接把它拉直，成一个30000的tensor丢进CNN作为输入
+
+### receptive field
+
+* 理论上每一层都是Fully Connected Layer岂不是会更好？这样参数多，模型弹性大，能预测更复杂的模型。但100 * 100 * 3的图像如果经过一层有1000个neuron的Fully Connected Layer，参数weight的数目是 3 * 10^7，是一个十分巨大的数字。参数太多训练难度过大 且overfitting的风险也很大
+* 我们得知，识别图像分类往往不用看整张图像。因此一个Neuron不用感知100 * 100 * 3有30000个weight，它只需要明确感知一小块3 * 3 * 3的范围即可，这样weight数是27
+* Each receptive field has a set of neurons(e.g. 64 neurons ). 同一块receptive field可能包含鸟嘴、鸟尾、天空等多种特征，一个neuron只能识别一种特征。假设特征一共有64种，则同一块receptive field由64个neuron来检查。 
+
+### parameter sharing
+
+* 100 * 100 * 3的图像在经典参数下共有98 * 98个3 * 3 * 3的receptive field。每一个receptive field由64个neuron来进行观察。理论上weight的总数是98 * 98 * 3 * 3 * 3 * 64。但其实每98 * 98个neuron干的事都是一样的，因此完全可以共享参数。因此最终的weight是3 * 3 * 3 * 64
+
+### model bias
+
+* 理论上Fully Connected Layer弹性最大，使用receptive field限制的了弹性的范围。等于是100 * 100 * 3的weight大多数都被强制设为了0
+* parameter sharing又进一步限制了弹性，因为理论上weight从98 * 98 * 3 * 3 * 3 * 64降成了3 * 3 * 3 * 64。强制让很多weight取相同的值
+* 因此CNN的model bias其实很大。但这不一定是坏事，它的overfitting的可能性就降低。且增大model bias的原理都是从实际图像分类中获得灵感，因此CNN处理图像有奇效，处理非图像可能不适用。
+* pooling层没有参数，但使用pooling的原因也是从图片分类获得的灵感。因此在非图片任务中pooling不一定适用。
+
+### Convolutional Layer
+
+* 上面receptive field和parameter sharing的另一种解释方式。
+* 100 * 100 * 3的图像，经过一个3 * 3 * 3的neuron(filter)后，会产生98 * 98 * 1的feature map。注意输入是拉直的。
+* parameter sharing实际就是同一个filter扫过一张图片，这个过程就叫Convolution
+* 假设某一层Convolutional Layer有64个3 * 3 * 3filter，那weight总数是 3 * 3 * 3 * 64，输出的feature map是98 * 98 * 64。
+* 假设以98 * 98 * 64的feature map作为新的一张图片输入，经过128个3 * 3 * 64的filter，则weight数是3 * 3 * 64 * 128。输出的feature map是96 * 96 * 128。
+
+### feature
+
+* 3 * 3的kennel size会不会太小？其实不会，因为在first Convolutional Layer确实只能看到 3 * 3的范围，但其实second Convolutional Layer中的3 * 3对应着原始图像5 * 5的范围。
+* AlphaGo。下围棋和图像很像，可以抽象成图片分类问题，因此可以用CNN来下围棋。但不用pooling，因为和图像分类还是有点不一样的。
+* CNN不能很好处理放大，缩小，旋转问题。因为放大后人眼看起来是一样的，但对同一个训练好的CNN来说，输入完全不一样。
+
+### process
 
 * Input: a 32 * 32 * 3 image of a dog.
 * Convolution Layer: Apply 10 filters of size 3 * 3 * 3, Outputs 30 * 30 * 10 feature maps.
 * Pooling Layer: Apply 2 * 2 max pooling, Outputs 15 * 15 * 10.
-*  Convolution Layer: Apply 20 filters of size 3 * 3 * 10, Outputs 13 * 13 * 10 feature maps.
+* Convolution Layer: Apply 20 filters of size 3 * 3 * 10, Outputs 13 * 13 * 10 feature maps.
 * Fully Connected Layer: Flatten to a vector of size 3380 (from 13 * 13 * 20). output  A probability distribution (e.g., [0.95 ({dog}), 0.05 ({cat})]).
 
 ***
@@ -374,3 +411,11 @@
    2. For regression: Take the mean (or weighted mean) of the neighbors’ values.
 
 ***
+
+## Supervised Learning
+
+### model complexity and dataset size
+
+* 数据集中包含的数据点的变化范围越大，在不发生过拟合的前提下你可以使用的模型就越复杂。
+* 仅仅复制数据集或找相似的数据集是无济于事的。
+* 在现实世界中，你往往能够决定收集多少数据，这可能比模型调参更为有效。永远不要低估更多数据的力量！
