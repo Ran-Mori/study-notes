@@ -248,18 +248,18 @@
 
 1. M-P神经元模型模型中，神经元接收到来自几个其他神经元传递过来的输入信号，这些输入信号通过带权重的连接(connection)进行传递，神经元接收到的总输入值将与神经元的阈值进行比较，然后通过“激活函数”(activation function)处理以产生神经元的输出。
 
-### M-P neuron model
+### M-P neural model
 
 #### what
 
-* it  is a binary computational model that mimics how biological neurons process information.
+* it  is a binary computational model that mimics how biological neurals process information.
 
 #### components
 
 1. Input Signals (x1, x2, …, xn):
 2. Weights (w1, w2, …, wn):
 3. Summation Function: computes a weighted sum of the inputs:
-4. Threshold (θ): it determines whether the neuron will “fire” (activate) or not. If the weighted sum S exceeds the threshold (S >= θ), the neuron outputs 1; otherwise, it outputs 0.
+4. Threshold (θ): it determines whether the neural will “fire” (activate) or not. If the weighted sum S exceeds the threshold (S >= θ), the neural outputs 1; otherwise, it outputs 0.
 5. Output (y): 1 or 0.
 
 #### limitations
@@ -336,13 +336,13 @@
 
 ### receptive field
 
-* 理论上每一层都是Fully Connected Layer岂不是会更好？这样参数多，模型弹性大，能预测更复杂的模型。但100 * 100 * 3的图像如果经过一层有1000个neuron的Fully Connected Layer，参数weight的数目是 3 * 10^7，是一个十分巨大的数字。参数太多训练难度过大 且overfitting的风险也很大
-* 我们得知，识别图像分类往往不用看整张图像。因此一个Neuron不用感知100 * 100 * 3有30000个weight，它只需要明确感知一小块3 * 3 * 3的范围即可，这样weight数是27
-* Each receptive field has a set of neurons(e.g. 64 neurons ). 同一块receptive field可能包含鸟嘴、鸟尾、天空等多种特征，一个neuron只能识别一种特征。假设特征一共有64种，则同一块receptive field由64个neuron来检查。 
+* 理论上每一层都是Fully Connected Layer岂不是会更好？这样参数多，模型弹性大，能预测更复杂的模型。但100 * 100 * 3的图像如果经过一层有1000个neural的Fully Connected Layer，参数weight的数目是 3 * 10^7，是一个十分巨大的数字。参数太多训练难度过大 且overfitting的风险也很大
+* 我们得知，识别图像分类往往不用看整张图像。因此一个neural不用感知100 * 100 * 3有30000个weight，它只需要明确感知一小块3 * 3 * 3的范围即可，这样weight数是27
+* Each receptive field has a set of neurals(e.g. 64 neurals ). 同一块receptive field可能包含鸟嘴、鸟尾、天空等多种特征，一个neural只能识别一种特征。假设特征一共有64种，则同一块receptive field由64个neural来检查。 
 
 ### parameter sharing
 
-* 100 * 100 * 3的图像在经典参数下共有98 * 98个3 * 3 * 3的receptive field。每一个receptive field由64个neuron来进行观察。理论上weight的总数是98 * 98 * 3 * 3 * 3 * 64。但其实每98 * 98个neuron干的事都是一样的，因此完全可以共享参数。因此最终的weight是3 * 3 * 3 * 64
+* 100 * 100 * 3的图像在经典参数下共有98 * 98个3 * 3 * 3的receptive field。每一个receptive field由64个neural来进行观察。理论上weight的总数是98 * 98 * 3 * 3 * 3 * 64。但其实每98 * 98个neural干的事都是一样的，因此完全可以共享参数。因此最终的weight是3 * 3 * 3 * 64
 
 ### model bias
 
@@ -351,10 +351,10 @@
 * 因此CNN的model bias其实很大。但这不一定是坏事，它的overfitting的可能性就降低。且增大model bias的原理都是从实际图像分类中获得灵感，因此CNN处理图像有奇效，处理非图像可能不适用。
 * pooling层没有参数，但使用pooling的原因也是从图片分类获得的灵感。因此在非图片任务中pooling不一定适用。
 
-### Convolutional Layer
+### convolutional layer
 
 * 上面receptive field和parameter sharing的另一种解释方式。
-* 100 * 100 * 3的图像，经过一个3 * 3 * 3的neuron(filter)后，会产生98 * 98 * 1的feature map。注意输入是拉直的。
+* 100 * 100 * 3的图像，经过一个3 * 3 * 3的neural(filter)后，会产生98 * 98 * 1的feature map。注意输入是拉直的。
 * parameter sharing实际就是同一个filter扫过一张图片，这个过程就叫Convolution
 * 假设某一层Convolutional Layer有64个3 * 3 * 3filter，那weight总数是 3 * 3 * 3 * 64，输出的feature map是98 * 98 * 64。
 * 假设以98 * 98 * 64的feature map作为新的一张图片输入，经过128个3 * 3 * 64的filter，则weight数是3 * 3 * 64 * 128。输出的feature map是96 * 96 * 128。
@@ -364,6 +364,8 @@
 * 3 * 3的kennel size会不会太小？其实不会，因为在first Convolutional Layer确实只能看到 3 * 3的范围，但其实second Convolutional Layer中的3 * 3对应着原始图像5 * 5的范围。
 * AlphaGo。下围棋和图像很像，可以抽象成图片分类问题，因此可以用CNN来下围棋。但不用pooling，因为和图像分类还是有点不一样的。
 * CNN不能很好处理放大，缩小，旋转问题。因为放大后人眼看起来是一样的，但对同一个训练好的CNN来说，输入完全不一样。
+* The number of filters in each convolutional layer of a CNN is a hyperparameter,
+* the total number of layers, whether pooling is used, the type of layers following one another, and their configurations are all hyperparameters. 
 
 ### process
 
@@ -411,6 +413,82 @@
    2. For regression: Take the mean (or weighted mean) of the neighbors’ values.
 
 ***
+
+## Self Attention
+
+### vector set as input
+
+* 一段话其实是一个向量set；一段语音其实是一个向量set
+* 一个社交网络可以看作一个向量set；每一个节点node可以视为一个向量，这个向量里有年龄、性别、爱好等属性；整个社交网络就是向量set
+
+### what is input
+
+1. N -> N(Sequence Labeling): 比如POS tagging(词性标注)；社交网络输出每个人是否买某种东西
+2. N -> 1: sentiment analysis；输入一个分子，输出它是否有毒性
+3. N -> M: translation；ChatGpt
+
+### why?
+
+* 假如要做POS tagging，最直接的办法是N个输入向量丢进N个neural，由于neural干的是同一件事词性分析，因此可以parameter sharing，就完事了。
+* 但是假设输入是`I saw a saw.`，则`saw`的输出是不同的，但上面的方式一定输出是相同的。所以问题本质是要让一个neural能感知到其他neural负责的输入。
+
+### self attention layer
+
+* 预期是输入向量set中的每一个向量都要感知到set中其他的向量。
+
+* 因此方便理解的角度来看就是每个向量与其他向量做dot product，当然不是单纯地做dot product，而是一个向量生成n个矩阵，n个矩阵与其他向量生成的n矩阵相乘。
+
+* 从最终矩阵运算的角度来看，假设self attention layer层超参neural的数量是3，则计算过程如下
+  $$
+  Q = W^qI \\
+  K = W^kI \\
+  V = W^vI \\
+  A = K^tQ \\
+  A^` = A 这一步经过softmax \\
+  O = VA^` \\
+  其中I是输入向量set，W^q,W^k,W^v是训练的weight，O是输出
+  $$
+
+### feature
+
+* self attention不感知输入向量set中每个向量的位置关系，每一个向量都是平等的，都要和其他所有向量做dot product。但实际上有些问题是与position相关的，比如词性分析。因此我们可以给输入向量set的每一个向量带上一个位置向量后才做为输入。
+* 声音相关的任务中，没有必要每一个向量都要感知其他所有向量，因为实际我们也知道声音想要确认含义往往后它附近的声音相关性比较大。因此可以设置超参只看周围的向量。
+* 图像处理也可以用self attention，比如100 * 100 * 3的图像可以看作是10000个向量set，每个向量其实是一个像素点。
+* 当Graph中使用Self attention时，每一个向量其实只有感知与它有连线的就可以了，全感知也没用与实际问题不符。而且这就叫做GNN (Graph Neural Netwok)
+* Self Attension的计算量往往很大，因此都在想办法降级计算量，但降级计算量往往带来模型效果下降。
+
+### CNN vs Self Attention
+
+* 如果把100 * 100 * 3的图像看作是10000个向量set的话，每一个向量CNN每一个neroun只感知周围的8个向量，而每一个向量self attention的每一个neural要感知9999个向量。
+* 因此self attention是更flexible的CNN，CNN是model bias更大的self attention。
+* 因此也能得知，self attention的计算量偏大
+
+### process
+
+1. input: n tensor
+2. self attention layer: calculate attention score, then soft max
+3. full connected network 
+
+***
+
+## RNN
+
+### what is?
+
+* Recurrent Neural Network
+
+### how
+
+* 一个向量set，从左到右，每一个向量感知它左边的向量内容。
+* 当然也可以做成双向的，从右到左，每一个向量感知它右边的内容。
+
+### RNN vs Self Attention
+
+* RNN只能感知某一边，而SelfAttention天涯若比邻，再远都要感知到
+* 由于RNN架构，只能从某一边串行计算，而self attention每一个向量的attention值都可以并行计算不耦合。
+* RNN可以一定程度简化的Self Attention.
+
+
 
 ## Supervised Learning
 
