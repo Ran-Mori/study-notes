@@ -580,6 +580,7 @@
 * output
 
   * a token. (输出一个N dimension向量，每一维的值代表每个token的可能性。)
+  * 每次输出一个token，直到输出`end`结束
 
 * components
 
@@ -595,3 +596,41 @@
 * end
 
   * N dimension向量中有一维是`END`，当输出是`End`时推理结束。
+
+***
+
+## GAN
+
+### what?
+
+* Generative Adversarial Networks(生成对抗网络)
+
+### IO
+
+* input
+  * x
+  * z (sample from a simple distribution)
+* output
+  * y
+
+### why distribution?
+
+* 当同一个输入，预期它会有不同的输出时。就适合给输入加一个从简单distribution内sample出来的值。
+* 这样输入其实是 x + simple distribution，输出其实是complicated distribution
+* 比如：
+  * input: 请画一个红眼睛的角色。 output: 很多角色都有红眼睛
+  * chatbot
+
+### discriminator
+
+* 本身是一个network
+* input: GAN输出的一个y
+* output: scalar, larger means real while smaller means fake.
+
+### Adversarial
+
+1. 固定D，初始化G。从simple distribution中sample出n个输入，丢入G，得到n个图像。
+2. 从训练集sample出n个真实图像，和上面n个图像混在一起成2n个图像集。
+3. 固定G，训练D。训练D能够从2n个图像集中分辨出那部分是真实图像，即输入真图是输出高分，输入生成图时输出低分。
+4. 固定D，训练G。训练G，让G输出的图像输入D后，也能产生高分。
+5. 重复步骤1
