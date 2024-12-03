@@ -42,7 +42,7 @@ A repository for storing various kinds of study notes.
 
 ## [linux](https://github.com/Ran-Mori/study-notes/blob/main/linux.md)
 
-## [machine-learning](https://github.com/Ran-Mori/study-notes/blob/main/machine-learning-zhouzhihua.md)
+## [machine-learning](https://github.com/Ran-Mori/study-notes/blob/main/machine-learning.md)
 
 ## [network](https://github.com/Ran-Mori/study-notes/blob/main/network.md)
 
