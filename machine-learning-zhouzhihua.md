@@ -425,7 +425,7 @@
 
 1. N -> N(Sequence Labeling): 比如POS tagging(词性标注)；社交网络输出每个人是否买某种东西
 2. N -> 1: sentiment analysis；输入一个分子，输出它是否有毒性
-3. N -> M: translation；ChatGpt
+3. N -> M: translation；ChatGpt, Voice Recognition, Translation
 
 ### why?
 
@@ -469,6 +469,12 @@
 2. self attention layer: calculate attention score, then soft max
 3. full connected network 
 
+### other model
+
+* self attention常常仅仅作为其他模型的中间一层，比如transformer中间有self attention
+* 当输入非常长时，整个模型计算过程的耗时会主要落在self attention上
+* 因此常常在影像处理上会优化self attention来降低计算量
+
 ***
 
 ## RNN
@@ -478,7 +484,6 @@
 * Recurrent Neural Network
 
 ### how
-
 * 一个向量set，从左到右，每一个向量感知它左边的向量内容。
 * 当然也可以做成双向的，从右到左，每一个向量感知它右边的内容。
 
@@ -488,7 +493,45 @@
 * 由于RNN架构，只能从某一边串行计算，而self attention每一个向量的attention值都可以并行计算不耦合。
 * RNN可以一定程度简化的Self Attention.
 
+### example applicagion
 
+* slot filling
+  * 找出一段语句中的表单关键信息。I would like to arrive **Taipei**(destination) on **November 2nd**(time of arrival).
+* 前面的input可能会影响后面某一个input的输出
+  1. arrive Taipei on November 2nd.
+  2. leave Taipei on Novermber 2nd.
+  3. 其中分别对应 place of arrival, time of arrival, place of depature, time of depature.
+
+### Long Short-Term Memory
+
+* 特殊的neural —— 4个输入，一个输出。 basic input, input gate control, output gate control, forget gate control
+*  LSTM的参数量是同规格其他网络的四倍
+* 它的四个输入就是从一个输入异化而来的。
+
+## word embedding
+
+###  1 of n encoding
+
+* 假设有十万个词，那就建立一个10万维的向量。每一个词就是这个向量的某一维为1
+* 这种表示方法没有办法表示词与词之间的关系。
+
+### word embedding
+
+* 假设有十万个词，将其映射到一个N dimension 的martix中，这个matrix中相邻附近的词会有某种关联。
+
+### how
+
+1. count based: 如果两个词经常同时出现，那么这两个词彼此接近
+2. prediction based: GPT模型第一层的结果作为word embedding.
+   * 原理：如果两个词输入同一个GPT推导的下一个词是一样的，那这两个词必然相近。
+
+### feature
+
+1. it is an example of unsupervised learning.
+2. 相似组合的词在N dimension空间中有相似的几何形状。比如`fall-fell-fallen`, `draw-drew-drawn`, `take-took-token`
+3. 可以解决类似于 `Rome : Italy = Berlin : ?`. `? = V(Berlin) - V(Rome) + V(Italy)`
+
+***
 
 ## Supervised Learning
 
@@ -497,3 +540,58 @@
 * 数据集中包含的数据点的变化范围越大，在不发生过拟合的前提下你可以使用的模型就越复杂。
 * 仅仅复制数据集或找相似的数据集是无济于事的。
 * 在现实世界中，你往往能够决定收集多少数据，这可能比模型调参更为有效。永远不要低估更多数据的力量！
+
+***
+
+## Transfomer
+
+### feature
+
+1. sequence to sequence model.
+2. 很多問NLP題都可以轉換为QA問題，如翻譯、文章摘要、情緒分析、multi label classification；QA問題就可以用transformer來解
+3. 文法分析也可以用transformer來做。將樹狀非線形的結構轉換成線形的結構來訓練
+4. transformer基本結構。輸入 -> encoder -> decoder -> 輸出
+
+### encoder
+
+* input: a sequence
+
+* output: a sequence with same length
+
+* components
+
+  1. multi head self attention
+
+  2. positional encoding
+
+  3. residual. real output = normal output + origin input
+
+  4. layer normalization
+
+  5. FC
+
+### decoder
+
+* input
+
+  1. a token, and the starting token must be `begin`.
+  2. the previos output
+
+* output
+
+  * a token. (输出一个N dimension向量，每一维的值代表每个token的可能性。)
+
+* components
+
+  1. `masked` multi head self attention. 只看左边，不看右边，类似RNN
+
+  2. positional encoding
+
+  3. residual. real output = normal output + origin input
+
+  4. layer normalization
+  5. cross attention
+
+* end
+
+  * N dimension向量中有一维是`END`，当输出是`End`时推理结束。
