@@ -740,3 +740,53 @@ message Person {
 * In most cases, a router owns a public IP. But there is alao a shortage of ipv4 addresses, so ISP owns a public ip, each router owns a private ip, and then each device owns a private ip (relative to the router). So you can't get a public ip address after installing the broadband. And this is `CGT`
 
 ***
+
+## AP
+
+### what?
+
+* A hardware device that creates a wireless local area network (**WLAN**), allowing Wi-Fi-enabled devices (like smartphones, laptops, and smart home gadgets) to connect to a network.
+* It is a **physical** device or component in a router that provides Wi-Fi access to devices by connecting them to a wired network (e.g., Ethernet).
+
+### ap vs router
+
+* **Router**: Combines routing (managing data between devices) and access point functionality.
+* **Access Point**: A device purely for extending or creating wireless coverage. It doesn’t manage network traffic or provide routing functions.
+
+### connection
+
+* via an Ethernet cable. It stable, fast and high capacity.
+* Wireless Connection. It is very convenient.
+  * 假設Router覆蓋範圍10米，AP覆蓋範圍5米。則你可以在距離Router 9 米的地方放置一個AP並通過無線連接，這樣理論就可以在距離Router 14米的地方進行上網。
+
+***
+
+## wifi mesh
+
+### what?
+
+* It is an **abstract** concept or topology for Wi-Fi network deployment. Its goal is to ensure seamless and consistent Wi-Fi coverage across a large area by connecting multiple nodes.
+
+### features
+
+* Each node broadcasts the same network name (SSID), allowing devices to move between nodes without losing connection. Devices switch between nodes without dropping the connection, offering a smooth user experience.
+* The system dynamically determines the best path for data, ensuring strong connections for all devices. If one node fails or becomes overloaded, traffic is rerouted through other nodes.
+
+### vs ap
+
+| Concept      | Type     | Purpose                                                | Examples in wifi mesh                        |
+| ------------ | -------- | ------------------------------------------------------ | -------------------------------------------- |
+| Access Point | physical | Provides Wi-Fi access to devices                       | Mesh nodes act as APs to extend coverage     |
+| Wifi mesh    | abstract | Seamless network with unified SSID and dynamic routing | Uses APs to create a cohesive “mesh” network |
+
+### SSID
+
+* **SSID (Service Set Identifier)** is the name assigned to a Wi-Fi network, making it identifiable to devices trying to connect. When you search for available Wi-Fi networks on your phone or computer, the list of network names you see consists of their SSIDs.
+
+* examples in wifi mesh
+
+  > If your router has the SSID **“HomeWiFi”**, your phone or laptop will list **“HomeWiFi”** as a network option.
+  >
+  > In a mesh system, even if there are multiple nodes (APs), all will share the same SSID **“HomeWiFi”**, so your device doesn’t have to reconnect when moving around.
+
+***
