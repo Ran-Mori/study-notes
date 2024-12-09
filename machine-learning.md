@@ -634,3 +634,101 @@
 3. 固定G，训练D。训练D能够从2n个图像集中分辨出那部分是真实图像，即输入真图是输出高分，输入生成图时输出低分。
 4. 固定D，训练G。训练G，让G输出的图像输入D后，也能产生高分。
 5. 重复步骤1
+
+***
+
+## CoT
+
+### what?
+
+* **Chain of Thought** is a reasoning technique in LLM that encourages **step-by-step problem-solving** by explicitly generating intermediate steps in a task before arriving at the final answer. This method is particularly useful for tasks requiring complex reasoning, such as mathematical problem-solving, logical reasoning, and multi-hop question answering.
+
+### process
+
+1. **Prompting**: Explicitly instructing the model to “think step by step.”
+2. **Reasoning Path**: The model generates a sequence of intermediate reasoning steps.
+3. **Final Answer**: After reasoning through the steps, the model provides the solution.
+
+### implementation
+
+1. **Manual Prompting**: Add “Let’s think step by step” or a similar phrase in your prompts.
+2. **Few-Shot Learning**: Provide examples of problems solved step-by-step to guide the model.
+3. **Automatic CoT**: Use fine-tuned models trained explicitly to reason step-by-step.
+
+### implicit prompt
+
+1. Pre-training with Diverse and Rich Data
+   * Many online resources, such as math solutions, logical proofs, or tutorials, naturally include CoT reasoning.
+   * Educational materials and code comments often break problems into steps.
+2. Supervised Fine-Tuning with Human-Generated Data
+   * Fine-tuning datasets include tasks solved using CoT reasoning.
+   * Data from instruction-following tasks (e.g., responding to “Explain how X works”) often naturally incorporates reasoning steps.
+3. Reinforcement Learning with Human Feedback (RLHF)
+   * When annotators evaluate model outputs, step-by-step reasoning is often rated higher for tasks requiring logic or problem-solving.
+4. Implicit CoT via Few-Shot and Zero-Shot Learning
+   * Recognizing when step-by-step reasoning is required based on the **context** or **nature of the query**.
+
+***
+
+## prompt
+
+### terms
+
+1. prompt
+2. inference
+3. completion
+4. context window
+5. prompt engineering
+6. in context learning(ICL)
+7. zero-shot/few-shot inference
+
+### example
+
+```bash
+Classify this review:
+I loved this movie!
+Setiment: positive. # this is one-shot
+Classfify this review:
+I dont like this chair!
+Setiment: 
+```
+
+***
+
+## generative configuration
+
+### configuration
+
+1. max new token
+2. top K/P
+3. temperature
+   * higher temperature, higher randomness
+   * use in final softmax layer
+
+***
+
+## AGI project lifecycle
+
+### scope
+
+* define use cases
+
+### select
+
+* choose an existing model or pretrain your own.
+
+### adapt and align model
+
+* prompt engineering
+* fine tuning
+* align with human feedback (RLHF)
+* evaluate
+
+### app integration
+
+* optimize and deploy model for inference
+* augment model and build LLM-powerd applications.
+
+***
+
+pre-training
