@@ -759,7 +759,7 @@ Setiment:
 
 ### catastrophic forgetting
 
-* 经过fine tuning的模型，在一个task上表现很好，但有可能在其他task上表现比fine-tuning前更差
+* 经过full fine tuning的模型，在一个task上表现很好，但有可能在其他task上表现比fine-tuning前更差
 
 ### exmaple
 
@@ -810,4 +810,82 @@ Setiment:
 ### how
 
 * model的weight不变，只训练words embedding层的weight
+
+### path methods
+
 * 可以某个task prompt tuning输出一个对应的words embedding层weight，然后在inference的时候，根据不同类型的任务，读取不同的words embedding层weight来进行推理。
+* 上面這種思路就叫做path methods
+
+***
+
+## Reinforcement Learning
+
+### what?
+
+* It is about training an *agent* to make decisions in an *environment* to maximize a *reward*.
+
+### feature
+
+* it is a kind of unsupervised learning.
+
+### components
+
+1. **Agent:** This is the entity that makes decisions or takes actions. Think of it as the "learner."
+2. **Environment:** This is the world in which the agent operates. It provides the agent with observations (or states) and responds to the agent's actions.
+3. **Action:** These are the choices that the agent can make within the environment.
+4. **State:** The current situation of the environment, as perceived by the agent.
+5. **Reward:** A numerical signal given to the agent to indicate how well it has performed. A positive reward means the agent took a good action, a negative reward (penalty) means it took a bad action.
+6. **Policy:** This is the agent's strategy or rulebook for choosing actions based on the current state. The goal of RL is to find an optimal policy that maximizes the expected cumulative reward.
+
+### example
+
+* background: A Robot Learning to Navigate a Maze
+* components
+  * **Agent:** The robot.
+  * **Environment:** The maze, represented as a grid.
+  * **States:** The robot's position within the maze. For example, each cell in the grid can be a unique state.
+  * **Actions:** The robot can move up, down, left, or right (or try to move into a wall which would be a useless action).
+  * **Reward:**
+    - Reaching the goal: +10 (positive reward).
+    - Hitting a wall: -1 (penalty).
+    - Moving in an empty cell that is not a goal: -0.1 (small penalty for every step, encouraging it to find the goal quickly)
+  * **Policy:** Initially, the robot's policy is random. It might move in any direction with equal probability.
+
+* Over Many Trials:
+  * Initially, the robot will wander randomly, bumping into walls frequently. However, gradually, as it explores the maze, it starts to associate certain actions with the rewards it receives. If moving "right" near the goal often results in a positive reward, the policy becomes more likely to choose "right" when it's in that vicinity. This iterative learning process allows the robot to converge toward an optimal path to the goal.
+
+***
+
+## RLHF
+
+### what
+
+* reinforcement learning from human feedback
+* RLHF is a process used to fine-tune large language models, making them generate text that is not only grammatically correct and coherent, but also aligned with human intentions and values.
+
+### for?
+
+* 消除toxic language, aggressive responses, dangerous information. 总之就是LLM也要讲X性。
+* LLM的回答可能not helpful, not honest, not harmless
+
+### feature
+
+* RLHF can be done with both full fine-tuning and partial fine-tuning methods like LoRA, but full fine-tuning is more common in practice.
+
+### component
+
+* **Agent:** Language Model (LM)
+* **Environment:** Text Generation Task & Human Feedback
+* **States:** Prompt or Context
+  * This is the information that the agent uses to decide what action to take. In RLHF, the "state" is the prompt or context given to the language model.
+* **Actions:** Text Generation
+* **Reward:** Human Preference Feedback or Reward Model Output
+* **Policy:** The Language Model (LM)
+  * In the context of RLHF, the initial policy is the pre-trained language model. Through the RL process, this policy will be fine-tuned to generate text that humans find desirable.
+
+### example
+
+* prompt: My house is too hot.
+* completion
+  1. You are too poor to buy an conditioner, and you deserve it.
+  2. You can try open the window.
