@@ -731,4 +731,83 @@ Setiment:
 
 ***
 
-pre-training
+## computational challenge 
+
+### quantization
+
+* 将FP32 换成 FP16, BF16, INT8等占用内容更小的type
+
+***
+
+## fine-tuning
+
+### full fine tuning
+
+* 占用内存和资源很大
+
+### how
+
+1. 丢训练case进LLM产生一个结果
+2. 产生的结果和打标的预期结果做cross-entropy
+3. 根据cross -entropy来更新LLM的参数weight
+4. 用验证集和测试集看效果
+
+### why
+
+* 经过fine-tuning的模型对于训练集内的任务有很好的效果
+* 往往只需要500 - 1000的训练case就能达到很好的效果
+
+### catastrophic forgetting
+
+* 经过fine tuning的模型，在一个task上表现很好，但有可能在其他task上表现比fine-tuning前更差
+
+### exmaple
+
+```json
+"samsum": [
+    ("{dialogue}\n\nBriefly summarize that dialogue.", "{summary}"),
+    ("Here is a dialogue:\n{dialogue}\n\nWrite a short summary!", "{summary}"),
+    ("Dialogue:\n{dialogue}\n\nWhat is a summary of this dialogue?", "{summary}"),
+    ("{dialogue}\n\nWhat was that dialogue about, in two sentences or less?", "{summary}"),
+    ("Here is a dialogue:\n{dialogue}\n\nWhat were they talking about?", "{summary}"),
+    ("Dialogue:\n{dialogue}\nWhat were the main points in that conversation?", "{summary}"),
+    ("Dialogue:\n{dialogue}\nWhat was going on in that conversation?", "{summary}"),
+    ("Write a dialog about anything you want", "{dialogue}"),
+    ("Write a dialog based on this summary:\n{summary}.", "{dialogue}"),
+    ("Write a dialog with this premise \"{summary}\".", "{dialogue}"),
+]
+```
+
+* 有这样一个模版，然后自己填充"dialogue"和"summary"进行训练
+* 常见用户可能在总结类这个问题上的prompt它都包含进去了，等于是不用自己写prompt，只需要准备真正的输入和输出结果即可。
+
+## PEFT
+
+### what
+
+* parameter efficient fine-tuning
+
+### feature
+
+* 只更新一部份weight，大部份weight都保持不变
+* 因为大部份保持不变，因此更不容易catastrophic forgetting
+* 可以关注model的某一层参数，某一类型层参数，某一类型的参数
+* 还可以给model外套一些层，model内部参数不变，训练外部层参数
+
+### LoRA
+
+* what: Low Rank Adaptiion of LLMs
+* how
+  * 在transformer的self attention层输出的参数计算加一点东西
+  * rank数选得越小，越省资源，但效果不一定更好，但不意味着rank越大效果越好。
+* feature
+  * 往往只需要一个GPU就行，而不是分布式GPU系统
+
+***
+
+## prompt tuning
+
+### how
+
+* model的weight不变，只训练words embedding层的weight
+* 可以某个task prompt tuning输出一个对应的words embedding层weight，然后在inference的时候，根据不同类型的任务，读取不同的words embedding层weight来进行推理。
