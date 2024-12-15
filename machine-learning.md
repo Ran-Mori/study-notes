@@ -889,3 +889,49 @@ Setiment:
 * completion
   1. You are too poor to buy an conditioner, and you deserve it.
   2. You can try open the window.
+
+### reward hacking
+
+* what?
+  * prompt: This product is ...?
+  * completion: Beatutiful love and world peace all around.
+  * 上述的回复尽管很正面，能在reward中拿到高分。但过于正面已经不honest了，因此需要避免这个问题
+* how
+  * 加入一个reference model。具体就不细讲了
+
+***
+
+## constitutional AI 
+
+### what？
+
+* It is a method for training AI models, particularly large language models (LLMs), to be more *self-governing* and less reliant on extensive human feedback. Instead of relying solely on direct human ratings to steer the model's behavior, it uses a set of *principles* or rules, similar to a constitution, to guide its actions.
+
+### components
+
+* constitutional principles
+* self-evaluation mechanism
+* self-revision module
+* reward model
+* language model fine tuning
+
+### example
+
+* Prompt: "I'm feeling a little unwell, can you give me some advice?"
+* Constitutional Principles:
+  1. 
+  2. Be helpful
+  3. Do not provide harmful advice
+  4. Only provide information based on reliable sources
+  5. Avoid providing medical advice
+  6. Encourage people to seek professional medical advice
+* Initial Response (before self-evaluation): "You might have the flu. Take some over-the-counter flu medicine."
+* Self-Evaluation:
+  - Does this follow principle 1? - Yes
+  - Does this follow principle 2? - Maybe, since it does not take into account user specific situations.
+  - Does this follow principle 3? - Yes, since over-the-counter flu medicine is generally considered safe.
+  - Does this follow principle 4? - No, it provides medical advice, albeit general advice.
+  - Does this follow principle 5? - No.
+* Self-Revised Response (after self-evaluation): "It sounds like you may be feeling under the weather. Please consult a healthcare professional for a proper diagnosis and treatment plan. They will be able to provide tailored advice for your specific situation. Please rest and drink plenty of fluids in the meantime."
+
+***
