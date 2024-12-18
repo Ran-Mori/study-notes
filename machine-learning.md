@@ -510,6 +510,10 @@
 
 ## word embedding
 
+### what?
+
+* an embedding is a way to represent *discrete* data (like words, categories, or IDs) as *continuous* vectors (or points) in a multi-dimensional space.
+
 ###  1 of n encoding
 
 * 假设有十万个词，那就建立一个10万维的向量。每一个词就是这个向量的某一维为1
@@ -521,15 +525,18 @@
 
 ### how
 
-1. count based: 如果两个词经常同时出现，那么这两个词彼此接近
-2. prediction based: GPT模型第一层的结果作为word embedding.
+1. Embeddings are learned via machine learning algorithms.
+2. count based: 如果两个词经常同时出现，那么这两个词彼此接近
+3. prediction based: GPT模型第一层的结果作为word embedding.
    * 原理：如果两个词输入同一个GPT推导的下一个词是一样的，那这两个词必然相近。
 
 ### feature
 
-1. it is an example of unsupervised learning.
-2. 相似组合的词在N dimension空间中有相似的几何形状。比如`fall-fell-fallen`, `draw-drew-drawn`, `take-took-token`
-3. 可以解决类似于 `Rome : Italy = Berlin : ?`. `? = V(Berlin) - V(Rome) + V(Italy)`
+1. Embeddings transform discrete data into dense, continuous vectors where each dimension of the vector represents a different attribute of the data.
+2. Similar items are represented by similar vectors (i.e., vectors that are close in the embedding space).
+3. it is an example of unsupervised learning.
+4. 相似组合的词在N dimension空间中有相似的几何形状。比如`fall-fell-fallen`, `draw-drew-drawn`, `take-took-token`
+5. 可以解决类似于 `Rome : Italy = Berlin : ?`. `? = V(Berlin) - V(Rome) + V(Italy)`
 
 ***
 
@@ -719,7 +726,7 @@ Setiment:
 
 ### adapt and align model
 
-* prompt engineering
+* c
 * fine tuning
 * align with human feedback (RLHF)
 * evaluate
@@ -936,23 +943,6 @@ Setiment:
 
 ***
 
-## embedding
-
-### what?
-
-* an embedding is a way to represent *discrete* data (like words, categories, or IDs) as *continuous* vectors (or points) in a multi-dimensional space.
-
-### feature
-
-* Embeddings transform discrete data into dense, continuous vectors where each dimension of the vector represents a different attribute of the data.
-* Similar items are represented by similar vectors (i.e., vectors that are close in the embedding space).
-
-### how
-
-* Embeddings are learned via machine learning algorithms.
-
-***
-
 ## opt for deployment 
 
 ### distillation
@@ -979,3 +969,83 @@ Setiment:
 * wrong answer
 * hallucination
 
+### examples
+
+* Program aided language model (PAL)
+  * 一个问题，先用CoT拆解成步骤，把每个步骤的math转换为python script，丢给interpreter执行，返回结果然后输出。
+
+***
+
+## ReAct
+
+### what?
+
+* reasoning and acting
+* It's a framework for training language models to combine *reasoning* with *action taking* to solve complex tasks. It moves beyond simple text generation to incorporate external knowledge, tools, and interaction with the environment.
+* Acting: The model executes actions based on its reasoning, using external tools or knowledge sources. These actions allow the model to interact with the world and obtain information needed to solve the problem.
+
+### components
+
+* Reasoning Module
+* Action Module
+* Tool Integration
+* Observation
+
+### example
+
+* **Prompt:** "I want to plan a trip to San Francisco for 3 days. Can you suggest some activities?"
+* **Thought:** *I need to find some information about San Francisco. I will start by searching online for popular attractions.*
+* **Action:** *Search Tool: search_query = "popular attractions in San Francisco"*
+* **Observation:** *Results from Search Tool: "Golden Gate Bridge, Alcatraz Island, Fisherman's Wharf, etc..."*
+* **Thought:** *Okay, now that I have a list of popular attractions, I need to gather information about them and see if they fit my preferences for 3-day trip. I also want to include local food recommendations in my trip plan.*
+* **Action:** *Search Tool: search_query = "best restaurants San Francisco"*
+* **Observation:** *Results from Search Tool: "Tadich Grill, Swan Oyster Depot, etc..."*
+* **Thought:** *I have some ideas for attractions and food, I need to organize these into a day by day plan. I will assume the user is generally interested in touristy locations.*
+* **Action:** *Trip Planner Tool: create_itinerary based on the results gathered previously and make a day-by-day plan*
+* **Observation:** *Results from trip planner tool: Day 1: Visit Golden Gate Bridge, Day 2: Alcatraz Island, Day 3: Fisherman's Wharf. Food Recommendations: Tadich Grill, Swan Oyster Depot*
+* **Final Response:** "Okay, here is a suggested 3-day itinerary for your trip to San Francisco: Day 1: Visit the Golden Gate Bridge. Day 2: Explore Alcatraz Island. Day 3: Experience Fisherman's Wharf. I also recommend trying the food at Tadich Grill and Swan Oyster Depot. Have a great time!"
+
+### feature
+
+* 不涉及model本身，是一种prompt engineering
+
+***
+
+## LangChain
+
+### what
+
+* LangChain is an open-source framework that makes it easier to develop applications that combine large language models (LLMs) with other tools, data sources, and functionalities. It provides a set of abstractions and pre-built components that can be used to create complex, customized language-based applications, such as chatbots, question-answering systems, and content generation tools.
+* LangChain, at its core, is indeed a framework. It's not a fundamentally new algorithm or a completely novel approach to AI, but rather a powerful tool that consolidates and simplifies existing ideas, techniques, and best practices for building LLM applications.
+
+### memory
+
+* what: LangChain's memory modules are designed to extend the LLM's context window and give it a more persistent form of memory, beyond just a single turn. This allows the LLM to maintain state and remember information across multiple conversational turns or actions.
+* purpose: LangChain's memory aims to solve the problem of the limited context window of LLMs. It helps create applications that feel more conversational by allowing LLMs to remember past interactions.
+* manage: Unlike the context window, LangChain's memory is explicitly managed by the application. You, as the developer, decide how to store and retrieve information from the memory component.
+
+***
+
+## internal LLM
+
+### process
+
+* Data Collection and Preparation:
+  - Sources: Internal documents (Word, PDF, etc.), Wikis and knowledge bases, Databases, Internal APIs, Transcripts of meetings or presentations, Emails, Other structured and unstructured data. 
+  - Cleaning and Processing: This data is often unstructured and needs to be cleaned, processed, and converted into a format suitable for processing by an LLM, such as splitting into chunks and removing personally identifiable information.
+* Data Indexing/Embedding (Vector Database):
+  - Chunking: Text documents are typically broken down into smaller chunks to fit the LLM's context window and for better matching.
+  - Embeddings: Each chunk is converted into a vector representation (embedding) using a pre-trained embedding model. This embedding captures the semantic meaning of the text.
+  - Indexing: These embeddings are then stored in a vector database. Vector databases are optimized for efficient similarity searches based on these embeddings. Example databases are Pinecone, Chroma, FAISS, etc.
+* The Retrieval Component:
+  - Query Embedding: When a user asks a question, the question is also converted into an embedding vector.
+  - Similarity Search: This query embedding is then used to search the vector database for the most similar embeddings based on some similarity metric.
+  - Retrieval: The chunks of text corresponding to the most similar embeddings are then retrieved from the vector database.
+* The LLM (Generation Component):
+  - Context Injection: The original user query and the retrieved context from the vector database are combined to form a prompt for the LLM. The relevant information is thus "injected" into the context provided to the LLM.
+  - Response Generation: The LLM uses this combined prompt to generate a relevant answer. The LLM thus has access to both its prior knowledge and the context provided by the retrieval step.
+* Optional: Fine-Tuning or Prompt Engineering:
+  - Fine-Tuning: In some cases, the LLM might also be fine-tuned on the company's internal data to further improve its performance and style, and make it more specific to the given company.
+  - Prompt Engineering: Careful prompt engineering can optimize the LLM's performance for the specific task of answering questions about the company.
+
+***
