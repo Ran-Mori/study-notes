@@ -935,3 +935,47 @@ Setiment:
 * Self-Revised Response (after self-evaluation): "It sounds like you may be feeling under the weather. Please consult a healthcare professional for a proper diagnosis and treatment plan. They will be able to provide tailored advice for your specific situation. Please rest and drink plenty of fluids in the meantime."
 
 ***
+
+## embedding
+
+### what?
+
+* an embedding is a way to represent *discrete* data (like words, categories, or IDs) as *continuous* vectors (or points) in a multi-dimensional space.
+
+### feature
+
+* Embeddings transform discrete data into dense, continuous vectors where each dimension of the vector represents a different attribute of the data.
+* Similar items are represented by similar vectors (i.e., vectors that are close in the embedding space).
+
+### how
+
+* Embeddings are learned via machine learning algorithms.
+
+***
+
+## opt for deployment 
+
+### distillation
+
+* 用一个teacher model 去 训练一个student model
+* student model有较小的体积，然后把student model部署在生产环境中，节约资源。
+
+### PTO
+
+* what: post training quantityzation
+* 将weight用更小精度来表示，节省占用的体积
+
+### Pruning
+
+* remove model weights with values close or equal to zero 
+
+***
+
+## RAG
+
+### model difficulties
+
+* out of data
+* wrong answer
+* hallucination
+
