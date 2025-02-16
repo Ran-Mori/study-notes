@@ -1049,3 +1049,18 @@ Setiment:
   - Prompt Engineering: Careful prompt engineering can optimize the LLM's performance for the specific task of answering questions about the company.
 
 ***
+
+## AI compiler
+
+### difference
+
+| feature                | traditional compiler                                        | AI compiler                                                  |
+| ---------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| **Target Workload**    | General-purpose programming languages                       | Machine learning models and computations                     |
+| **Optimization Goal**  | General performance on CPUs                                 | High throughput, low latency, memory efficiency on specialized hardware |
+| **Domain Knowledge**   | Limited                                                     | Deep understanding of ML operations and models               |
+| **Optimization Level** | Low-level instruction optimization                          | High-level, domain-specific optimization                     |
+| **Key Optimizations**  | Register allocation, instruction scheduling, loop unrolling | Operator fusion, data layout transformation, quantization, graph optimization, kernel generation |
+| **Target Hardware**    | General-purpose CPUs                                        | GPUs, TPUs, NPUs, and sometimes CPUs                         |
+| **Input**              | Source code files (e.g., .c, .cpp)                          | ML model representation (e.g., TensorFlow Graph, PyTorch model) |
+
