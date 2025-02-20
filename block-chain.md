@@ -77,8 +77,8 @@
                                  (hash_13 hash_14)
                                 /                  \
                (hash_9 hash_10)                     (hash_11 hash_12)
-             /                  \                 /                   \
-     (hash_1, hash_2)   (hash_3, hash_4)   (hash_5 hash_6)      (hash_7 hash_8)
+             /                  \                  /                  \
+     (hash_1, hash_2)    (hash_3, hash_4)    (hash_5 hash_6)     (hash_7 hash_8)
       /           \         /       \          /        \           /       \
   (node_a)     (node_b)  (node_c) (node_e)   (node_f) (node_g)   (node_h) (node_i)
   ```
@@ -94,3 +94,63 @@
     * 计算node_c的hash值，依次使用hash_4, hash_9, hash_14一步步算出最后的root_hash。用计算出来的root_hash和已知的root_hash比较，如果一致则证明正确。
   * 为什么hash_4, hash_9, hash_14不用验其正确性？
     * 因为假设node_c被修改导致hash_3值不一样，想通过修改hash_4的值来达到hash(hash_3, hash_4) = hash_10是人为制造hash碰撞，目前是不可能的。
+
+## btc协议
+
+### double spending attack
+
+* 央行使用私钥签名发行电子货币理论上是可行的没问题。但电子货币防伪性可以解决，但无法解决电子货币可以像文件一样复制。
+* 一种解决方式是央行还要维护一个每一张电子货币由谁拥有的数据库
+
+### transition
+
+* 输入
+  * 转账发起方的公钥
+  * 转账发起方btc的来源hash pointer
+  * 接受方的公钥
+* 输出 - transition，含有如下内容
+  * 转账发起方私钥的签名
+  * 接受方的公钥 (用于下一次转账证明btc来源)
+
+### coinbase transition
+
+* 铸币权
+* 直接授予A一定数量的btc
+* 此block使用A的公钥来签名
+
+### block
+
+* block header
+  * version
+  * hash pointer of previous block header
+  * merkle root hash
+  * Unix Timestamp
+  * target
+  * nonce
+* block body
+  * transition merkle tree 
+* 特点
+  * 区块链实际指的是chain of block header。block body其实不在链表结构中
+
+### distributed consensus
+
+* 需要达成的共识：区块链上所有交易的内容
+* 投票机制是解决分布式共识的一种方式
+* sybil attack: 创建很多个实体，使自己控制能投票的实体的数量过半，达到操作分布式共识的目的
+* btc consensus
+  * 信任最长的合法链
+  * 记账的实体可以记账，使链表长度加一。协议还规定每个记账实体可以得到一定数量的btc奖励
+  * 因为有奖励，所有人都想成为记账者；协议规定成为记账者的前提是找到正确的nonce计算hash值使target符合要求；而这个计算过程目前无高效算法，只能硬试；因此简洁的结果就是算力最强的实体获得记账权，并获得btc奖励
+  * 最后确实是投票机制，但是用的算力进行投票。你可以创建无数的账户，但算力与账户数量无关，因此解决了sybil attack
+
+### Proof of Work, PoW
+
+* 计算式：SHA256(SHA256(block\_header)) <= target
+* process
+  1. 初始化区块头信息，包括 previous block hash、Merkle root 等
+  2. 调整 Nonce（从 0 开始递增），然后计算：SHA256(SHA256(block\_header))
+  3. SHA256(SHA256(block\_header)) ≤ target  ? 则找到合法区块，并将其广播到比特币网络，获得奖励（目前 6.25 BTC）: 则调整 Nonce，重复步骤 2-3。
+  4. 如果 Nonce 耗尽（32 位无符号整数），矿工可以调整 timestamp 或者 Merkle root（通过加入额外的交易），继续尝试。
+* target
+  * 比特币网络大约每 2016 个区块（约两周）调整一次 target，以保持 10 分钟出一个区块的目标，target 越小，挖矿越难（因为能满足 hash(block header) <= target 的哈希值更少）。
+
