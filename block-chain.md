@@ -154,3 +154,58 @@
 * target
   * 比特币网络大约每 2016 个区块（约两周）调整一次 target，以保持 10 分钟出一个区块的目标，target 越小，挖矿越难（因为能满足 hash(block header) <= target 的哈希值更少）。
 
+## btc实现
+
+### utxc
+
+* unspent transition output
+* 每一个全节点的内存中维护那些btc没有花，用于防double spending
+* 理论上可以遍历整条链手动计算出来，但每次都遍历成本高，不如一次性建好一个表然后每次验证时快速查表
+
+### transition/account based
+
+* btc是transition based，它没有维护一个account的概念。每个account账户剩余的金额要从链上去计算
+* 以太坊是account based
+
+### bernoulli trial
+
+* 无论之前尝试计算失败多少次，都不会影响下一次能够正确挖到矿的概率
+* 就像投硬币10次正面，第11次是反面的概率不会高
+
+### btc总数
+
+$$
+y = 210000 * 50 * (1 + \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \frac{1}{16} + \frac{1}{32} + ...) \\
+y = = 210000 * 50 * 2 \\ 
+y = 21000000 \\
+$$
+
+### 确认
+
+* 一个交易在写入区块链后，最好等后面有6个区块后(1h)才能确认这笔交易会永久写入。因为可能出现fork attack
+* 但一个人/组织想对抗整个网络的算力还是有难度，因此基于算力投票且多数算力是好节点的前提，从概率上保证了安全有效，但无法从数学证明上给出。
+
+## btc网络
+
+* 没咋搞懂
+* network layer is P2P overlay network。但这个概念不太懂
+* 去中心化，全靠诚实节点转发
+
+## btc调整挖矿难度
+
+### 出块时间
+
+* 时间不是越短越好。
+
+  1. 太短容易多分叉，目前一般主要是二分叉
+  2. 分叉多了后整体算力被分散，在某一个路径上的分支相对会更少。这样更容易进行fork attack
+
+* 如何调整？
+
+  * 每2016个区块调整一次，大概是2周
+
+  $$
+  new \hspace{2mm} target = old \hspace{2mm} target * \frac{actual \hspace{2mm} time}{expected \hspace{2mm} time}
+  $$
+
+  * 调整的代码是写在btc源码里面的，到了数量自己调。当然代码开源你也可以不调，但你算出来的新区块就会因为`nbits`域的值不对而不被接收。
