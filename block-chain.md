@@ -338,7 +338,7 @@ $$
   * 希望簽訂合約的個體保持一致性，不能簽完合約後像btc一樣更換身份，因此增加此類型帳戶
   * 關鍵字段：code、storage
 
-## ETH state tree
+## ETH state trie
 
 ### 基礎
 
@@ -361,18 +361,38 @@ $$
   * 每發佈一個區塊，要將整個更新後的Merkel tree發佈到區塊網絡上(讓別人知道最新區塊對應的status tree)成本很大，一般都是只發佈交易，status tree自己本地維護(但要保證不同的全節點維護的是同一個)
   * 即使排序了，能部分解決上面兩個問題。但如果新增一個帳戶，很可能大部分的Merkel tree都要重建重新計算hash，其實和直接使用hash table就是一樣的了
 
-### merkel patricia tree
+### merkel patricia trie
 
 * merkel
   * 說明是hash pointer而不是普通的pointer，最後整顆樹會有一個Merkel proof
-* dictionary tree
+* trie
   * 本質是排序了的
   * 查找效率取決於樹深，比如説ETH帳戶帳戶統一是40位十六進制樹，那樹深就是40
   * 更新局部性還可以
 * patricia
   * 為什麼能壓縮？ - 因為理論上ETH帳戶的全集數量是2^160，有交易的帳戶數量肯定遠遠小於這個數。因此注定字典樹很多非葉子節點其實只有一個child，因此進行壓縮可以節省存儲，加速查找
 
+## ETH receipt, tx trie
 
+### tx tree
+
+* 和BTC区块的交易树其实一样，只不过数据结构是MPT
+
+### receipt tree
+
+* 其实可以不需要tx tree，但是有smart contract，有收据树會更方便一些
+
+### bloom  filter
+
+* 是什麼？
+  * 如何去快速查一個元素是否在某個集合中，並且這個集合的存儲還非常大？
+  * 可以將集合中的元素算一遍hash，存在一個集合中。當需要查詢某個元素時，只需要對這個元素進行hash計算，然後查一下新的集合中是否有這個hash即可。
+* hash碰撞
+  * 由於有hash碰撞的存在，因此可能會出現一個元素不在集合中，但它的hash在新集合中的情況。這種情況叫做`false positive`，但不會出現`false negative`
+  * 正是因為有碰撞，因此集合刪除元素的時候，不能直接刪新集合。不然就會出現`false negative`
+* 用法
+  * ETH中區塊頭存有bloom filter，用於快速過濾查詢TX
+  * 由於要用這個方式來查詢TX，因此`false positive`無所謂，但`false negative`必須要避免
 
 
 
