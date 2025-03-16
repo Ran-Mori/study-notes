@@ -1064,3 +1064,65 @@ Setiment:
 | **Target Hardware**    | General-purpose CPUs                                        | GPUs, TPUs, NPUs, and sometimes CPUs                         |
 | **Input**              | Source code files (e.g., .c, .cpp)                          | ML model representation (e.g., TensorFlow Graph, PyTorch model) |
 
+## AI Agent
+
+### process
+
+* 抽象描述
+  1. 人工输入一个goal
+  2. agent分析environment得到一个observation(当前棋盘中所有棋子的位置)，将observation和goal作为输入，产生一个action
+  3. 此action可能改变environment
+  4. 重复步骤2
+* 具体例子
+  * goal - 下围棋要赢；agent - alpha go；environment - 棋盘，棋子；observation - 当前棋盘中所有棋子的位置；action - 将一颗棋落在棋盘上
+* 分析
+  * 第二步其实也是在做文字接龙，将observation和goal作为输入，文字接龙产生一个输出action
+
+### llm agent
+
+* 優勢
+  1. 傳統的agent如alpha go所有的action其實也只有19 * 19種可能，但llm agent的action理論上有無數種可能
+  2. 傳統的agent的reward需要開發者手動定義；但LLM可以直接將輸出又作為輸入再餵進去，其實不需要人工定義reward
+
+### computer use/operator
+
+* goal - 訂一張票
+* agent - computer use/operator
+* environment - 電腦屏幕
+* observation - 當前電腦屏幕呈現的內容
+* action - 移動鼠標、點擊鍵盤
+
+### interact
+
+* 有可能當agent還沒做出action時，environment就已經發生改變。這時理想的行為是放棄當前的action，立即分析environment得到observation，然後產生下一個action
+* 比如說語音模型，支持打斷
+  * 用戶突然說一句"ok"，其實沒改變environment，可以繼續使用當前的action
+  * 但當用戶突然說一句"stop, I don't want to hear that."，這時的environment就發生了改變，要產生新的action來執行
+
+### adjust actions based on experience
+
+* 寫程序
+  * goal: 你是軟件開發大師
+  * observation 1:寫一個XX程序
+  * action 1:寫了一段程序
+  * environment：這段程序錯誤，輸出了一個錯誤報告
+  * observation 2: 寫一個XX程序，錯誤報告
+  * action 2: 寫了另一段程序
+  * environment：程序正確
+* 分析
+  * 僅僅通過將錯誤報告重新作為輸入喂給LLM，它就有可能文字接龍出正確的程序
+* 問題
+  * 需要將每一個observation都記錄下來，但LLM的context window是有限的，它記不住那麼多東西
+* 解決方案
+  * agent維護一個long term memory，負責存有用的經驗
+  * 有一個負責從LTM中retrieval的llm模塊，它的職責是根據當前的輸出，從LTM中找出需要的之前的經驗，作為產生下一個action的輸入。就是RAG的R
+  * 有一個負責往LTM中write的llm模塊，它的職責是判斷每次observation中那些經驗是有用的，如果有用，就將其寫入LTM
+  * 還有一個reflection模塊，它的職責是對LTM中的經驗進行整理和反思，得到更好的經驗和想法
+* 和RAG的不同
+  * 以上解決方案和RAG思路其實一模一樣，唯一不同是RAG的LTM中存的是別人的經驗；而Agent的LTM中存的是自己的經驗
+* 結論
+  * 在benchmark中，會根據之前的經驗修正下一次輸出的LLM比每次都從零開始解體的LLM能取得更高的正確率
+  * 負面的例子對於LLM基本沒有幫助。與其告訴LLM不要做什麼，不如告訴LLM要做什麼。比如"請輸出較短的內容"比"不要輸出較長的內容"更有用
+* chat gpt
+  * chatgpt - setting - personalization - memory中可以看见记下的所有memory
+  * 其中的memory如果不准确，可以删除。如果某个事项很重要，可以手动让chat gpt记下来，比如输入"记下来"
