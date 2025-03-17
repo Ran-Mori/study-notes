@@ -1126,3 +1126,38 @@ Setiment:
 * chat gpt
   * chatgpt - setting - personalization - memory中可以看见记下的所有memory
   * 其中的memory如果不准确，可以删除。如果某个事项很重要，可以手动让chat gpt记下来，比如输入"记下来"
+
+### use tool
+
+* 基本流程
+  * system prompt
+    * 如何使用工具
+      * 如果遇到根據你的知識無法回答的問題，請使用工具。把工具的指令放在<tool>和</tool>之間，使用完工具後你會得到輸出，放在<output>和</output>中間
+    * 使用某個特定的工具
+      * 現在你可以使用天氣查詢工具如下：查詢某地、某時的函數Temperature(location, time)，使用範例: Temperature("台北", "2025.02.22 14:26")
+  * user prompt
+    * 2025年3月18日那天14:00, 高雄的天氣如何？
+  * system prompt + user prompt喂給負責分析使用tool的AI後的輸出，這個輸出先不給用戶看
+    * <tool>Temperature("高雄", "2025.03.18 14:26")</tool>
+  * agent開發者做好橋樑工作，去call function得到結果
+    * <output>32</output>
+  * system prompt + user prompt + <output>32</output> 都作為輸入，給AI做文字接龍
+    * 2025年3月18日 14:00，高雄的溫度是32度。比較熱。
+* 工具很多怎麼辦？
+  * 工具很多了以後，光是system prompt就會非常多
+  * 這時就可以將工具的使用說明書，全部放在LTM裡面
+  * 有一個專門負責query tool的module，它能根據當前的observation決定需要使用那些工具
+  * 然後將observation和query tool的輸出共同作為新的observation，讓Agent去產生Action
+* 工具返回的結構可能有錯
+  * 假設上面天氣function返回的溫度是1000度時，AI能意識到有錯。它最終做文字接龍的結果為"2025年3月18日 14:00，高雄的溫度是1000度。這個數值顯然不合常理，可能是工具輸出有誤。如需其他信息或查詢，請告訴我。"
+  * 當工具獲取的知識結果，跟agent本身訓練的資料相差不大時，agent會相信工具的結果。但當相差太大時，模型會相信自己訓練資料的結果。
+  * 同樣的內容，目前AI比較容易相信AI同類生成的話，不太相信人類產生的話。
+* 使用工具於模型本身的平衡
+  * 比如一個任務是計算 3 * 4等於多少。當然可以藉助工具拿出計算器算，但難道不是直接心算會更快嗎？
+
+### do plan/reasoning
+
+* 當一個Agent收到一個observation後，它不急於立刻給出回復。
+* 有一個world model。它能夠模擬產生了一個action後environment會發生怎樣的變化
+* 假設第一個agent有3種action，那麼world model就模擬產生3個observation，每個observation又有3個action，那最後就有9個observation。類似於tree search。
+* 然後tree search的過程中進行剪枝，然後找出最可能達到action的路徑進行輸出。
