@@ -484,14 +484,15 @@
 * Recurrent Neural Network
 
 ### how
-* 一个向量set，从左到右，每一个向量感知它左边的向量内容。
+* 一个向量set，从左到右，每一個向量輸出的結果都將作為下一個向量的輸入
 * 当然也可以做成双向的，从右到左，每一个向量感知它右边的内容。
 
 ### RNN vs Self Attention
 
 * RNN只能感知某一边，而SelfAttention天涯若比邻，再远都要感知到
 * 由于RNN架构，只能从某一边串行计算，而self attention每一个向量的attention值都可以并行计算不耦合。
-* RNN可以一定程度简化的Self Attention.
+* RNN可以一定程度視爲简化的Self Attention.
+* Self Attention在訓練時並行度可以很高，當輸入一個n長度的序列時，它可以並行計算出n個輸出序列，因此計算h(t)是不依賴h(t-1)的。但LSTM訓練並行度就很低，因為計算h(t)要依賴h(t-1).
 
 ### example applicagion
 
@@ -504,9 +505,30 @@
 
 ### Long Short-Term Memory
 
-* 特殊的neural —— 4个输入，一个输出。 basic input, input gate control, output gate control, forget gate control
-*  LSTM的参数量是同规格其他网络的四倍
-* 它的四个输入就是从一个输入异化而来的。
+* [Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)
+* RNN的問題
+  * "the clouds are in the **sky**". 推理出"sky"其實只需要最近的一段信息即可，前面的不需要
+  * "I grew up in France… I speak fluent **French**." 推理出"French"需要很久以前的信息，中間的信息反而不需要
+  * RNNs don’t seem to be able to handling such “long-term dependencies.”
+* 原理
+  * Memory Cell: It can store information over time.
+  * Forget Gate: decides which information to discard from the cell state.
+  * Input Gate: decides what new information to store in the cell
+  * Oupput Gate: decides what part of the cell state to output.
+* process
+  * input: cell(t - 1), h(t - 1), x(t)
+  * 經過forget、input、output
+  * output: cell(t), h(t) 
+
+* 怎麼理解？
+  * 假設輸入的x(t)內容很重要，那input門會激活，最終cell(t)內就存有與x()相關的東西
+  * 假設輸入的x(t)內容不重要，那input門不會激活，x(t)的內容就不會存到cell(t)中；而且還可能forget門被激活，輸入x(t)後反而導致h(t-1)的部分內容不重要，被移除。
+
+* 特點
+  * Cell(0)可以是一個向量，也可以是一個很大的矩陣存很多東西
+  * LSTM的参数量是同规格其他网络的四倍
+  * 它的四个输入就是从一个输入异化而来的
+
 
 ## word embedding
 
@@ -1161,3 +1183,35 @@ Setiment:
 * 有一個world model。它能夠模擬產生了一個action後environment會發生怎樣的變化
 * 假設第一個agent有3種action，那麼world model就模擬產生3個observation，每個observation又有3個action，那最後就有9個observation。類似於tree search。
 * 然後tree search的過程中進行剪枝，然後找出最可能達到action的路徑進行輸出。
+
+## Mamba vs Transformer
+
+### 現狀
+
+1. transformer：訓練並行度高，推理計算attention計算量大，要保存前面輸入的token來計算attention內存壓力大
+2. LSTM：訓練無法並行，推理計算量小，內存壓力小，要cell可以存記憶
+
+### linear Attention
+
+* 現狀
+  * transform易於訓練，但不易於推理
+  * LSTM不易於訓練，但易與推理
+  * 那有沒有那種方式能夠集合兩個的優點？
+  * 現在LLM都需要更大的context window，支持多模態視頻、照片對應的輸入越來越大
+* 推理過程
+  * 目前核心難點是LSTM在訓練時，h(t)的計算必須依賴h(t-1)，導致並行度不高
+  * 那就數學展開，消除中間項，看下能否並行計算
+  * 結果發現當去掉forget gate函數後，居然LSTM的訓練計算就和self attention一樣了，只不過少了soft max
+* 結論
+  1. Linear Attention是LSTM少了forget gate
+  2. Linear Attention是Self-Attention少了soft-max
+* 特點
+  * Linear Attention記住一個東西後，無法進行忘記。從LSTM視角來看是因為少了forget gate；從Self-Attention視角來看，一個attention值算出來值是1很重要，最後soft-max後得到的值會很高，但假設以後有一個更重要的attention算出來是2，那soft-max後之前1對應的值就變小了，變相是進行忘記
+* 注意
+  * 無論是LSTM，還是Self-Attention。其記憶的大小都是有限的，Self-Attention的記憶大小取決於計算attention時，q,k向量的大小，當輸入序列變長時，理論上q, k記不下來所有
+
+### Mamba
+
+* 其實就是優化改進後的Linear Attention
+* Linear Attention缺失了forget gate，那就給它加上，並且通過一系列數學變換，還能在訓練的時候轉化爲類self-attention
+
