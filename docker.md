@@ -328,3 +328,88 @@ WORKDIR $MYPATH
 RUN yum -y install vim
 RUN yum -y install net-tools
 ```
+
+## 網絡
+
+### 虛擬網絡
+
+* docker守護進程可以構建很多個不同的虛擬網絡
+* 這些虛擬網絡之間彼此隔離，彼此之間無法訪問
+* 如果不指定網絡，則默認使用名字為default的虛擬網絡。用戶可以通過`docker network creat <name>`來創建一個虛擬網絡
+
+### 端口映射
+
+* 虛擬網絡和主機網絡之間可以通過`docker run -p 8001:8001`指定端口映射
+* 其原理大概如下
+  * docker damon進程會啟動一個user space process called docker-proxy。它會binds to the host port 0.0.0.0:8001 
+  * 當client請求8001時，docker-proxy進程會將請求轉發給一開始的container
+
+### 查看ip地址
+
+* 可以通過如下指令查看某個容器的ip地址
+
+  ```bash
+  # commmad
+  docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container-id>
+  
+  # output
+  172.19.0.2
+  ```
+
+* 輸出的`172.19.0.2`是damon進程創建的一個虛擬網絡中的ip地址，餘本機的`127.0.0.1`所在的局域網不是同一個網絡
+
+## docker-compose
+
+### why
+
+* 當多個container之間有耦合關係，啟動順序時。可以將耦合關係寫在一個文件中，一起啟動
+
+### 耦合關係
+
+* services：聲明所有的容器
+* netwokrs：可以指定這所有的container共用並同屬一個虛擬網絡中
+* volums：可以配置磁盤存儲的耦合關係
+* ports：統一配置端口映射
+* environment: 每個服務配置環境變量
+* depends_on：配置依賴關係
+
+### 示例
+
+* [docker-compose.yml](https://github.com/Ran-Mori/code-notes/blob/main/go/gRPC/docker-compose.yml)
+
+## container訪問外網
+
+* 假設某個container在其所有的虛擬網絡的ip地址是`172.19.0.2`，它想訪問google.com，則其構造一個如下的ip包
+
+  ```bash
+  source_ip: 172.19.0.2
+  source_port: 54321 # 這個端口是隨便的
+  destination_ip: 142.250.190.142
+  destination_port: 443
+  ```
+
+* 這個ip包跳出其所在的虛擬網絡，到host主機網絡。damon進程配置了從某個虛擬網絡出來的包應該怎麼處理，其配置可能如下
+
+  ```bash
+  -s 172.19.0.0/16 ! -o <bridge_interface> -j MASQUERADE
+  ```
+
+  * `-s 172.19.0.0/16`：符合這個規則的ip包
+  * `-o <bridge_interface>`：從特定的虛擬網絡出來
+  * `-j MASQUERADE`：一個action標誌符
+
+* kernel層記錄一個映射，並替換ip包的source_ip和source_port
+
+  ```bash
+  # 記錄的映射
+  original_src_ip:port -> masqueraded_src_ip:port
+  172.19.0.2:54321 -> 192.168.1.100:61000
+  
+  # 替換後的ip包
+  source_ip: 192.168.1.100
+  source_port: 61000
+  destination_ip: 142.250.190.142
+  destination_port: 443
+  ```
+
+* ip包發出，response返回後同理
