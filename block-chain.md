@@ -447,3 +447,21 @@ $$
 
 ## proof of stake
 
+### difference
+
+| features        | PoW                                    | PoS                                          |
+| --------------- | -------------------------------------- | -------------------------------------------- |
+| who adds block  | minner                                 | validator                                    |
+| selection basis | solving computational puzzles(fastest) | pseudo-random, weighted by stake             |
+| resource used   | computational power                    | capital                                      |
+| energe use      | hight                                  | low                                          |
+| hardware needs  | ASIC/GPU                               | normal computer                              |
+| main incentive  | block rewards, transaction fees        | transaction fees (+ smaller staking rewards) |
+| security basis  | cost of energy & hardware(attack cost) | value of staked coins(slashing risk)         |
+| ethereum status | used pre-merge                         | used post-merge                              |
+
+### not guaranteed risk-free
+
+1. slashing risk: your validator misbehaves accidentally due to misconfiguration
+2. livness risk: your validator is offline frequently (due to internet issues, hardware failure, power outages, improper maintenance), it won't be able to perform its duties (attesting/proposing). your stake can slowly leak away.
+3. Technical Complexity and Maintenance: Running a validator requires technical knowledge. You need to set up and maintain the hardware/server, keep the operating system and validator client software updated, manage security, and monitor performance. Errors in setup or maintenance can lead to downtime (inactivity penalties) or, in worse cases, misconfigurations that cause slashing.
