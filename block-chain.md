@@ -465,3 +465,35 @@ $$
 1. slashing risk: your validator misbehaves accidentally due to misconfiguration
 2. livness risk: your validator is offline frequently (due to internet issues, hardware failure, power outages, improper maintenance), it won't be able to perform its duties (attesting/proposing). your stake can slowly leak away.
 3. Technical Complexity and Maintenance: Running a validator requires technical knowledge. You need to set up and maintain the hardware/server, keep the operating system and validator client software updated, manage security, and monitor performance. Errors in setup or maintenance can lead to downtime (inactivity penalties) or, in worse cases, misconfigurations that cause slashing.
+
+## smart contract
+
+### 是什么？
+
+* 是一段運行在區塊鏈上的代碼，代碼的內容和邏輯定義了智能合約的內容
+* 智能合約帳戶保存了當前智能合約的運行狀態
+  * balance - 當前餘額
+  * nonce - 交易次數
+  * code - 合約代碼
+  * storage - 存儲，是一顆MPT
+
+### action？
+
+* 調用：外部帳戶創建一個交易，接收地址為智能合約的地址，data域填寫需要調用的函數及其參數
+* 創建：外部帳戶向0x0地址發起一個轉賬交易到0x0地址上，轉賬金額是零但要支付汽油費。合約的代碼放在data域裡
+* 運行：運行在EVM上，這樣可以屏蔽不同平台的差異
+  * 無系統調用，因為不同系統的系統調用返回可能會不一樣
+  * 不支持多線程，因為希望狀態確定
+  * 像是生成隨機數這種api肯定是沒有的，因為希望狀態確定
+
+### 汽油費
+
+* 智能合約交易的發出者需要支付汽油費，不然全節點不願意打包這個交易到區塊鏈上。
+* 越複雜的指令執行，消耗的汽油費就會越多。因此鼓勵使用儘量簡單的語句來實現想要的合約內容。
+* 汽油費有上限，如果超過汽油費依舊沒有執行完智能合約。那這個區塊也要發佈到區塊鏈上，汽油費照樣扣，這樣可以避免鼓勵都把汽油費寫小。
+* 先執行智能合約，再挖礦
+* 區塊的汽油費也有一個上限值，但它指的是完成這個區塊的計算最多消耗多少汽油費。這裡的汽油費一定程度上代表了一個區塊的複雜度。在BTC中一個區塊最多1M不能調整。而在ETH中，可以允許上下調整1/1024，這樣當前的汽油費值其實是所有礦工預期的平均值
+
+### 特點
+
+* 智能合約的代碼一旦發佈到網絡上，就沒有辦法傳改。即使有bug也沒有辦法進行傳改
