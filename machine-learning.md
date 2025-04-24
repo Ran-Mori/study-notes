@@ -697,6 +697,18 @@
 4. Implicit CoT via Few-Shot and Zero-Shot Learning
    * Recognizing when step-by-step reasoning is required based on the **context** or **nature of the query**.
 
+### RL
+
+* **Problem with SFT Alone:** A model trained only with SFT might generate CoT that *looks* right structurally but contains logical errors, calculation mistakes, or simply doesn't lead to the correct final answer. SFT optimizes for matching the *exact* target sequence, not necessarily for the *correctness* of the reasoning itself.
+* **Enter RLHF/RLAIF:**
+  - **Reward Model (RM):** First, a separate Reward Model is trained. This RM is shown pairs of LLM-generated responses (often including CoT reasoning) to the same prompt, and human labelers (or another powerful AI) indicate which response is better (e.g., more logical, more correct, more helpful). The RM learns to predict this preference score.
+  - **RL Fine-Tuning Loop:** The LLM (the "policy" in RL terms) generates a CoT response to a prompt. This complete response (including all reasoning steps and the final answer) is then evaluated by the Reward Model, which gives it a score (the "reward").
+  - **Optimization:** Using an RL algorithm (like PPO - Proximal Policy Optimization), the LLM's parameters are updated to maximize the expected reward from the RM.
+
+### thought and result
+
+* the generation process is **continuous**. The model generates the chain of thought tokens first. These generated thoughts then become part of the *context* or *prompt* for generating the subsequent tokens(result).
+
 ***
 
 ## prompt
@@ -883,6 +895,13 @@ Setiment:
 * Over Many Trials:
   * Initially, the robot will wander randomly, bumping into walls frequently. However, gradually, as it explores the maze, it starts to associate certain actions with the rewards it receives. If moving "right" near the goal often results in a positive reward, the policy becomes more likely to choose "right" when it's in that vicinity. This iterative learning process allows the robot to converge toward an optimal path to the goal.
 
+### CoT
+
+* 想讓LLM根據問題輸出正確的答案，然後發現當它中間有思考過程，吐出的token越多時，最後的答案是正確的機率性越高
+* 因此reward是"思考更多，輸出較多token，最後得到正確答案"
+* 由於最後要由人類來判斷答案是否正確，因此RL選擇的問題一般都是程式設計或數學等有明確答案的問題
+* RL的作用是有決策能力，推理能力。但基礎的對現實的理解能力，是RL給不了的，因此還是需要預訓練。
+
 ***
 
 ## RLHF
@@ -894,7 +913,7 @@ Setiment:
 
 ### for?
 
-* 消除toxic language, aggressive responses, dangerous information. 总之就是LLM也要讲X性。
+* 消除toxic language, aggressive responses, dangerous information. 总之就是LLM也要讲X性
 * LLM的回答可能not helpful, not honest, not harmless
 
 ### feature
@@ -1215,3 +1234,19 @@ Setiment:
 * 其實就是優化改進後的Linear Attention
 * Linear Attention缺失了forget gate，那就給它加上，並且通過一系列數學變換，還能在訓練的時候轉化爲類self-attention
 
+## Catastrophic Forgetting
+
+### what?
+
+* Fine-tuning Aligned Language Models Compromises Safety, Even When Users Do Not Intend To! 
+* 在進行後訓練時，基礎模型的一部分能力通常會喪失，最容易喪失的能力是之前Alignment的能力
+
+### RL
+
+* 相比於SFT，RL可能是最不容易使LLM發生遺忘的一種後訓練方式
+* 因為RL是讓模型自己去產生答案，正確的答案給出更高的分數然後再去更新參數；這裡的答案都是LLM自己產生的，pre-training後RL階段並沒有給新的訓練資料。因此不容器產生遺忘。
+
+### how to solve?
+
+* experience replay - 在SFT時，用5%之前的訓練資料作為補充，就能夠防止forgetting.
+* 這也是為什麼要使用MOE模型的原因之一。
