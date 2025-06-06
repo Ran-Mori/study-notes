@@ -739,6 +739,41 @@ message Person {
 * NAT is almost been referred as NAPT by default.
 * In most cases, a router owns a public IP. But there is alao a shortage of ipv4 addresses, so ISP owns a public ip, each router owns a private ip, and then each device owns a private ip (relative to the router). So you can't get a public ip address after installing the broadband. And this is `CGT`
 
+### STUN Server
+
+- Session Traversal Utilities for NAT
+- Its primary job is to help a client (e.g., your computer behind your home router) discover its own **public IP address and port** as seen by the outside world, and to determine the **type of NAT** it is behind.
+- **How it works (Discovery):**
+  1. Your device (e.g., 192.168.1.10:50000) behind NAT A sends a UDP packet to the public STUN server.
+  2. NAT A rewrites the source IP and port of this packet to its own public IP and an available port (e.g., 203.0.113.50:60000).
+  3. The STUN server receives the packet from 203.0.113.50:60000.
+  4. The STUN server sends a reply back to that public IP and port (203.0.113.50:60000), informing your device: "I saw your packet come from 203.0.113.50:60000."
+  5. Your device now knows its private IP/port (192.168.1.10:50000) AND its public IP/port (203.0.113.50:60000).
+- It does not store ips.
+
+### Signaling Server
+
+- This is a separate server (often a simple web server or WebSocket server) that helps the two parties (peers) *exchange* the IP address and port combinations they've discovered (both private and public ones, obtained via STUN).
+- Peer A tells the Signaling Server: "Here are my possible addresses: 192.168.1.10:50000 (private), 203.0.113.50:60000 (public)."
+
+### UDP Hole Punching
+
+- When an internal client sends an *outgoing* UDP packet to an *external* server, the NAT router creates a temporary "hole" or mapping in its firewall for that specific outbound connection. This hole will then allow *incoming* UDP packets from that *same external destination* to reach the internal client for a limited time.
+- **How it works (Communication):**
+  1. Peer A (knowing Peer B's public IP/port) starts sending UDP packets directly to Peer B's public IP/port.
+  2. Simultaneously, Peer B (knowing Peer A's public IP/port) also starts sending UDP packets directly to Peer A's public IP/port.
+  3. The outgoing packets from A to B create a hole in NAT A.
+  4. The outgoing packets from B to A create a hole in NAT B.
+  5. Once these "holes" are punched by *outbound* traffic from both sides, an incoming packet from the other peer can now pass through the respective NAT.
+  6. Once the first packet gets through, a direct peer-to-peer connection is established.
+
+### TURN Server
+
+- Traversal Using Relays around NAT
+- **Role:** Used as a fallback when UDP hole punching fails (e.g., due to very strict NAT types like Symmetric NAT).
+- **How it works (Relaying):** If direct peer-to-peer communication can't be established, both clients establish a connection to a public TURN server. All subsequent communication between Peer A and Peer B is then **relayed** through the TURN server.
+- **Does it store IPs?** Yes, the TURN server acts as a full relay, receiving data from one peer and forwarding it to the other. It knows the public IP/port of both peers and constantly processes their traffic.
+
 ***
 
 ## AP
@@ -789,4 +824,4 @@ message Person {
   >
   > In a mesh system, even if there are multiple nodes (APs), all will share the same SSID **“HomeWiFi”**, so your device doesn’t have to reconnect when moving around.
 
-***
+## 
