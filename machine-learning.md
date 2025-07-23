@@ -861,46 +861,28 @@ Setiment:
 
 ## Reinforcement Learning
 
-### what?
+### Challenge
 
-* It is about training an *agent* to make decisions in an *environment* to maximize a *reward*.
+* How do you train an LLM to be "helpful," "safe," or "perform complex multi-step reasoning correctly" *without explicitly writing down millions of perfectly reasoned, perfectly helpful examples*? There's no single "correct" token sequence for "helpfulness" or "safety." These are subjective qualities.
 
-### feature
+### process
 
-* it is a kind of unsupervised learning.
-
-### components
-
-1. **Agent:** This is the entity that makes decisions or takes actions. Think of it as the "learner."
-2. **Environment:** This is the world in which the agent operates. It provides the agent with observations (or states) and responds to the agent's actions.
-3. **Action:** These are the choices that the agent can make within the environment.
-4. **State:** The current situation of the environment, as perceived by the agent.
-5. **Reward:** A numerical signal given to the agent to indicate how well it has performed. A positive reward means the agent took a good action, a negative reward (penalty) means it took a bad action.
-6. **Policy:** This is the agent's strategy or rulebook for choosing actions based on the current state. The goal of RL is to find an optimal policy that maximizes the expected cumulative reward.
-
-### example
-
-* background: A Robot Learning to Navigate a Maze
-* components
-  * **Agent:** The robot.
-  * **Environment:** The maze, represented as a grid.
-  * **States:** The robot's position within the maze. For example, each cell in the grid can be a unique state.
-  * **Actions:** The robot can move up, down, left, or right (or try to move into a wall which would be a useless action).
-  * **Reward:**
-    - Reaching the goal: +10 (positive reward).
-    - Hitting a wall: -1 (penalty).
-    - Moving in an empty cell that is not a goal: -0.1 (small penalty for every step, encouraging it to find the goal quickly)
-  * **Policy:** Initially, the robot's policy is random. It might move in any direction with equal probability.
-
-* Over Many Trials:
-  * Initially, the robot will wander randomly, bumping into walls frequently. However, gradually, as it explores the maze, it starts to associate certain actions with the rewards it receives. If moving "right" near the goal often results in a positive reward, the policy becomes more likely to choose "right" when it's in that vicinity. This iterative learning process allows the robot to converge toward an optimal path to the goal.
+1. 先把基礎模型經過SFT。This "wakes up" the model's ability to follow instructions and generate outputs in a desired format (e.g., CoT).
+2. Training a Reward Model (RM)
+   1. 數據集：SFT後的model對一個prompt輸出多個答案，人工對這些答案進行打分
+   2. 損失函數(pairwise ranking loss)：Its loss function is designed to make it output a higher score for the preferred response and a lower score for the less preferred response. 
+   3. 結果：輸入一段回答，給出一個分數
+3. 開始強化學習
+   * 目標：To make the LLM generate outputs that maximize the reward score given by the Reward Model.
+   * 過程：收集一堆沒有在SFT階段和RM訓練階段使用過的prompt；當前的LLM對於這些prompt會生成一系列答案；把這些答案給RM會得到一個分數
+   * 損失函數：Adjust the LLM's parameters so that it is more likely to generate sequences that receive high rewards from the RM.
+   * 注意：KL-divergence penalty。硬追求高分數可能會過擬合，因此在調整weight的時候，不能和基礎的SFT相差太大
 
 ### CoT
 
-* 想讓LLM根據問題輸出正確的答案，然後發現當它中間有思考過程，吐出的token越多時，最後的答案是正確的機率性越高
-* 因此reward是"思考更多，輸出較多token，最後得到正確答案"
-* 由於最後要由人類來判斷答案是否正確，因此RL選擇的問題一般都是程式設計或數學等有明確答案的問題
-* RL的作用是有決策能力，推理能力。但基礎的對現實的理解能力，是RL給不了的，因此還是需要預訓練。
+* 只要在RM訓練階段，human給一步步思考，成體系的思維過程答案打高分即可
+* 由於RM需要人類來判斷答案是否正確來打分，因此RL選擇的問題一般都是程式設計或數學等有明確答案的問題
+* RL的作用是有決策能力，推理能力。但基礎的對現實的理解能力，是RL給不了的，因此還是需要預訓練
 
 ***
 
