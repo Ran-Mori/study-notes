@@ -1232,3 +1232,20 @@ Setiment:
 
 * experience replay - 在SFT時，用5%之前的訓練資料作為補充，就能夠防止forgetting.
 * 這也是為什麼要使用MOE模型的原因之一。
+
+## diffusion model
+
+### what
+
+* 核心本質是在reverse process中，用xt預測x(t - 1)，最終預測到x0。通過一系列複雜的數學變換，最終轉換為訓練一個神經網絡，預測forward process中x(t-1) -> x(t)加入的噪聲即可
+
+### how
+
+* 訓練集：a picture of a dog paired with its caption ("A fluffy brown dog sitting on grass")
+* model會經過訓練去學習，對於"A fluffy brown dog sitting on grass"這個text embedding後的向量，要從purely noisy image到target image需要去除什麼樣的noisy
+* 推理時，將"a puppy"這個prompt做text embedding成一個向量，這個向量和"a dog"對應的向量是很相似的，然後執行denoisy過程，最終生成圖片
+
+### training T, sample steps
+
+* 假設訓練時T為1000，推理時step為20。並不是從純噪聲x1000 -> x980，而是中間會有優化跳躍，從x1000 -> x950 -> x900 -> x850 -> ... -> x0
+* 推理时sample step的最大值为训练时设置的T
