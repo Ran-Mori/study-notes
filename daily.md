@@ -559,7 +559,7 @@ object SubServiceImpl:ISubService, PushCallBack {
   * [What is web socket and how it is different from the HTTP](https://www.geeksforgeeks.org/what-is-web-socket-and-how-it-is-different-from-the-http/)
   * [The WebSocket Protocol - RFC](https://datatracker.ietf.org/doc/html/rfc6455)
 * http features
-  * `unidirectiona`l  - each HTTP or HTTPS request establish the new connection to the server every time and after getting the response the connection gets terminated by itself. 
+  * `unidirectional`  - each HTTP or HTTPS request establish the new connection to the server every time and after getting the response the connection gets terminated by itself. 
   * `stateless ` 
 * what used to be like without websocket
   * Creating web applications that need bidirectional communication between a client and a server has required an abuse of HTTP to poll the server for updates while sending upstream notifications as distinct HTTP calls.

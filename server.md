@@ -1,6 +1,6 @@
 # server
 
-### OSS
+## OSS
 
 ### reference
 
@@ -64,4 +64,45 @@
 * layer - indexing layer, real storage layer
 * use mysql to save the index, and use the index data to really access the data.
 
-***
+## protobuf vs json
+
+### json
+
+```json
+{
+	"name": "John"
+}
+```
+
+* 佔據18bytes
+
+### protobuf
+
+* `.proto`聲明
+
+  ```protobuf
+  syntax = "proto3";
+  
+  message Person {
+   string name = 1;
+  }
+  ```
+
+* binary representation
+
+  * **`0a 04 4a 6f 68 6e`** (represented in hexadecimal) 只占據6bytes
+
+* encoded in base 64
+
+  * **`CgRKb2hu`** 佔據8bytes
+
+### why base 64
+
+* 為什麼二進制佔據空間小，但還要進行一遍base64編碼？
+* reasons
+  1. Many of the systems we use every day are designed to handle **text**, not raw binary data. These "text-based" systems can get confused when they encounter raw binary.
+  2. The Null Byte (`0x00`): In many programming languages (like C), this byte signifies the end of a string. If a text parser encounters a null byte in the middle of your data, it might think the message has ended prematurely, and truncate your data.
+  3. Control Characters: Other bytes are interpreted as control signals, like "new line" (0x0A), "carriage return" (0x0D), or "end of transmission" (0x04). A system processing your data as text could misinterpret these bytes and corrupt the message's formatting or terminate the connection.
+  4. Encoding Issues: Text-based systems expect data to follow a specific character encoding (like UTF-8 or ASCII). Raw binary data doesn't conform to these encodings, which can lead to errors.
+* so text-based protocol is safer
+
