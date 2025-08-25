@@ -761,3 +761,31 @@ object SubServiceImpl:ISubService, PushCallBack {
 
 ***
 
+## hadoop
+
+1. 我有很多的數據，存在一個csv文件裡面，我用命令或者GUI把文件弄到(Hadoop Distributed File System)HDFS裡面，HDFS把文件分塊，存儲到分布式的文件系統裡面
+
+2. 然後執行如下指令，創建一個hive表
+
+   ```sql
+   CREATE EXTERNAL TABLE million_records (
+   	id INT,
+   	name STRING,
+   	country STRING,
+   	sale_amount DOUBLE
+   )
+   ROW FORMAT DELIMITED
+   FIELDS TERMINATED BY ','
+   LOCATION '/user/data/records/';
+   ```
+
+   * Hive將表與HDFS文件夾的映射關係存儲起來
+   * Hive does not move, verify, or even touch the `records.csv` file at this stage. It simply creates a logical definition and points it to the data's location. This is the "Schema-on-Read" principle.
+
+3. 用戶執行SQL語句想查詢數據。HIVE解析SQL語句，生成一系列job plan，交給processing engine(Spark)處理
+
+4. Spark分析這個任務需要多少CPU，內存，向cluster's resource manager(YARN)申請。申請到資源後，讀取分佈式文件管理中的文件，執行複雜的查詢操作。查詢完成後，將資源歸還給YARN
+
+5. Spark把查詢結果返回給Hive，Hive返回給用戶
+
+6. 對於普通用戶，Hadoop基本只暴露了Data Storage和SQL Queries兩個功能，將YARN, Spark, HDFS, HIVE等都封裝進內部
