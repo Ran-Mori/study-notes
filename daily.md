@@ -789,3 +789,42 @@ object SubServiceImpl:ISubService, PushCallBack {
 5. Spark把查詢結果返回給Hive，Hive返回給用戶
 
 6. 對於普通用戶，Hadoop基本只暴露了Data Storage和SQL Queries兩個功能，將YARN, Spark, HDFS, HIVE等都封裝進內部
+
+## ProGuard R8
+
+* relationship: **R8** has replaced ProGuard as the default tool.
+* goal: It is a tool integrated into the Android build process that **shrinks, optimizes, and obfuscates** your application's code. Its main goals are to make your app smaller, faster, and more secure against reverse-engineering.
+  * Shrink: removes any classes, methods, and fields that are never used. Your app often includes large libraries, but you might only use a small fraction of their functionality.
+  * Optimization: It inspects your app's bytecode and rewrites it to be more efficient
+  * Obfuscation: It renames your classes, methods, and fields to short, meaningless names.
+* the progress of **optimization** is similar to that of LTO in c++
+* R8 is integrated as a distinct tool within the Android Gradle build pipeline, it uses the instrumentation api (substitution of transform api).
+
+## FFI
+
+* what: **Foreign Function Interface (FFI)** is a mechanism that allows a program written in one programming language to call functions or use services written in another language.
+* goal
+  1. reusing existing code
+  2. performance optimization
+  3. access system api: Most operating systems (Windows, Linux, macOS) have their core APIs written in C. An FFI is necessary for other languages to interact with the underlying OS to do things like manage files, open network sockets, or create windows.
+* examples
+  1. python: ctypes
+  2. java: JNI
+  3. node.js: N-API
+* challenges
+  1. data marshaling
+  2. memory management
+  3. error handling
+* how to implement it
+  1. a FFI layer in caller
+  2. a shared library provided by callee
+* memeory management
+  1. **passing simple data from python to c**: the number is passed by value, python FFI copies the values of the Python integers into C-style integers, C put integers into stack and run code, the stack is automatically cleaned up when C function returns
+  2. **passing complex data from python to c**:
+     1. deep copy. but the copied memory is managed by FFI, not by callee, the callee does not need to call **free()** function.
+     2. **The Buffer Protocol(zero copy):** Python objects that hold raw, contiguous data (like bytes, bytearray, and especially NumPy arrays) implement a C-level interface called the Buffer Protocol.
+     3. Minimal-Copy: for complex, nested objects that don't have a single contiguous memory block. PyList_Check(obj), PyList_Size(obj), PyList_GetItem(obj, i)
+  3. **passing complex data from c to python**:
+     1. deep copy. but the copied memory is managed by python program, the caller is responsible for freeing memory.
+     2. **Python "Proxy" Objects**: Python holds the pointer to the C memory object and encapsulates it for use by upper-level businesses, but Python is also responsible for memory release.
+* memory conflict: they do not conflict because there is a higher authority managing them both: the Operating System (OS).
