@@ -503,3 +503,30 @@ int	connect(int, const struct sockaddr *, socklen_t);
   * `listen()` - This function is used to set up a socket to listen for incoming client connections. It puts the socket in a passive listener state and blocks until a connection is established.
   * `accept()` - This function is used to accept an incoming client connection on a server socket. It blocks until a client connection is established and returns a new socket object to handle the communication with the client.
   * `connect()` - This function is used to establish a connection to a remote server. It blocks until the connection is established or an error occurs.
+
+## interrupts
+
+### hardward interrupt - press keyboard 
+
+* **value to cpu**: The usb controller receives the scan code. It immediately notifies a chip call **Programmable Interrupt Controller** who's job is to manage the hardward interrupt. It signals the cpu on a specific physical pins issueing an **Interruput Request**. And the keyboard has a pre-assigned **IRQ** number.
+* **enter the kernel**: cpu saves user space mode context and then jump to kernel mode. The CPU uses the IRQ number as an index to look into a special table in memory called the IVT. This table, which the Operating System created at boot time, is an "address book" that maps interrupt numbers to the memory addresses of the functions designed to handle them. the code will run is called **Interrupt Service Routine (ISR)**
+* **zero cost**: Polling is not efficient if you check every time. However, the CPU can monitor whether there is an interruption every time it finish executing an instruction. This mechanism is hardware-level and has zero cost.
+* **top half** of hardware interrupt: ISR quickly places this raw scan code into a kernel buffer. And then back to user space mode. Because the CPU pauses almost everything when a hardware interrupt occurs, and cannot respond to other interrupts at this time, the execution efficiency of the ISR must be very high. Therefore, for keyboard events, the code value can be stored in the buffer.
+* **bottom half**: A moment later, when the CPU is less busy, the OS scheduler runs a lower-priority kernel task (the "bottom half"). It can be implemented by a separate kernel thread. Its task is to pass the code value in the kernel buffer to the application currently in the foreground. This is connected to Android's InputMangerService
+
+### soft interrupt - system call
+
+* it is the process **talking to the kernel**.
+* it is a user program deliberately knocking on the kernel's door to ask for help by system call.
+
+### signal
+
+* what?	
+  * It is the kernel or another process **talking to the process**.
+* process 
+  * process A runs `kill -signal_name process_B_pid`
+  * The kernel receives this and marks the SIGINT signal as "pending" for process B. Process B **continues** running for now; it is not interrupted immediately.
+  * The kernel waits for the next time your process is about to switch from Kernel Mode back to User Mode. This happens right after a **hardware interrupt** (like the timer tick) has been handled, or right after a **software interrupt** (a system call) has finished.
+  * the kernel **alters the pc register**. Instead of setting the CPU's instruction pointer back to where your program left off, it sets the instruction pointer to the beginning of your program's registered **signal handler** for SIGINT.
+  * process B resumes in User Mode, but it's been "tricked." Instead of continuing its normal work, it immediately starts executing the signal handler code. When the handler finishes, **control is returned to the kernel**. 
+  * the kernel then setting the CPU's instruction pointer back to where your program left off
