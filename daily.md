@@ -828,3 +828,26 @@ object SubServiceImpl:ISubService, PushCallBack {
      1. deep copy. but the copied memory is managed by python program, the caller is responsible for freeing memory.
      2. **Python "Proxy" Objects**: Python holds the pointer to the C memory object and encapsulates it for use by upper-level businesses, but Python is also responsible for memory release.
 * memory conflict: they do not conflict because there is a higher authority managing them both: the Operating System (OS).
+
+## eSIM
+
+* process
+  1. eUICC(embeded Universal Integrated Circuit Card)芯片製造商向上級PKI組織GSMA申請到了一個證書
+  2. eUICC芯片製造商每製造一枚eUICC芯片，生成一對公私鑰，製造商將私鑰寫入芯片內部，且從外部無法讀取
+  3. eUICC生成一個證書，證書含有公鑰，且用自己從GSMA申請到的證書私鑰簽名，同時寫入eUICC芯片內部，允許外部讀取這個證書
+  4. 手機製造商從eUICC製造商中買入eUICC芯片，並將其安裝在自己手機芯片主板上
+  5. 用戶掃QR code，想安裝一張新的eSIM卡。The QR code contains an activation code and the internet address of the carrier's SM-DP+ server
+  6. 手機從eUICC中讀取出來證書，請求carrier's SM-DP+ server
+  7. carrier's SM-DP+ server驗證證書是GSMA組織簽發的，驗證通過後。通過SSL隧道返回一個加密的profile結果
+  8. OS調用eUICC暴露的接口，將加密的profile傳給eUICC芯片
+  9. eUICC內部存有私鑰，因此它可以進行解密。解密後eUICC獲取到所有profile相關的信息(等價於物理SIM中存的信息)，最關鍵的是一個secret Ki(carrier認可的憑證)
+  10. 手機帶上一系列從eUICC中可以讀出來的信息，嘗試和carrier建立聯繫
+  11. carrier發來一個隨機數，手機調用eUICC接口，eUICC用secret Ki將隨機數加密，將加密的結果返回的操作系統，操作系統將結果給carrier服務器
+  12. carrier驗證通過後，允許手機使用網絡。後面和carrier通信的時候，都使用這個secret Ki證明自己的身份
+* eUICC暴露的接口
+  1. here is an encrypted profile package, please install it. 
+  2. please list the profiles you currently stored.
+  3. please give me the public certificate
+  4. please enable profile A 
+  5. please delte profile B
+  6. the network has send this random number (RAND), please use the active profile's Ki to compute the response and give me the result
