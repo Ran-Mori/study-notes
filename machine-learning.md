@@ -1249,3 +1249,23 @@ Setiment:
 
 * 假設訓練時T為1000，推理時step為20。並不是從純噪聲x1000 -> x980，而是中間會有優化跳躍，從x1000 -> x950 -> x900 -> x850 -> ... -> x0
 * 推理时sample step的最大值为训练时设置的T
+
+## multimodality
+
+### training
+
+1. a massive dataset of image-text pairs are used. 
+2. It generates embedded vectors from an image(use vision encoder), then generate embedded vectors from the text description of the image(use text encoder).
+3. the model's objective is to make the image's embedded vectors and the text description's embedded vectors as similar as possible in the shared "embedding space."
+
+### inference
+
+1. Step A (Image): The input image is fed into the vision encoder, which converts the image directly into a sequence of image embedding vectors.
+2. Step B (Text): The input text prompt is fed into the text encoder, which converts it into a sequence of text embedding** vectors**.
+3. Step C (Combine): These two sets of vectors are combined into a single, continuous sequence.
+4. Step D (Decode): This combined sequence of vectors is then processed by the main decoder (the core LLM), which predicts the next token to generate the final text output.
+
+### feature
+
+1. text LLMs are decoder-only models.
+2. multimodal LLM are encoder-decoder models
